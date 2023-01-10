@@ -1,10 +1,16 @@
+import config
+from pymongo import MongoClient
 from fatsecret_parser import FatSecretParser
-from db_collections.food_collection import FoodCollection
 
 
 def main():
+    mongo = MongoClient(config.MONGO_URL)
+    db = mongo[config.MONGO_DATABASE]
+
+    food_collection = db[config.MONGO_FOOD_COLLECTION]
+    food_collection.drop()
+
     parser = FatSecretParser()
-    food_collection = FoodCollection(path="data/food_collection.json")
 
     with open("data/fatsecret_urls.txt", encoding="utf-8") as f:
         urls = f.read().splitlines()
@@ -18,12 +24,8 @@ def main():
         if not food:
             print("Couldn't download", url)
         else:
-            food_collection.add(food)
+            food_collection.insert_one(food.to_dict())
             print("Added", url)
-
-    food_collection.save()
-    food_collection.load()
-    food_collection.print()
 
 
 if __name__ == '__main__':

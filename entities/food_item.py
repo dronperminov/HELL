@@ -1,6 +1,6 @@
-import uuid
 from typing import Optional, Dict
 from decimal import Decimal
+from bson.decimal128 import Decimal128
 
 from entities.portion_unit import BasePortionUnit, PortionUnit
 
@@ -8,9 +8,7 @@ from entities.portion_unit import BasePortionUnit, PortionUnit
 class FoodItem:
     def __init__(self, name: str, description: str,
                  energy: Decimal, fats: Decimal, proteins: Decimal, carbohydrates: Decimal,
-                 portion: BasePortionUnit, conversions: Optional[Dict[PortionUnit, Decimal]] = None,
-                 id: Optional[str] = None):
-        self.id = id if id else str(uuid.uuid1())
+                 portion: BasePortionUnit, conversions: Optional[Dict[PortionUnit, Decimal]] = None):
         self.name = name
         self.description = description
         self.portion = portion
@@ -38,14 +36,30 @@ class FoodItem:
 
     @staticmethod
     def from_dict(data: dict) -> "FoodItem":
-        for name in ("energy", "fats", "proteins", "carbohydrates"):
-            data[name] = Decimal(data[name])
+        name = data["name"]
+        description = data["description"]
+        energy = Decimal(str(data["energy"]))
+        fats = Decimal(str(data["fats"]))
+        proteins = Decimal(str(data["proteins"]))
+        carbohydrates = Decimal(str(data["carbohydrates"]))
 
-        data["portion"] = BasePortionUnit.from_str(data["portion"])
-        data["conversions"] = {PortionUnit.from_str(unit): Decimal(value) for unit, value in data["conversions"].items()}
+        portion = BasePortionUnit.from_str(data["portion"])
+        conversions = {PortionUnit.from_str(unit): Decimal(str(value)) for unit, value in data["conversions"].items()}
 
-        food_item = FoodItem(**data)
+        food_item = FoodItem(name, description, energy, fats, proteins, carbohydrates, portion, conversions)
         return food_item
+
+    def to_dict(self) -> dict:
+        return dict(
+            name=self.name,
+            description=self.description,
+            portion=self.portion,
+            conversions={PortionUnit.from_str(unit): Decimal128(str(value)) for unit, value in self.conversions.items()},
+            energy=Decimal128(str(self.energy)),
+            fats=Decimal128(str(self.fats)),
+            proteins=Decimal128(str(self.proteins)),
+            carbohydrates=Decimal128(str(self.carbohydrates))
+        )
 
     def __repr__(self) -> str:
         lines = [
