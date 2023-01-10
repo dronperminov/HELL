@@ -4,7 +4,6 @@ from enum import Enum
 class BasePortionUnit(str, Enum):
     g100 = "100 г",
     ml100 = "100 мл",
-    portion = "порция"
 
     @staticmethod
     def from_str(value: str) -> "BasePortionUnit":
@@ -14,7 +13,7 @@ class BasePortionUnit(str, Enum):
         if value == BasePortionUnit.ml100:
             return BasePortionUnit.ml100
 
-        return BasePortionUnit.portion
+        raise ValueError(f'Invalid base portion unit "{value}"')
 
 
 class PortionUnit(str, Enum):

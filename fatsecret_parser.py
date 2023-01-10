@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -30,10 +30,9 @@ class FatSecretParser:
         proteins = Decimal(texts[-1][:-1].replace(',', '.'))
 
         portion_text = texts[-11].replace(",", ".")
-        portion = BasePortionUnit.from_str(portion_text)
-        conversions = self.__get_conversions(portion_text)
+        portion, conversions, scale = self.__get_portion_info(portion_text)
 
-        food = FoodItem(name, "", energy, fats, proteins, carbohydrates, portion, conversions)
+        food = FoodItem(name, "", energy * scale, fats * scale, proteins * scale, carbohydrates * scale, portion, conversions)
         return food
 
     def __get_div_texts(self, div: Tag) -> List[str]:
@@ -58,17 +57,17 @@ class FatSecretParser:
 
         return texts_filtered
 
-    def __get_conversions(self, portion_text: str) -> Dict[PortionUnit, Decimal]:
+    def __get_portion_info(self, portion_text: str) -> Tuple[BasePortionUnit, Dict[PortionUnit, Decimal], Decimal]:
         conversions = dict()
+
+        if portion_text in [BasePortionUnit.g100, BasePortionUnit.ml100]:
+            return BasePortionUnit.from_str(portion_text), conversions, Decimal("1")
 
         match = re.match(r"^1 +(?P<unit>порция|штука|ломтик) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
         if match:
             unit, value = match.group("unit"), match.group("value")
-            conversions[PortionUnit.g] = Decimal("1") / Decimal(value)
-            conversions[PortionUnit.from_str(unit)] = Decimal("1")
+            scale = Decimal("100") / Decimal(value)
+            conversions[PortionUnit.from_str(unit)] = Decimal(value) / Decimal("100")
+            return BasePortionUnit.g100, conversions, scale
 
-        match = re.match(r"^1 +(?P<unit>порция|штука|ломтик)$", portion_text)
-        if match:
-            conversions[PortionUnit.from_str(match.group("unit"))] = Decimal("1")
-
-        return conversions
+        raise ValueError(f'Invalid portion description: "{portion_text}"')
