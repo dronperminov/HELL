@@ -1,0 +1,61 @@
+import uuid
+from typing import Optional, Dict
+from decimal import Decimal
+
+from entities.portion_unit import BasePortionUnit, PortionUnit
+
+
+class FoodItem:
+    def __init__(self, name: str, description: str,
+                 energy: Decimal, fats: Decimal, proteins: Decimal, carbohydrates: Decimal,
+                 portion: BasePortionUnit, conversions: Optional[Dict[PortionUnit, Decimal]] = None,
+                 id: Optional[str] = None):
+        self.id = id if id else str(uuid.uuid1())
+        self.name = name
+        self.description = description
+        self.portion = portion
+        self.conversions = conversions if conversions else dict()
+        self.energy = energy
+        self.fats = fats
+        self.proteins = proteins
+        self.carbohydrates = carbohydrates
+
+        self.__init_base_conversions()
+
+    def add_conversion(self, unit: PortionUnit, value: Decimal) -> None:
+        if unit in self.conversions:
+            raise ValueError(f"Unit {unit} already include")
+
+        self.conversions[unit] = value
+
+    def __init_base_conversions(self) -> None:
+        if self.portion == BasePortionUnit.g100:
+            self.conversions[PortionUnit.g] = Decimal("0.01")
+        elif self.portion == BasePortionUnit.ml100:
+            self.conversions[PortionUnit.ml] = Decimal("0.01")
+            self.conversions[PortionUnit.tea_spoon] = Decimal("0.05")
+            self.conversions[PortionUnit.table_spoon] = Decimal("0.18")
+
+    @staticmethod
+    def from_dict(data: dict) -> "FoodItem":
+        for name in ("energy", "fats", "proteins", "carbohydrates"):
+            data[name] = Decimal(data[name])
+
+        data["portion"] = BasePortionUnit.from_str(data["portion"])
+        data["conversions"] = {PortionUnit.from_str(unit): Decimal(value) for unit, value in data["conversions"].items()}
+
+        food_item = FoodItem(**data)
+        return food_item
+
+    def __repr__(self) -> str:
+        lines = [
+            f"Наименование: {self.name}",
+            f"Описание: {self.description if self.description else '-'}",
+            f"Порция: {self.portion}, (варианты: {', '.join(unit + '->' + str(value) for unit, value in self.conversions.items())})",
+            f"Энергетическая ценность: {self.energy} ккал",
+            f"Жиры: {self.fats}г",
+            f"Белки: {self.proteins}г",
+            f"Углеводы: {self.carbohydrates}г"
+        ]
+
+        return "\n".join(lines)
