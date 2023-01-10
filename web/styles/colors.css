@@ -1,0 +1,11 @@
+:root {
+    --text-color: #000;
+    --background-color: #fff;
+    --border-color: #ddd;
+    --disabled-color: #aaa;
+    --success-color: #4caf50;
+    --active-color: #4caf50;
+
+    --active-button-color: #fff;
+    --active-button-background: #4caf50;
+}
