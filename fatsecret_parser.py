@@ -11,29 +11,35 @@ from entities.portion_unit import BasePortionUnit, PortionUnit
 
 class FatSecretParser:
     def parse(self, url: str) -> Optional[FoodItem]:
-        response = requests.get(url)
+        try:
+            response = requests.get(url)
+        except requests.exceptions.ConnectionError:
+            return None
 
         if response.status_code != 200:
             return None
 
         soup = BeautifulSoup(response.text, 'html.parser')
+        div = soup.find("div", {"class": "nutrition_facts"})
+
+        if not div:
+            return None
+
+        texts = self.__get_div_texts(div)
 
         title = soup.find("title")
         name = title.text.replace(" Калории и Пищевая Ценность", "")
-
-        div = soup.find("div", {"class": "nutrition_facts"})
-        texts = self.__get_div_texts(div)
-
         energy = Decimal(texts[-7].split(' ')[0])
         fats = Decimal(texts[-5][:-1].replace(',', '.'))
         carbohydrates = Decimal(texts[-3][:-1].replace(',', '.'))
         proteins = Decimal(texts[-1][:-1].replace(',', '.'))
 
-        portion_text = texts[-11].replace(",", ".")
-        portion, conversions, scale = self.__get_portion_info(portion_text)
-
-        food = FoodItem(name, "", energy * scale, fats * scale, proteins * scale, carbohydrates * scale, portion, conversions)
-        return food
+        try:
+            portion, conversions, scale = self.__get_portion_info(texts[-11].replace(",", "."))
+            food = FoodItem(name, "", energy * scale, fats * scale, proteins * scale, carbohydrates * scale, portion, conversions)
+            return food
+        except ValueError:
+            return None
 
     def __get_div_texts(self, div: Tag) -> List[str]:
         texts = [d.text.strip() for d in div if d.text.strip()]
@@ -61,13 +67,13 @@ class FatSecretParser:
         conversions = dict()
 
         if portion_text in [BasePortionUnit.g100, BasePortionUnit.ml100]:
-            return BasePortionUnit.from_str(portion_text), conversions, Decimal("1")
+            return BasePortionUnit(portion_text), conversions, Decimal("1")
 
-        match = re.match(r"^1 +(?P<unit>порция|штука|ломтик) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
+        match = re.match(r"^1 +(?P<unit>порция|шт|ломтик)(ука)? +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
         if match:
             unit, value = match.group("unit"), match.group("value")
             scale = Decimal("100") / Decimal(value)
-            conversions[PortionUnit.from_str(unit)] = Decimal(value) / Decimal("100")
+            conversions[PortionUnit(unit)] = Decimal(value) / Decimal("100")
             return BasePortionUnit.g100, conversions, scale
 
         raise ValueError(f'Invalid portion description: "{portion_text}"')

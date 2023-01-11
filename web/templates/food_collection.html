@@ -3,8 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Коллекция продуктов</title>
-    <link rel="stylesheet" type="text/css" href="/styles/colors.css">
+    <title>Коллекция продуктов | HELL</title>
+
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
 </head>
@@ -25,14 +26,19 @@
         {% if food_items == [] %}
             {% if query %}
                 <div class="food-search-results">
-                    По запросу <i>"{{query}}"</i> продуктов не найдено...
+                    <p>По запросу <i>"{{query}}"</i> продуктов не найдено...</p>
+                    <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
                 </div>
             {% else %}
-                Ещё не было добавлено никаких продуктов...
+                Ещё не было добавлено никаких продуктов. Но Вы можете
             {% endif %}
+
+            <div class="add-food">
+                <button onclick="location.href='/add-food';">Добавить новый продукт</button>
+            </div>
         {% else %}
             {% for food_item in food_items %}
-            <div class="food-item">
+            <div class="food-item" id="{{food_item._id}}" onclick="location.href = '{{click_url}}/{{food_item._id}}'">
                 <div class="food-name">{{food_item.name}}</div>
                 <div class="food-description">{{food_item.description}}</div>
                 <div class="food-info">

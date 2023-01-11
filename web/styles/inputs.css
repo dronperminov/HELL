@@ -8,7 +8,7 @@ select {
     border-bottom: 1px solid var(--border-color);
     padding: 0;
     background: var(--background-color);
-    font-size: 0.9em;
+    font-size: 0.9rem;
 }
 
 input[type="text"]:focus, input[type="text"]:hover,
@@ -17,6 +17,13 @@ input[type="number"]:focus, input[type="number"]:hover,
 select:focus, select:hover {
     outline: none;
     border-bottom: 1px solid var(--active-color);
+}
+
+input[type="text"]:disabled,
+input[type="number"]:disabled,
+input[type="range"]:disabled,
+select:disabled {
+    border-color: var(--border-color);
 }
 
 button {
@@ -31,4 +38,28 @@ button:focus, button:hover {
     background: var(--active-button-background);
     border-color: var(--active-button-background);
     color: var(--active-button-color);
+}
+
+textarea {
+    box-sizing: border-box;
+    width: 100%;
+
+    border-color: var(--border-color);
+    padding: 2px;
+    background: var(--background-color);
+    font-size: 0.9rem;
+    resize: vertical;
+}
+
+textarea:focus, textarea:hover {
+    outline: none;
+    border: 1px solid var(--active-color);
+}
+
+input[type="number"].half {
+    width: 50%;
+}
+
+select.auto {
+    width: auto;
 }
