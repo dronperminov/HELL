@@ -35,6 +35,10 @@
     padding-bottom: 5px;
 }
 
+.food-description {
+    white-space: pre-wrap;
+}
+
 .food-info {
     display: table;
     width: 100%;

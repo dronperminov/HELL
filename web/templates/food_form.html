@@ -122,13 +122,13 @@
             let unitSelect = document.createElement('select')
             let portion = document.getElementById("portion").value
 
-            for (let value of PORTION_UNITS) {
-                if (target === null && value in PORTION_UNITS_DEFAULT[portion])
+            for (let unit of PORTION_UNITS) {
+                if (target === null && unit in PORTION_UNITS_DEFAULT[portion])
                     continue
 
                 let option = document.createElement('option')
-                option.value = value
-                option.innerText = value
+                option.value = unit
+                option.innerText = unit
                 unitSelect.appendChild(option)
             }
 
@@ -142,10 +142,13 @@
                 unitSelect.value = target.unit
                 valueInput.value = target.value
 
-                unitSelect.setAttribute('disabled', '')
-                valueInput.setAttribute('disabled', '')
+                if (target.unit in PORTION_UNITS_DEFAULT[portion]) {
+                    unitSelect.setAttribute('disabled', '')
+                    valueInput.setAttribute('disabled', '')
+                }
             }
-            else {
+
+            if (target === null || !(target.unit in PORTION_UNITS_DEFAULT[portion])) {
                 div.appendChild(closeDiv)
                 closeDiv.appendChild(closeIcon)
             }
