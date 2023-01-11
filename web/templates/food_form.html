@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}} | HELL</title>
+
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/add-food.css">
+</head>
+<body>
+    <div>
+        <div class="form-row">
+            <label>Название продукта:
+                <input type="text" id="name" {% if food %}value="{{food.name}}"{% endif %}>
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label for="energy">Энергетическая ценность</label>
+            <input class="half right" type="number" step="0.01" min="0" value="{% if food %}{{food.energy}}{% else %}0{% endif %}" id="energy"> ккал /
+            <select class="auto" id="portion">
+                <option value="100 г" {% if food %}{%if food.portion == "100 г" %}selected{% endif %}{% else %}selected{% endif %}>100 г</option>
+                <option value="100 мл" {% if food and food.portion == "100 мл" %}selected{% endif %}>100 мл</option>
+            </select>
+        </div>
+
+        <div class="form-row">
+            <label>Жиры (г)
+                <input type="number" step="0.01" min="0" value="{% if food %}{{food.fats}}{% else %}0{% endif %}" id="fats">
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label>Белки (г)
+                <input type="number" step="0.01" min="0" value="{% if food %}{{food.proteins}}{% else %}0{% endif %}" id="proteins">
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label>Углеводы (г)
+                <input type="number" step="0.01" min="0" value="{% if food %}{{food.carbohydrates}}{% else %}0{% endif %}" id="carbohydrates">
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label>Варианты порции</label>
+            <div id="conversions-box"></div>
+            <button id="conversion-button">Добавить</button>
+        </div>
+
+        <div class="form-row">
+            <label>Описание:
+                <textarea type="text" id="description" rows="3">{% if food %}{{food.description}}{% endif %}</textarea>
+            </label>
+        </div>
+
+        <div class="form-row center">
+            <button id="save-button">{{add_text}}</button>
+            {% if food %}
+            <button id="remove-button">Удалить</button>
+            {% endif %}
+            <button id="back-button">Отмена</button>
+        </div>
+    </div>
+
+    {% if not food %}
+    <div class="add-from-url">
+        <div class="add-from-url-header">Загрузить из FatSecret:</div>
+
+        <label>Ссылка на FatSecret:
+            <input type="text" id="url-box" placeholder="https://www.fatsecret.ru/...">
+        </label>
+
+        <div class="add-from-url-button">
+            <button id="url-button">Загрузить</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="/js/constants.js"></script>
+    <script src="/js/forms.js"></script>
+    <script>
+        function InitConversions() {
+            let portion = document.getElementById("portion").value
+
+            for (let key of BASE_UNITS)
+                for (let unit of Object.keys(PORTION_UNITS_DEFAULT[key]))
+                    RemoveConversion(unit)
+
+            for (let unit of Object.keys(PORTION_UNITS_DEFAULT[portion]))
+                AddConversion({unit: unit, value: PORTION_UNITS_DEFAULT[portion][unit]})
+        }
+
+        function RemoveConversion(unit) {
+            for (let item of document.getElementsByClassName('conversions-item')) {
+                let unitBox = item.getElementsByClassName('conversions-unit')[0].children[0]
+
+                if (unitBox.value == unit)
+                    document.getElementById('conversions-box').removeChild(item)
+            }
+        }
+
+        function AddConversion(target = null) {
+            let block = document.getElementById('conversions-box')
+
+            let div = document.createElement('div')
+            div.className = 'conversions-item'
+
+            let closeDiv = document.createElement('div')
+            let unitDiv = document.createElement('div')
+            let valueDiv = document.createElement('div')
+            closeDiv.className = 'conversions-close'
+            unitDiv.className = 'conversions-unit'
+            valueDiv.className = 'conversions-value'
+
+            let closeIcon = document.createElement('span')
+            closeIcon.innerText = '✖'
+            closeIcon.addEventListener('click', () => block.removeChild(div))
+
+            let unitSelect = document.createElement('select')
+            let portion = document.getElementById("portion").value
+
+            for (let unit of PORTION_UNITS) {
+                if (target === null && unit in PORTION_UNITS_DEFAULT[portion])
+                    continue
+
+                let option = document.createElement('option')
+                option.value = unit
+                option.innerText = unit
+                unitSelect.appendChild(option)
+            }
+
+            let valueInput = document.createElement('input')
+            valueInput.type = "number"
+            valueInput.step = 0.01
+            valueInput.min = 0.01
+            valueInput.value = 1
+
+            if (target !== null) {
+                unitSelect.value = target.unit
+                valueInput.value = target.value
+
+                if (target.unit in PORTION_UNITS_DEFAULT[portion]) {
+                    unitSelect.setAttribute('disabled', '')
+                    valueInput.setAttribute('disabled', '')
+                }
+            }
+
+            if (target === null || !(target.unit in PORTION_UNITS_DEFAULT[portion])) {
+                div.appendChild(closeDiv)
+                closeDiv.appendChild(closeIcon)
+            }
+
+            unitDiv.appendChild(unitSelect)
+            valueDiv.appendChild(valueInput)
+            div.appendChild(unitDiv)
+            div.appendChild(valueDiv)
+
+            block.appendChild(div)
+        }
+
+        function GetConversions(portion) {
+            let items = document.getElementsByClassName('conversions-item')
+            let conversions = {}
+
+            for (let item of items) {
+                let unitBox = item.getElementsByClassName('conversions-unit')[0].children[0]
+                let valueBox = item.getElementsByClassName('conversions-value')[0].children[0]
+
+                let unit = unitBox.value
+                let value = valueBox.value
+
+                if (unit in conversions) {
+                    alert(`Вариант "${unit}" уже был добавлен`)
+                    unitBox.focus()
+                    return null
+                }
+
+                if (!IsRealValue(value) || +value <= 0) {
+                    alert(`Коэффициент для варианта "${unit}" введён некорректно`)
+                    valueBox.focus()
+                    return null
+                }
+
+                conversions[unit] = value
+            }
+
+            return conversions
+        }
+
+        function SaveFood() {
+            const fields = [
+                {name: "name", func: IsNotEmptyValue, message: "Название продукта не заполнено"},
+                {name: "description", func: null},
+                {name: "portion", func: null},
+                {name: "energy", func: (value) => IsRealValue(value) && +value > 0, message: "Энергетическая ценность введена некорректно"},
+                {name: "fats", func: IsRealValue, message: "Жиры введены некорректно"},
+                {name: "proteins", func: IsRealValue, message: "Белки введены некорректно"},
+                {name: "carbohydrates", func: IsRealValue, message: "Углеводы введены некорректно"}
+            ]
+
+            const food = ValidateFields(fields)
+
+            if (food === null)
+                return
+
+            food.conversions = GetConversions(food.portion)
+
+            if (food.conversions === null)
+                return
+
+            SendRequest("{{add_url}}", food).then((response) => {
+                if (response.status != "OK") {
+                    alert(response.message)
+                }
+                else {
+                    alert(response.message)
+                    location.href = response.href
+                }
+            })
+        }
+
+        {% if food %}
+        function RemoveFood() {
+            let name = document.getElementById("name").value
+
+            if (!confirm(`Вы уверены, что хотите удалить продукт "${name}"?`))
+                return
+
+            location.href = "/remove-food/{{food._id}}"
+        }
+        {% endif %}
+
+        function ParseFatsecret() {
+            let url = document.getElementById("url-box").value
+
+            if (!IsNotEmptyValue(url)) {
+                alert("Ссылка пуста")
+                return
+            }
+
+            SendRequest("/parse-fatsecret", {"url": url}).then((food) => {
+                console.log(food)
+
+                if (food === null) {
+                    alert("Не удалось распарсить продукт.")
+                    return
+                }
+
+                document.getElementById("name").value = food.name
+                document.getElementById("portion").value = food.portion
+                document.getElementById("energy").value = food.energy
+                document.getElementById("fats").value = food.fats
+                document.getElementById("proteins").value = food.proteins
+                document.getElementById("carbohydrates").value = food.carbohydrates
+
+                let block = document.getElementById('conversions-box')
+                block.innerHTML = ''
+
+                for (let unit of Object.keys(food.conversions))
+                    AddConversion({unit: unit, value: food.conversions[unit]})
+            })
+        }
+
+        let portionBox = document.getElementById("portion")
+        let saveButton = document.getElementById("save-button")
+        let backButton = document.getElementById("back-button")
+        let conversionButton = document.getElementById("conversion-button")
+
+        portionBox.addEventListener('change', () => InitConversions())
+        conversionButton.addEventListener('click', () => AddConversion())
+        saveButton.addEventListener('click', () => SaveFood())
+        backButton.addEventListener('click', () => history.back())
+
+        {% if food %}
+            let removeButton = document.getElementById("remove-button")
+            removeButton.addEventListener('click', () => RemoveFood())
+
+            {% for unit, value in food.conversions.items() %}
+            AddConversion({unit: "{{unit}}", value: "{{value}}"})
+            {% endfor %}
+        {% else %}
+            let urlButton = document.getElementById("url-button")
+            urlButton.addEventListener('click', () => ParseFatsecret())
+
+            InitConversions()
+        {% endif %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+.add-from-url {
+    border-top: 1px solid var(--border-color);
+    padding: 5px 10px;
+}
+
+.add-from-url-header {
+    font-weight: bold;
+    text-align: center;
+}
+
+.add-from-url-button {
+    text-align: center;
+    margin-top: 8px;
+}
+
+.conversions-item {
+    display: table;
+    margin-bottom: 10px;
+}
+
+.conversions-close {
+    display: table-cell;
+    width: 30px;
+}
+
+.conversions-unit {
+    display: table-cell;
+    width: 45%;
+}
+
+.conversions-value {
+    display: table-cell;
+    width: 50%;
+    padding-left: 5px;
+}
