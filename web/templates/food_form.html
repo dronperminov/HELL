@@ -58,6 +58,9 @@
 
         <div class="form-row center">
             <button id="save-button">{{add_text}}</button>
+            {% if food %}
+            <button id="remove-button">Удалить</button>
+            {% endif %}
             <button id="back-button">Отмена</button>
         </div>
     </div>
@@ -216,6 +219,17 @@
             })
         }
 
+        {% if food %}
+        function RemoveFood() {
+            let name = document.getElementById("name").value
+
+            if (!confirm(`Вы уверены, что хотите удалить продукт "${name}"?`))
+                return
+
+            location.href = "/remove-food/{{food._id}}"
+        }
+        {% endif %}
+
         function ParseFatsecret() {
             let url = document.getElementById("url-box").value
 
@@ -258,9 +272,12 @@
         backButton.addEventListener('click', () => history.back())
 
         {% if food %}
-        {% for unit, value in food.conversions.items() %}
+            let removeButton = document.getElementById("remove-button")
+            removeButton.addEventListener('click', () => RemoveFood())
+
+            {% for unit, value in food.conversions.items() %}
             AddConversion({unit: "{{unit}}", value: "{{value}}"})
-        {% endfor %}
+            {% endfor %}
         {% else %}
             let urlButton = document.getElementById("url-button")
             urlButton.addEventListener('click', () => ParseFatsecret())

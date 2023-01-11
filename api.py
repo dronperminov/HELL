@@ -86,6 +86,13 @@ async def edit_food_post(food_id: str, request: Request):
         return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить продукт из-за ошибки: {e}"})
 
 
+@app.get("/remove-food/{food_id}")
+def remove_food(food_id: str):
+    food_collection = database[config.MONGO_FOOD_COLLECTION]
+    food_collection.delete_one({"_id": ObjectId(food_id)})
+    return RedirectResponse(url="/food-collection", status_code=302)
+
+
 @app.post("/parse-fatsecret")
 async def parse_fatsecret(request: Request):
     data = await request.json()
