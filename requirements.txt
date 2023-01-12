@@ -1,0 +1,8 @@
+beautifulsoup4
+fastapi
+Jinja2
+passlib[bcrypt]
+pymongo
+pyjwt
+python-multipart
+requests
