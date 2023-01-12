@@ -1,9 +1,10 @@
 :root {
     --text-color: #000;
-    --background-color: #fff;
-    --border-color: #ddd;
+    --background-color: transparent;
+    --border-color: #bbb;
     --disabled-color: #aaa;
     --success-color: #4caf50;
+    --error-color: #f44336;
     --active-color: #4caf50;
 
     --active-button-color: #fff;
@@ -11,14 +12,16 @@
 }
 
 body {
-    padding: 0;
+    padding: 10px 10px 0 10px;
     margin: 0;
     color: var(--text-color);
-    background: var(--background-color);
+    background: url("/images/food_texture.jpg");
+    background-color: var(--background-color);
 }
 
 h1 {
     text-align: center;
+    margin-top: 0;
     margin-bottom: 8px;
 }
 
@@ -29,7 +32,6 @@ p {
 
 .form-row {
     margin-bottom: 8px;
-    padding: 0 10px;
 }
 
 .form-row label {
@@ -43,4 +45,12 @@ p {
 
 .center {
     text-align: center;
+}
+
+.success {
+    color: var(--success-color);
+}
+
+.error {
+    color: var(--error-color);
 }

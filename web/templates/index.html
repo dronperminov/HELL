@@ -3,15 +3,19 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Главная</title>
+    <title>Главная страница | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
 </head>
 <body>
+    <h1>Добро пожаловать в HELL!</h1>
     {% if user %}
-        <span>Текущий пользователь: {{ user }}</span>
-        <a href="/logout">Выйти</a>
+        <p>Текущий пользователь: <span class="success">{{ user.username }}</span>, но Вы можете <a href="/logout">выйти</a></p>
     {% else %}
-        <span>Вы неавторизованный пользователь</span><br>
-        <a href="/login">Авторизоваться</a>
+        <p>Вы неавторизованный пользователь, поэтому Вы можете <a href="/login">авторизоваться</a></p>
     {% endif %}
+
+    <p>Сейчас у нас есть: <a href="/food-collection">список продуктов</a></p>
+    <p>Вы можете <button onclick="location.href='/add-food';">добавить продукт</button> в него</p>
 </body>
 </html>

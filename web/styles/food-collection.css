@@ -1,6 +1,6 @@
 .food-search {
     box-sizing: border-box;
-    padding: 5px;
+    padding: 5px 0;
     display: table;
     width: 100%;
     border-bottom: 1px solid var(--border-color);
@@ -18,7 +18,7 @@
 }
 
 .food-search-results {
-    padding: 5px 10px 0 10px;
+    padding-top: 5px;
 }
 
 .add-food {
@@ -27,7 +27,7 @@
 
 .food-item {
     border-bottom: 1px solid var(--border-color);
-    padding: 5px 8px;
+    padding: 5px 0;
 }
 
 .food-name {

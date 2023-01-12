@@ -3,25 +3,30 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title></title>
+    <title>Вход | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
 </head>
 <body>
     <form id="login-form" action="/login" method="post">
-        <label>Login: <input type="text" name="username" value="admin"></label><br>
-        <label>Password: <input type="password" name="password" value="admin"></label><br>
-        <button type="submit">Login</button>
+        <div class="form-row">
+            <label>Имя пользователя: <input type="text" name="username" value="admin"></label>
+        </div>
+        <div class="form-row">
+            <label>Пароль: <input type="password" name="password" value="admin"></label>
+        </div>
+        <div class="center">
+            <button type="submit">Войти в HELL</button>
+        </div>
     </form>
 
-    <span id="error-message"></span>
+    <span class="error" id="error-message"></span>
 
     <script>
-        let form = document.getElementById("login-form")
-
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault()
+        async function SubmitForm(e) {
+            e.preventDefault()
             let username = form.elements.username.value
             let password = form.elements.password.value
-            console.log(username, password)
             let data = {username, password}
 
             try {
@@ -37,7 +42,6 @@
                     throw new Error(response.statusText)
 
                 response = await response.json()
-                console.log(response)
 
                 if (response.status != "ok")
                     throw new Error(response.message)
@@ -47,7 +51,10 @@
                 let errorMessage = document.getElementById("error-message");
                 errorMessage.textContent = error.message;
             }
-        });
+        }
+
+        let form = document.getElementById("login-form")
+        form.addEventListener("submit", (e) => SubmitForm(e))
     </script>
 </body>
 </html>

@@ -18,6 +18,7 @@ from fatsecret_parser import FatSecretParser
 app = FastAPI()
 app.mount("/styles", StaticFiles(directory="web/styles"))
 app.mount("/js", StaticFiles(directory="web/js"))
+app.mount("/images", StaticFiles(directory="web/images"))
 templates = Environment(loader=FileSystemLoader('web/templates'), cache_size=0)
 
 mongo = MongoClient(config.MONGO_URL)
@@ -48,7 +49,7 @@ async def get_current_user(request: Request) -> Optional[str]:
 
 
 @app.get("/")
-async def index(user_id: str = Depends(get_current_user)):
+async def index(user_id: Optional[str] = Depends(get_current_user)):
     if user_id:
         user_collection = database[config.MONGO_USER_COLLECTION]
         user = user_collection.find_one({"_id": ObjectId(user_id)})
@@ -60,7 +61,10 @@ async def index(user_id: str = Depends(get_current_user)):
 
 
 @app.get("/login")
-def login_get():
+def login_get(user_id: Optional[str] = Depends(get_current_user)):
+    if user_id:
+        return RedirectResponse(url="/", status_code=302)
+
     template = templates.get_template('login.html')
     return HTMLResponse(content=template.render())
 
@@ -160,6 +164,7 @@ async def edit_food_post(food_id: str, request: Request):
 def remove_food(food_id: str):
     food_collection = database[config.MONGO_FOOD_COLLECTION]
     food_collection.delete_one({"_id": ObjectId(food_id)})
+    # TODO: check food_id for usages
     return RedirectResponse(url="/food-collection", status_code=302)
 
 
