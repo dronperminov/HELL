@@ -1,14 +1,19 @@
-import config
-from fastapi import FastAPI, Query, Request
+from datetime import datetime
+from typing import Optional
+
+import jwt
+from bson.objectid import ObjectId
+from fastapi import FastAPI, Query, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 
+import config
+from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME
 from entities.food_item import FoodItem
 from fatsecret_parser import FatSecretParser
-
 
 app = FastAPI()
 app.mount("/styles", StaticFiles(directory="web/styles"))
@@ -17,6 +22,71 @@ templates = Environment(loader=FileSystemLoader('web/templates'), cache_size=0)
 
 mongo = MongoClient(config.MONGO_URL)
 database = mongo[config.MONGO_DATABASE]
+
+
+async def token_to_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT"))) -> Optional[str]:
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+
+        if datetime.fromtimestamp(payload["exp"]) < datetime.now():
+            return None
+    except:
+        return None
+
+    user_collection = database[config.MONGO_USER_COLLECTION]
+    user = user_collection.find_one({"username": payload["sub"]})
+
+    if user is None:
+        return None
+
+    return user["_id"]
+
+
+async def get_current_user(request: Request) -> Optional[str]:
+    token = request.cookies.get(COOKIE_NAME)
+    return await token_to_user_id(token)
+
+
+@app.get("/")
+async def index(user_id: str = Depends(get_current_user)):
+    if user_id:
+        user_collection = database[config.MONGO_USER_COLLECTION]
+        user = user_collection.find_one({"_id": ObjectId(user_id)})
+    else:
+        user = None
+
+    template = templates.get_template('index.html')
+    return HTMLResponse(content=template.render(user=user))
+
+
+@app.get("/login")
+def login_get():
+    template = templates.get_template('login.html')
+    return HTMLResponse(content=template.render())
+
+
+@app.post('/login')
+def login(username: str = Form(...), password: str = Form(...)):
+    user_collection = database[config.MONGO_USER_COLLECTION]
+    user = user_collection.find_one({"username": username})
+
+    if user is None:
+        return JSONResponse({"status": "fail", "message": f"Пользователь \"{username}\" не существует"})
+
+    if not validate_password(password, user['password_hash']):
+        return JSONResponse({"status": "fail", "message": "Имя пользователя или пароль введены неверно"})
+
+    access_token = create_access_token(user["username"])
+    response = JSONResponse(content={"status": "ok"})
+    response.set_cookie(key="Authorization", value=access_token, httponly=True)
+    return response
+
+
+@app.get("/logout")
+def logout():
+    response = RedirectResponse("/", status_code=302)
+    response.delete_cookie(COOKIE_NAME)
+    return response
 
 
 @app.get("/food-collection")
