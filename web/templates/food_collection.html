@@ -33,9 +33,6 @@
                 Ещё не было добавлено никаких продуктов. Но Вы можете
             {% endif %}
 
-            <div class="add-food">
-                <button onclick="location.href='/add-food';">Добавить новый продукт</button>
-            </div>
         {% else %}
             {% for food_item in food_items %}
             <div class="food-item" id="{{food_item._id}}" onclick="location.href = '{{click_url}}/{{food_item._id}}'">
@@ -50,6 +47,10 @@
             </div>
             {% endfor %}
         {% endif %}
+        </div>
+
+        <div class="add-food">
+            <button onclick="location.href='/add-food';">Добавить новый продукт</button>
         </div>
     </div>
 </body>
