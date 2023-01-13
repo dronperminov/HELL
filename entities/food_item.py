@@ -25,6 +25,15 @@ class FoodItem:
             self.conversions[PortionUnit.tea_spoon] = Decimal("0.05")
             self.conversions[PortionUnit.table_spoon] = Decimal("0.18")
 
+    def make_portion(self, portion_size: Decimal, portion_unit: PortionUnit) -> dict:
+        scale = self.conversions[portion_unit] * portion_size
+        return {
+            "energy": self.energy * scale,
+            "fats": self.fats * scale,
+            "proteins": self.proteins * scale,
+            "carbohydrates": self.carbohydrates * scale
+        }
+
     @classmethod
     def from_dict(cls, data: dict) -> "FoodItem":
         name = data["name"]

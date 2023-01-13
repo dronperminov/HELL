@@ -5,10 +5,13 @@
     --disabled-color: #aaa;
     --success-color: #4caf50;
     --error-color: #f44336;
+    --warning-color: #ff9800;
     --active-color: #4caf50;
 
     --active-button-color: #fff;
     --active-button-background: #4caf50;
+
+    --block-background-color: #fff8ea8f;
 }
 
 body {
@@ -53,4 +56,8 @@ p {
 
 .error {
     color: var(--error-color);
+}
+
+.no-display {
+    display: none !important;
 }

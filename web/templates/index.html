@@ -17,5 +17,8 @@
 
     <p>Сейчас у нас есть: <a href="/food-collection">список продуктов</a></p>
     <p>Вы можете <button onclick="location.href='/add-food';">добавить продукт</button> в него</p>
+    {% if user %}
+    <p>А ещё у нас есть: <a href="/diary">дневник питания</a></p>
+    {% endif %}
 </body>
 </html>
