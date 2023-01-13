@@ -27,16 +27,16 @@ class FatSecretParser:
 
         texts = self.__get_div_texts(div)
 
-        title = soup.find("title")
-        name = title.text.replace(" Калории и Пищевая Ценность", "")
-        energy = Decimal(texts[-7].split(' ')[0])
-        fats = Decimal(texts[-5][:-1].replace(',', '.'))
-        carbohydrates = Decimal(texts[-3][:-1].replace(',', '.'))
-        proteins = Decimal(texts[-1][:-1].replace(',', '.'))
-
         try:
+            title = soup.find("title")
+            name = title.text.replace(" Калории и Пищевая Ценность", "")
             portion, conversions, scale = self.__get_portion_info(texts[-11].replace(",", "."))
-            food = FoodItem(name, "", energy * scale, fats * scale, proteins * scale, carbohydrates * scale, portion, conversions)
+            energy = self.__round(Decimal(texts[-7].split(' ')[0]) * scale)
+            fats = self.__round(Decimal(texts[-5][:-1].replace(',', '.')) * scale)
+            carbohydrates = self.__round(Decimal(texts[-3][:-1].replace(',', '.')) * scale)
+            proteins = self.__round(Decimal(texts[-1][:-1].replace(',', '.')) * scale)
+
+            food = FoodItem(name, "", energy, fats, proteins, carbohydrates, portion, conversions)
             return food
         except ValueError:
             return None
@@ -68,6 +68,9 @@ class FatSecretParser:
 
         return results
 
+    def __round(self, value: Decimal) -> Decimal:
+        return Decimal(str(int(value * 10) / 10))
+
     def __get_div_texts(self, div: Tag) -> List[str]:
         texts = [d.text.strip() for d in div if d.text.strip()]
         texts_filtered = []
@@ -96,9 +99,9 @@ class FatSecretParser:
         if portion_text in [BasePortionUnit.g100, BasePortionUnit.ml100]:
             return BasePortionUnit(portion_text), conversions, Decimal("1")
 
-        match = re.match(r"^1 +(?P<unit>порция|шт|ломтик)(ука)? +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
+        match = re.match(r"^1 +(?P<unit>порция|штука|бургер|батончик|ломтик) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
         if match:
-            unit, value = match.group("unit"), match.group("value")
+            unit, value = re.sub(r'штука|бургер|батончик', "шт", match.group("unit")), match.group("value")
             scale = Decimal("100") / Decimal(value)
             conversions[PortionUnit(unit)] = Decimal(value) / Decimal("100")
             return BasePortionUnit.g100, conversions, scale
