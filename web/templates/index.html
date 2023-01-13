@@ -6,8 +6,10 @@
     <title>Главная страница | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
+    {% include "menu.html" %}
     <h1>Добро пожаловать в HELL!</h1>
     {% if user %}
         <p>Текущий пользователь: <span class="success">{{ user.username }}</span>, но Вы можете <a href="/logout">выйти</a></p>

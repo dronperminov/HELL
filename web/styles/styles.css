@@ -14,6 +14,12 @@
 
     --block-background-color: #e8e8e88f;
     --background-image: url("/images/food_texture.jpg");
+
+    --menu-background: #e5e5e5;
+    --menu-text-color: #6f6f6f;
+    --menu-hover-background: #1f3028;
+    --menu-hover-text-color: #4caf50;
+    --menu-border-color: #e1e1e1;
 }
 
 [data-theme="dark"] {
@@ -31,6 +37,12 @@
 
     --block-background-color: #1e1e1e8f;
     --background-image: url("/images/food_texture_dark.jpg");
+
+    --menu-background: #161618;
+    --menu-text-color: #787a7e;
+    --menu-hover-background: #1f3028;
+    --menu-hover-text-color: #1fb766;
+    --menu-border-color: #787a7e;
 }
 
 body {
@@ -39,6 +51,7 @@ body {
     color: var(--text-color);
     background: var(--background-image);
     background-color: var(--background-color);
+    margin-bottom: 50px;
 }
 
 h1 {
@@ -79,4 +92,37 @@ p {
 
 .no-display {
     display: none !important;
+}
+
+.menu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: table;
+    width: 100%;
+    background: var(--menu-background);
+    border-top: 1px solid var(--menu-border-color);
+    border-collapse: collapse;
+    height: 50px;
+}
+
+.menu-item {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.menu-item a {
+    text-decoration: none;
+    color: var(--menu-text-color);
+    display: block;
+}
+
+.menu-item span {
+    font-size: 20px;
+}
+
+.menu-item a.current {
+    color: var(--menu-hover-text-color);
 }

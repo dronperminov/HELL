@@ -8,8 +8,10 @@
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/add-food.css">
+    <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
+    {% include "menu.html" %}
     <div>
         <div class="form-row">
             <label>Название продукта:
@@ -47,7 +49,7 @@
         <div class="form-row">
             <label>Варианты порции</label>
             <div id="conversions-box"></div>
-            <button id="conversion-button">Добавить</button>
+            <button id="conversion-button">Добавить вариант</button>
         </div>
 
         <div class="form-row">

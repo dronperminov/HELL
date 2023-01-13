@@ -7,11 +7,12 @@
 
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
+    {% include "menu.html" %}
     <h1>{% if date and meal_type %}{{names[meal_type].title()}} {{date}}{% else %}Продукты{% endif %}</h1>
 
     <form class="food-search" method="get" action="{% if date and meal_type %}/add-meal/{{date}}/{{meal_type}}{% else %}/food-collection{% endif %}">
@@ -31,10 +32,7 @@
                     <p>По запросу <i>"{{query}}"</i> продуктов не найдено...</p>
                     <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
                 </div>
-            {% else %}
-                Ещё не было добавлено никаких продуктов. Но Вы можете
             {% endif %}
-
         {% else %}
             {% for food_item in food_items %}
             <div class="food-item" id="{{food_item._id}}">

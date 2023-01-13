@@ -12,6 +12,7 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 from pymongo import MongoClient
+from pymongo.errors import OperationFailure
 
 import constants
 from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME
@@ -73,7 +74,7 @@ async def index(user_id: Optional[str] = Depends(get_current_user)):
         user = None
 
     template = templates.get_template('index.html')
-    return HTMLResponse(content=template.render(user=user))
+    return HTMLResponse(content=template.render(user=user, page="/"))
 
 
 @app.get("/login")
@@ -127,8 +128,14 @@ def get_default_portion(food_item: dict) -> Tuple[str, str]:
 
 
 def get_food_by_query(query: Optional[str], add_default_unit: bool = False):
+    if not query:
+        return []
+
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
-    food_items = list(food_collection.find({"name": {"$regex": query, "$options": "i"}} if query else {}))
+    try:
+        food_items = list(food_collection.find({"name": {"$regex": query, "$options": "i"}}))
+    except OperationFailure:
+        return []
 
     if add_default_unit:
         for i, food_item in enumerate(food_items):
@@ -146,14 +153,14 @@ def food_collection_get(food_query: str = Query(None)):
 
     food_items = get_food_by_query(food_query)
     template = templates.get_template('food_collection.html')
-    html = template.render(food_items=food_items, query=food_query)
+    html = template.render(food_items=food_items, query=food_query, page="/food-collection")
     return HTMLResponse(content=html)
 
 
 @app.get("/add-food")
 def add_food_get():
     template = templates.get_template('food_form.html')
-    html = template.render(title="Добавление нового продукта", add_text="Добавить продукт", add_url="/add-food")
+    html = template.render(title="Добавление нового продукта", add_text="Добавить продукт", add_url="/add-food", page="/add-food")
     return HTMLResponse(content=html)
 
 
@@ -178,7 +185,7 @@ def edit_food(food_id: str):
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
     food = food_collection.find_one({"_id": ObjectId(food_id)})
     template = templates.get_template('food_form.html')
-    html = template.render(title="Редактирование продукта", add_text="Обновить продукт", add_url=f"/edit-food/{food_id}", food=food)
+    html = template.render(title="Редактирование продукта", add_text="Обновить продукт", add_url=f"/edit-food/{food_id}", food=food, page="/edit-food")
     return HTMLResponse(content=html)
 
 
@@ -195,7 +202,7 @@ async def edit_food_post(food_id: str, request: Request):
             return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как продукт с названием \"{edited_food.name}\" уже существует"})
 
         food_collection.update_one({"_id": ObjectId(food_id)}, {"$set": edited_food.to_dict()})
-        return JSONResponse({"status": "OK", "href": f"/food-collection", "message": "Продукт успешно обновлён"})
+        return JSONResponse({"status": "OK", "href": f"/food-collection?food_query={edited_food.name[:25]}", "message": "Продукт успешно обновлён"})
     except Exception as e:
         return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить продукт из-за ошибки: {e}"})
 
@@ -271,7 +278,8 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
         date=date,
         meal_info=meal_info,
         names=constants.MEAL_TYPES_RUS,
-        meal_statistic=meal_statistic
+        meal_statistic=meal_statistic,
+        page="/diary"
     )
 
     return HTMLResponse(content=content)
@@ -284,7 +292,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
 
     food_items = get_food_by_query(food_query, add_default_unit=True)
     template = templates.get_template('food_collection.html')
-    html = template.render(food_items=food_items, query=food_query, date=date, meal_type=meal_type, names=constants.MEAL_TYPES_RUS)
+    html = template.render(food_items=food_items, query=food_query, date=date, meal_type=meal_type, names=constants.MEAL_TYPES_RUS, page="/add-meal")
     return HTMLResponse(content=html)
 
 

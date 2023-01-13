@@ -3,7 +3,6 @@
     padding: 5px 10px;
     display: table;
     width: 100%;
-    border-bottom: 1px solid var(--border-color);
 }
 
 .food-search-button {
@@ -26,6 +25,10 @@
     margin-top: 5px;
 }
 
+.food-item:first-child {
+    border-top: 1px solid var(--border-color);
+}
+
 .food-item {
     border-bottom: 1px solid var(--border-color);
     padding: 5px 10px;
@@ -38,6 +41,7 @@
 
 .food-description {
     white-space: pre-wrap;
+    color: var(--border-color);
 }
 
 .food-info {
