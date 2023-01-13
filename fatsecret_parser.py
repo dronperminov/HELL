@@ -41,6 +41,33 @@ class FatSecretParser:
         except ValueError:
             return None
 
+    def parse_search(self, query: str) -> List[dict]:
+        try:
+            response = requests.get(f'http://fatsecret.ru/калории-питание/search?q={query}')
+        except requests.exceptions.ConnectionError:
+            return []
+
+        if response.status_code != 200:
+            return []
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+        table = soup.find("table", {"class": "searchResult"})
+        results = []
+
+        for td in table.find_all("td"):
+            name = td.find("a", {"class": "prominent"})
+            brand = td.find("a", {"class": "brand"})
+            brand = brand.get_text() if brand else ""
+            small_text = td.find("div", {"class": "smallText"})
+            small_text = re.match(r'в[\s\S]*Белк: \d+(,\d+)?г', small_text.get_text().strip()).group()
+            results.append({
+                "link": f'http://fatsecret.ru/{name["href"]}',
+                "name": f'{name.get_text()}{brand}',
+                "info": small_text
+            })
+
+        return results
+
     def __get_div_texts(self, div: Tag) -> List[str]:
         texts = [d.text.strip() for d in div if d.text.strip()]
         texts_filtered = []

@@ -70,12 +70,14 @@
         <div class="add-from-url-header">Загрузить из FatSecret:</div>
 
         <label>Ссылка на FatSecret:
-            <input type="text" id="url-box" placeholder="https://www.fatsecret.ru/...">
+            <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret">
         </label>
 
         <div class="add-from-url-button">
-            <button id="url-button">Загрузить</button>
+            <button id="url-button">Искать / загрузить</button>
         </div>
+
+        <div id="fatsecret-search-result"></div>
     </div>
     {% endif %}
 
@@ -233,17 +235,8 @@
         }
         {% endif %}
 
-        function ParseFatsecret() {
-            let url = document.getElementById("url-box").value
-
-            if (!IsNotEmptyValue(url)) {
-                alert("Ссылка пуста")
-                return
-            }
-
+        function ParseFatsecretUrl(url) {
             SendRequest("/parse-fatsecret", {"url": url}).then((food) => {
-                console.log(food)
-
                 if (food === null) {
                     alert("Не удалось распарсить продукт.")
                     return
@@ -262,6 +255,49 @@
                 for (let unit of Object.keys(food.conversions))
                     AddConversion({unit: unit, value: food.conversions[unit]})
             })
+        }
+
+        function ParseFatsecretQuery(query) {
+            SendRequest("/parse-fatsecret", {"query": query}).then((response) => {
+                let resultsDiv = document.getElementById("fatsecret-search-result")
+
+                for (let result of response) {
+                    console.log(result)
+                    let resultDiv = document.createElement("div")
+                    let link = document.createElement("div")
+                    let info = document.createElement("div")
+
+                    resultDiv.className = "fatsecret-result"
+                    link.className = "fatsecret-link"
+                    info.className = "fatsecret-info"
+                    link.addEventListener('click', () => ParseFatsecretUrl(result.link))
+
+                    link.innerText = result.name
+                    info.innerText = result.info
+
+                    resultDiv.appendChild(link)
+                    resultDiv.appendChild(info)
+                    resultsDiv.appendChild(resultDiv)
+                }
+            })
+        }
+
+        function ParseFatsecret() {
+            let value = document.getElementById("url-box").value
+
+            if (!IsNotEmptyValue(value)) {
+                alert("Пустая ссылка или текстовый запрос")
+                return
+            }
+
+            document.getElementById("fatsecret-search-result").innerHTML = ''
+
+            if (value.match(/^https?:\/\/fatsecret/)) {
+                ParseFatsecretUrl(value)
+            }
+            else {
+                ParseFatsecretQuery(value)
+            }
         }
 
         let portionBox = document.getElementById("portion")

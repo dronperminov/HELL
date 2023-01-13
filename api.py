@@ -87,7 +87,7 @@ def login_get(user_id: Optional[str] = Depends(get_current_user)):
 @app.post('/login')
 def login(username: str = Form(...), password: str = Form(...)):
     user_collection = database[constants.MONGO_USER_COLLECTION]
-    user = user_collection.find_one({"username": username})
+    user = user_collection.find_one({"username": username.lower()})
 
     if user is None:
         return JSONResponse({"status": "fail", "message": f"Пользователь \"{username}\" не существует"})
@@ -295,6 +295,10 @@ def edit_meal(
 async def parse_fatsecret(request: Request):
     data = await request.json()
     parser = FatSecretParser()
+
+    if "query" in data:
+        return JSONResponse(parser.parse_search(data["query"]))
+
     food = parser.parse(data["url"].replace("https://", "http://"))
 
     if food:
