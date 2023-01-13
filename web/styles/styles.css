@@ -1,24 +1,41 @@
 :root {
-    --text-color: #000;
+    --text-color: #2f2f2f;
     --background-color: transparent;
     --border-color: #bbb;
     --disabled-color: #aaa;
     --success-color: #4caf50;
     --error-color: #f44336;
     --warning-color: #ff9800;
-    --active-color: #4caf50;
+    --active-color: var(--success-color);
 
     --active-button-color: #fff;
     --active-button-background: #4caf50;
 
-    --block-background-color: #fff8ea8f;
+    --block-background-color: #e8e8e88f;
+    --background-image: url("/images/food_texture.jpg");
+}
+
+[data-theme="dark"] {
+    --text-color: #e1e1e1;
+    --background-color: transparent;
+    --border-color: #767676;
+    --disabled-color: #888888;
+    --success-color: #419a64;
+    --error-color: #f44336;
+    --warning-color: #ff9800;
+
+    --active-button-color: #fff;
+    --active-button-background: #4caf50;
+
+    --block-background-color: #1e1e1e8f;
+    --background-image: url("/images/food_texture_dark.jpg");
 }
 
 body {
     padding: 10px 10px 0 10px;
     margin: 0;
     color: var(--text-color);
-    background: url("/images/food_texture.jpg");
+    background: var(--background-image);
     background-color: var(--background-color);
 }
 
