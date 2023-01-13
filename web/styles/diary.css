@@ -2,8 +2,21 @@
     
 }
 
-.meal-data {
+.diary-date {
+    padding: 5px;
+    text-align: center;
+}
 
+.diary-date a {
+    color: var(--text-color);
+}
+
+.diary-date a:hover {
+    color: var(--success-color);
+}
+
+.diary-current-date {
+    padding: 0 10px;
 }
 
 .meal-item {

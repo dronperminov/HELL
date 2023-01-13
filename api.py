@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Optional, List, Dict, Tuple
 from collections import OrderedDict
@@ -267,15 +267,15 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     if not user_id:
         return unauthorized_access("/diary")
 
-    if not date:
-        date = datetime.today().strftime('%d.%m.%Y')
-
-    meal_info = get_meal_info(date, user_id)
+    date = datetime.strptime(date, constants.DATE_FORMAT) if date else datetime.today()
+    meal_info = get_meal_info(date.strftime(constants.DATE_FORMAT), user_id)
     meal_statistic = {meal_type: get_meal_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
     template = templates.get_template('diary.html')
     content = template.render(
-        date=date,
+        date=date.strftime(constants.DATE_FORMAT),
+        prev_date=(date + timedelta(days=-1)).strftime(constants.DATE_FORMAT),
+        next_date=(date + timedelta(days=1)).strftime(constants.DATE_FORMAT),
         meal_info=meal_info,
         names=constants.MEAL_TYPES_RUS,
         meal_statistic=meal_statistic,

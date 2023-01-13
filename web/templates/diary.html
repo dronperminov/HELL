@@ -6,15 +6,17 @@
     <title>Дневник питания | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css">
-    <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=3">
+    <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
     {% include "menu.html" %}
     <div class="diary">
         <div class="diary-date">
-            {{date}}
+            <a href="/diary?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
+            <span class="diary-current-date">{{date}}</span>
+            <a href="/diary?date={{next_date}}"><span class="fa fa-chevron-right"></span></a>
         </div>
 
         {% for meal_type, meals in meal_info.items() %}
