@@ -7,6 +7,7 @@
     --error-color: #f44336;
     --warning-color: #ff9800;
     --active-color: var(--success-color);
+    --select-background-color: #feebd58f;
 
     --active-button-color: #fff;
     --active-button-background: #4caf50;
@@ -23,6 +24,7 @@
     --success-color: #419a64;
     --error-color: #f44336;
     --warning-color: #ff9800;
+    --select-background-color: #7c73698f;
 
     --active-button-color: #fff;
     --active-button-background: #4caf50;

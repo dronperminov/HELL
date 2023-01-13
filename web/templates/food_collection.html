@@ -3,16 +3,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Коллекция продуктов | HELL</title>
+    <title>{% if date and meal_type %}{{date}}. Добавление еды на {{names[meal_type]}}{% else %}Коллекция продуктов{% endif %} | HELL</title>
 
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
+    <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
-    <h1>Продукты</h1>
+    <h1>{% if date and meal_type %}{{names[meal_type].title()}} {{date}}{% else %}Продукты{% endif %}</h1>
 
-    <form class="food-search" method="get" action="/food-collection">
+    <form class="food-search" method="get" action="{% if date and meal_type %}/add-meal/{{date}}/{{meal_type}}{% else %}/food-collection{% endif %}">
         <div class="food-search-input">
             <input type="text" name="food_query" class="search-input" placeholder="Введите название продукта" {% if query %}value="{{query}}"{% endif %}>
         </div>
@@ -35,23 +37,115 @@
 
         {% else %}
             {% for food_item in food_items %}
-            <div class="food-item" id="{{food_item._id}}" onclick="location.href = '{{click_url}}/{{food_item._id}}'">
-                <div class="food-name">{{food_item.name}}</div>
-                <div class="food-description">{{food_item.description}}</div>
-                <div class="food-info">
-                    <div class="food-info-cell food-energy">{{food_item.energy}} ккал / {{food_item.portion}}</div>
-                    <div class="food-info-cell food-fats">Ж{{food_item.fats}} г</div>
-                    <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>
-                    <div class="food-info-cell food-carbohydrates">У{{food_item.carbohydrates}} г</div>
+            <div class="food-item" id="{{food_item._id}}">
+                <div class="food-data" onclick="ClickFoodItem('{{food_item._id}}')">
+                    <div class="food-name">{{food_item.name}}</div>
+                    <div class="food-description">{{food_item.description}}</div>
+                    <div class="food-info">
+                        <div class="food-info-cell food-energy">{{food_item.energy}} ккал / {{food_item.portion}}</div>
+                        <div class="food-info-cell food-fats">Ж{{food_item.fats}} г</div>
+                        <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>
+                        <div class="food-info-cell food-carbohydrates">У{{food_item.carbohydrates}} г</div>
+                    </div>
                 </div>
+
+                {% if date and meal_type %}
+                <div class="food-portion-edit no-display" data-default-unit="{{food_item.default_unit}}" data-default-value="{{food_item.default_value}}">
+                    <div class="food-portion-text">Редактирование порции:</div>
+                    <div class="food-portion-control">
+                        <div class="food-portion-size">
+                            <input id="{{food_item._id}}-portion-size" type="number" value="{{food_item.default_value}}">
+                        </div>
+
+                        <div class="food-portion-unit">
+                            <select id="{{food_item._id}}-portion-unit">
+                                {% for unit in food_item.conversions %}
+                                <option value="{{unit}}" {% if food_item.default_unit == unit %}selected{% endif %}>{{unit}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="food-portion-change">
+                            <button onclick="AddMeal('{{date}}', '{{meal_type}}', '{{food_item._id}}')">
+                                <span class="fa fa-plus"></span>{{food_item.test}}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         {% endif %}
         </div>
 
+        {% if not date or not meal_type %}
         <div class="add-food">
             <button onclick="location.href='/add-food';">Добавить новый продукт</button>
         </div>
+        {% endif %}
     </div>
+
+    <script src="/js/forms.js"></script>
+    <script>
+        function EndEditPortions(ignoreEdit = null) {
+            let foodEdits = document.getElementsByClassName('food-portion-edit')
+
+            for (let foodEdit of foodEdits) {
+                if (foodEdit === ignoreEdit)
+                    continue
+
+                foodEdit.classList.add('no-display')
+                foodEdit.parentNode.classList.remove('food-item-colored')
+            }
+        }
+
+        function ClickFoodItem(foodId) {
+        {% if date %}
+            let foodItem = document.getElementById(foodId)
+            let portionEdit = foodItem.getElementsByClassName('food-portion-edit')[0]
+            EndEditPortions(portionEdit)
+            portionEdit.classList.toggle('no-display')
+            foodItem.classList.toggle('food-item-colored')
+
+            let portionSize = document.getElementById(`${foodId}-portion-size`)
+            let portionUnit = document.getElementById(`${foodId}-portion-unit`)
+            portionSize.value = portionEdit.getAttribute("data-default-value")
+            portionUnit.value = portionEdit.getAttribute("data-default-unit")
+            portionSize.focus()
+            portionSize.select()
+        {% else %}
+            location.href = `/edit-food/${foodId}`
+        {% endif %}
+        }
+
+        function AddMeal(date, mealType, foodId) {
+            let portionSize = document.getElementById(`${foodId}-portion-size`)
+            let portionUnit = document.getElementById(`${foodId}-portion-unit`)
+
+            if (!IsPositiveReal(portionSize.value)) {
+                portionSize.focus()
+                portionSize.select()
+                alert("Размер порции введён некорректно")
+                return
+            }
+
+            let data = {
+                date: date,
+                meal_type: mealType,
+                food_id: foodId,
+                portion_size: portionSize.value,
+                portion_unit: portionUnit.value
+            }
+
+            SendRequest("/add-meal", data).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось добавить продукт")
+                    return
+                }
+
+                location.href = "/diary"
+            })
+        }
+    </script>
 </body>
 </html>

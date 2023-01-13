@@ -1,0 +1,35 @@
+.food-portion-edit {
+    margin-top: 5px;
+}
+
+.food-portion-text {
+    color: var(--disabled-color);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.food-portion-control {
+    display: table;
+    width: 100%;
+}
+
+.food-portion-size, .food-portion-unit, .food-portion-change {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.food-portion-size {
+    padding-right: 5px;
+}
+
+.food-portion-unit {
+    min-width: 100px;
+}
+
+.food-portion-change {
+    text-align: right;
+}
+
+.food-portion-size input {
+    text-align: right;
+}

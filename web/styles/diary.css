@@ -81,35 +81,6 @@
     width: 15%;
 }
 
-.food-portion-edit {
-    margin-top: 5px;
-}
-
-.food-portion-text {
-    color: var(--disabled-color);
-    font-size: 0.85rem;
-}
-
-.food-portion-control {
-    display: table;
-    width: 100%;
-}
-
-.food-portion-size, .food-portion-unit, .food-portion-change {
-    display: table-cell;
-    vertical-align: bottom;
-}
-
-.food-portion-size {
-    width: 40%;
-    padding-right: 5px;
-}
-
 .food-portion-change {
-    width: 80px;
-    text-align: right;
-}
-
-.food-portion-size input {
-    text-align: right;
+    width: 70px;
 }

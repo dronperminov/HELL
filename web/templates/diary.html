@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/diary.css">
+    <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css?v=2">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
@@ -91,8 +92,12 @@
             EndEditPortions(portionEdit)
             portionEdit.classList.toggle('no-display')
 
-            document.getElementById(`${mealId}-portion-size`).value = document.getElementById(`food-portion_size-${mealId}`).innerText
-            document.getElementById(`${mealId}-portion-unit`).value = document.getElementById(`food-portion_unit-${mealId}`).innerText
+            let portionSize = document.getElementById(`${mealId}-portion-size`)
+            let portionUnit = document.getElementById(`${mealId}-portion-unit`)
+            portionSize.value = document.getElementById(`food-portion_size-${mealId}`).innerText
+            portionUnit.value = document.getElementById(`food-portion_unit-${mealId}`).innerText
+            portionSize.focus()
+            portionSize.select()
         }
 
         function EndEditPortions(ignoreEdit = null) {
@@ -109,11 +114,9 @@
         }
 
         function RemoveMealBlock(mealId) {
-            console.log(mealId)
             let foodItem = document.getElementById(`food-item-${mealId}`)
             let mealFood = foodItem.parentNode
             let mealType = mealFood.id.replace(/food-|-foods/g, "")
-            console.log(mealType)
             mealFood.removeChild(foodItem)
 
             if (mealFood.children.length == 0) {
@@ -122,12 +125,14 @@
             }
         }
 
-        function UpdateMealStatistic(statistic) {
+        function UpdateMealStatistic(mealType, statistic) {
             for (let mealId of Object.keys(statistic))
                 for (key of Object.keys(statistic[mealId]))
                     document.getElementById(`food-${key}-${mealId}`).innerText = statistic[mealId][key]
 
-            for (let mealItem of document.getElementsByClassName('food-item')) {
+            let foods = document.getElementById(`${mealType}-foods`)
+
+            for (let mealItem of foods.getElementsByClassName('food-item')) {
                 let mealId = mealItem.id.replace("food-item-", "")
                 if (!(mealId in statistic))
                     RemoveMealBlock(mealId)
@@ -146,7 +151,7 @@
 
                 EndEditPortions()
                 UpdateMealInfoStatistic(mealType, response.statistic)
-                UpdateMealStatistic(response.meal_statistic)
+                UpdateMealStatistic(mealType, response.meal_statistic)
             })
         }
 
@@ -154,8 +159,9 @@
             let portionSize = document.getElementById(`${mealId}-portion-size`)
             let portionUnit = document.getElementById(`${mealId}-portion-unit`)
 
-            if (!portionSize.value.match(/^\d+(\.\d{0,2})?$/g) || +portionSize.value == 0) {
+            if (!IsPositiveReal(portionSize.value)) {
                 portionSize.focus()
+                portionSize.select()
                 alert("Размер порции введён некорректно")
                 return
             }
@@ -176,7 +182,7 @@
 
                 EndEditPortions()
                 UpdateMealInfoStatistic(mealType, response.statistic)
-                UpdateMealStatistic(response.meal_statistic)
+                UpdateMealStatistic(mealType, response.meal_statistic)
             })
         }
 

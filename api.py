@@ -17,6 +17,7 @@ import constants
 from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
+from entities.portion_unit import BasePortionUnit, PortionUnit
 from fatsecret_parser import FatSecretParser
 
 app = FastAPI()
@@ -108,20 +109,44 @@ def logout():
     return response
 
 
+def get_default_portion(food_item: dict) -> Tuple[str, str]:
+    conversions = {PortionUnit(unit): Decimal(str(value)) for unit, value in food_item["conversions"].items()}
+
+    for portion_unit in (PortionUnit.portion, PortionUnit.piece, PortionUnit.slice):
+        if portion_unit in conversions:
+            return f'{portion_unit}', "1"
+
+    base_unit = BasePortionUnit(food_item["portion"])
+    if base_unit == BasePortionUnit.g100:
+        return f'{PortionUnit.g}', "100"
+
+    if base_unit == BasePortionUnit.ml100:
+        return f'{PortionUnit.ml}', "100"
+
+    raise ValueError(f"Unknown base unit \"{base_unit}\"")
+
+
+def get_food_by_query(query: Optional[str], add_default_unit: bool = False):
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
+    food_items = list(food_collection.find({"name": {"$regex": query, "$options": "i"}} if query else {}))
+
+    if add_default_unit:
+        for i, food_item in enumerate(food_items):
+            default_unit, default_value = get_default_portion(food_item)
+            food_items[i]["default_unit"] = default_unit
+            food_items[i]["default_value"] = default_value
+
+    return food_items
+
+
 @app.get("/food-collection")
 def food_collection_get(food_query: str = Query(None)):
     if food_query is not None and not food_query:
         return RedirectResponse(url="/food-collection", status_code=302)
 
-    food_collection = database[constants.MONGO_FOOD_COLLECTION]
-
-    if food_query:
-        food_items = food_collection.find({"name": {"$regex": food_query, "$options": "i"}})
-    else:
-        food_items = food_collection.find({})
-
+    food_items = get_food_by_query(food_query)
     template = templates.get_template('food_collection.html')
-    html = template.render(food_items=list(food_items), query=food_query, click_url="/edit-food")
+    html = template.render(food_items=food_items, query=food_query)
     return HTMLResponse(content=html)
 
 
@@ -252,12 +277,42 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     return HTMLResponse(content=content)
 
 
+@app.get("/add-meal/{date}/{meal_type}")
+def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/diary")
+
+    food_items = get_food_by_query(food_query, add_default_unit=True)
+    template = templates.get_template('food_collection.html')
+    html = template.render(food_items=food_items, query=food_query, date=date, meal_type=meal_type, names=constants.MEAL_TYPES_RUS)
+    return HTMLResponse(content=html)
+
+
+@app.post("/add-meal")
+def add_meal(
+        date: str = Body(..., embed=True),
+        meal_type: str = Body(..., embed=True),
+        food_id: str = Body(..., embed=True),
+        portion_size: str = Body(..., embed=True),
+        portion_unit: str = Body(..., embed=True),
+        user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+
+    meal = meal_collection.insert_one({"food_id": food_id, "portion_size": portion_size, "portion_unit": portion_unit})
+    diary_collection.update_one({"date": date}, {"$push": {f"meal_info.{meal_type}": meal.inserted_id}}, upsert=True)
+
+    return JSONResponse({"status": "ok"})
+
+
 @app.post("/remove-meal")
 def remove_meal(date: str = Body(..., embed=True), meal_type: str = Body(..., embed=True), meal_id: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
-    print("remove meal", date, meal_type, meal_id)
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meal_collection.delete_one({"_id": ObjectId(meal_id)})
 

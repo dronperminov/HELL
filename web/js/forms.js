@@ -32,6 +32,10 @@ function IsRealValue(value) {
     return value.match(/^\d+(.\d+)?$/g)
 }
 
+function IsPositiveReal(value) {
+    return value.match(/^\d+(.\d{0,2})?$/g) && +value > 0
+}
+
 function ValidateFields(fields) {
     let data = {}
 
