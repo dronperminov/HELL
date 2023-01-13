@@ -267,7 +267,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     if not user_id:
         return unauthorized_access("/diary")
 
-    date = datetime.strptime(date, constants.DATE_FORMAT) if date else datetime.today()
+    date = datetime.strptime(date, constants.DATE_FORMAT) if date else datetime.today() + timedelta(hours=-3)
     meal_info = get_meal_info(date.strftime(constants.DATE_FORMAT), user_id)
     meal_statistic = {meal_type: get_meal_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
