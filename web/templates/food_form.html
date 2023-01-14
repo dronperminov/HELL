@@ -215,6 +215,11 @@
             if (food.conversions === null)
                 return
 
+            {% if date and meal_type %}
+            food.date = "{{date}}"
+            food.meal_type = "{{meal_type}}"
+            {% endif %}
+
             SendRequest("{{add_url}}", food).then((response) => {
                 if (response.status != "OK") {
                     alert(response.message)

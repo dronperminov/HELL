@@ -158,9 +158,16 @@ def food_collection_get(food_query: str = Query(None)):
 
 
 @app.get("/add-food")
-def add_food_get(food_query: str = Query(None)):
+def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None)):
     template = templates.get_template('food_form.html')
-    html = template.render(title="Добавление нового продукта", add_text="Добавить продукт", add_url="/add-food", page="/add-food", query=food_query)
+    html = template.render(
+        title="Добавление нового продукта",
+        add_text="Добавить продукт",
+        add_url="/add-food",
+        page="/add-food",
+        query=food_query,
+        date=date,
+        meal_type=meal_type)
     return HTMLResponse(content=html)
 
 
@@ -175,7 +182,8 @@ async def add_food_post(request: Request):
             return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить, так как продукт с названием \"{food.name}\" уже существует"})
 
         food_collection.insert_one(food.to_dict())
-        return JSONResponse({"status": "OK", "href": f"/food-collection?food_query={food.name[:25]}", "message": "Продукт успешно добавлен"})
+        href = "food-collection" if "date" not in data else f"add-meal/{data['date']}/{data['meal_type']}"
+        return JSONResponse({"status": "OK", "href": f"/{href}?food_query={food.name[:25]}", "message": "Продукт успешно добавлен"})
     except Exception as e:
         return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить продукт из-за ошибки: {e}"})
 

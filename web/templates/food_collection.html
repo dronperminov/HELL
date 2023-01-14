@@ -76,11 +76,9 @@
         {% endif %}
         </div>
 
-        {% if not date or not meal_type %}
         <div class="add-food">
-            <button onclick="location.href='/add-food{% if query %}?food_query={{query}}{% endif %}';">Добавить новый продукт</button>
+            <button onclick="location.href='/add-food?{% if query %}food_query={{query}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';">Добавить новый продукт</button>
         </div>
-        {% endif %}
     </div>
 
     <script src="/js/forms.js"></script>
