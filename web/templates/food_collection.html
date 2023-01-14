@@ -78,7 +78,7 @@
 
         {% if not date or not meal_type %}
         <div class="add-food">
-            <button onclick="location.href='/add-food';">Добавить новый продукт</button>
+            <button onclick="location.href='/add-food{% if query %}?food_query={{query}}{% endif %}';">Добавить новый продукт</button>
         </div>
         {% endif %}
     </div>
@@ -98,7 +98,7 @@
         }
 
         function ClickFoodItem(foodId) {
-        {% if date %}
+        {% if date and meal_type %}
             let foodItem = document.getElementById(foodId)
             let portionEdit = foodItem.getElementsByClassName('food-portion-edit')[0]
             EndEditPortions(portionEdit)
@@ -116,6 +116,7 @@
         {% endif %}
         }
 
+        {% if date and meal_type %}
         function AddMeal(date, mealType, foodId) {
             let portionSize = document.getElementById(`${foodId}-portion-size`)
             let portionUnit = document.getElementById(`${foodId}-portion-unit`)
@@ -141,9 +142,10 @@
                     return
                 }
 
-                location.href = "/diary"
+                location.href = `/diary?date={{date}}`
             })
         }
+        {% endif %}
     </script>
 </body>
 </html>

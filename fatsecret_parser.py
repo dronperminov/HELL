@@ -52,6 +52,10 @@ class FatSecretParser:
 
         soup = BeautifulSoup(response.text, 'html.parser')
         table = soup.find("table", {"class": "searchResult"})
+
+        if not table:
+            return []
+
         results = []
 
         for td in table.find_all("td"):
@@ -105,5 +109,12 @@ class FatSecretParser:
             scale = Decimal("100") / Decimal(value)
             conversions[PortionUnit(unit)] = Decimal(value) / Decimal("100")
             return BasePortionUnit.g100, conversions, scale
+
+        match = re.match(r"^1 +(?P<unit>порция) +\((?P<value>\d+(.\d*)?) мл\)$", portion_text)
+        if match:
+            unit, value = match.group("unit"), match.group("value")
+            scale = Decimal("100") / Decimal(value)
+            conversions[PortionUnit(unit)] = Decimal(value) / Decimal("100")
+            return BasePortionUnit.ml100, conversions, scale
 
         raise ValueError(f'Invalid portion description: "{portion_text}"')

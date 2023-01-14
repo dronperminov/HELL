@@ -72,7 +72,7 @@
         <div class="add-from-url-header">Загрузить из FatSecret:</div>
 
         <label>Ссылка на FatSecret:
-            <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret">
+            <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
         </label>
 
         <div class="add-from-url-button">
@@ -263,6 +263,9 @@
             SendRequest("/parse-fatsecret", {"query": query}).then((response) => {
                 let resultsDiv = document.getElementById("fatsecret-search-result")
 
+                if (response.length == 0)
+                    resultsDiv.innerText = `К сожалению, по запросу "${query}" ничего не нашлось`
+
                 for (let result of response) {
                     console.log(result)
                     let resultDiv = document.createElement("div")
@@ -324,6 +327,10 @@
             urlButton.addEventListener('click', () => ParseFatsecret())
 
             InitConversions()
+        {% endif %}
+
+        {%if query %}
+        ParseFatsecretQuery("{{query}}")
         {% endif %}
     </script>
 </body>
