@@ -341,7 +341,7 @@
             InitConversions()
         {% endif %}
 
-        {%if query %}
+        {%if query and not food %}
         ParseFatsecretQuery("{{query}}")
         {% endif %}
     </script>
