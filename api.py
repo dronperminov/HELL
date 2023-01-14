@@ -65,6 +65,10 @@ def d2s(value: Decimal) -> str:
     return f'{round(value * 2) / 2:g}'
 
 
+def parse_date(date: str) -> datetime:
+    return datetime.strptime(date, constants.DATE_FORMAT)
+
+
 @app.get("/")
 async def index(user_id: Optional[str] = Depends(get_current_user)):
     if user_id:
@@ -228,7 +232,7 @@ def remove_food(food_id: str = Body(..., embed=True)):
     return JSONResponse({"status": "ok"})
 
 
-def get_meal_info(date: str, user_id: str) -> Dict[str, List[ObjectId]]:
+def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
     meal_info = OrderedDict()
 
     for meal_type in constants.MEAL_TYPES:
@@ -280,8 +284,8 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     if not user_id:
         return unauthorized_access("/diary")
 
-    date = datetime.strptime(date, constants.DATE_FORMAT) if date else datetime.today() + timedelta(hours=-3)
-    meal_info = get_meal_info(date.strftime(constants.DATE_FORMAT), user_id)
+    date = parse_date(date) if date else (datetime.today() + timedelta(hours=-3)).replace(hour=0, minute=0, second=0, microsecond=0)
+    meal_info = get_meal_info(date, user_id)
     meal_statistic = {meal_type: get_meal_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
     template = templates.get_template('diary.html')
@@ -320,6 +324,8 @@ def add_meal(
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
+    date = parse_date(date)
+
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
@@ -334,6 +340,7 @@ def remove_meal(date: str = Body(..., embed=True), meal_type: str = Body(..., em
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
+    date = parse_date(date)
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meal_collection.delete_one({"_id": ObjectId(meal_id)})
 
@@ -356,6 +363,8 @@ def edit_meal(
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
+    date = parse_date(date)
+
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meal_collection.update_one({"_id": ObjectId(meal_id)}, {"$set": {"portion_size": Decimal128(portion_size), "portion_unit": portion_unit}})
 
@@ -372,6 +381,7 @@ def add_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..., 
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
+    date = parse_date(date)
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     diary_collection.update_one({"date": date}, {"$set": {f"meal_info.{meal_type}": []}})
     return JSONResponse({"status": "ok"})
@@ -382,11 +392,11 @@ def remove_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
+    date = parse_date(date)
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
     meal_doc = diary_collection.find_one({"date": date})
     meal_ids = meal_doc["meal_info"][meal_type]
-    print(meal_ids)
 
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meal_collection.delete_many({"_id": {"$in": meal_ids}})
