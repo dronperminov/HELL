@@ -5,6 +5,15 @@
     width: 100%;
 }
 
+.food-search-clear {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.food-search-clear:hover {
+    color: var(--success-color);
+}
+
 .food-search-button {
     display: table-cell;
     width: 60px;
@@ -17,7 +26,7 @@
 }
 
 .food-search-results {
-    padding-top: 5px;
+    padding: 5px 10px 0 10px;
 }
 
 .add-food {
