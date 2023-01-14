@@ -29,14 +29,14 @@
         </div>
 
         <div class="form-row">
-            <label>Жиры (г)
-                <input type="number" step="0.01" min="0" value="{% if food %}{{food.fats}}{% else %}0{% endif %}" id="fats">
+            <label>Белки (г)
+                <input type="number" step="0.01" min="0" value="{% if food %}{{food.proteins}}{% else %}0{% endif %}" id="proteins">
             </label>
         </div>
 
         <div class="form-row">
-            <label>Белки (г)
-                <input type="number" step="0.01" min="0" value="{% if food %}{{food.proteins}}{% else %}0{% endif %}" id="proteins">
+            <label>Жиры (г)
+                <input type="number" step="0.01" min="0" value="{% if food %}{{food.fats}}{% else %}0{% endif %}" id="fats">
             </label>
         </div>
 

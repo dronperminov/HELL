@@ -96,7 +96,21 @@
         <button onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
     </div>
 
+    <div class="diary-statistic">
+        <div class="diary-statistic-info">
+            <div class="diary-statistic-row"><b>Суточное потребление:</b></div>
+            <div class="diary-statistic-row"><span class="chart-circle chart-color1"></span> Белки: <span id="chart-proteins"></span></div>
+            <div class="diary-statistic-row"><span class="chart-circle chart-color2"></span> Жиры: <span id="chart-fats"></span></div>
+            <div class="diary-statistic-row"><span class="chart-circle chart-color3"></span> Углеводы: <span id="chart-carbohydrates"></span></div>
+            <div class="diary-statistic-row">Калории: <span id="diary-statistic-energy"></span> ккал</div>
+        </div>
+        <div class="diary-statistic-chart">
+            <svg viewbox="-50 -50 100 100" id="diary-chart"></svg>
+        </div>
+    </div>
+
     <script src="/js/forms.js?v=2"></script>
+    <script src="/js/chart.js?v=3"></script>
     <script>
         function StatEditPortion(foodItem, mealId) {
             let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
@@ -122,6 +136,8 @@
         function UpdateMealInfoStatistic(mealType, statistic) {
             for (let key of Object.keys(statistic))
                 document.getElementById(`${mealType}-meal-${key}`).innerText = statistic[key]
+
+            UpdateChart()
         }
 
         function RemoveMealBlock(mealId) {
@@ -257,6 +273,44 @@
             })
         }
 
+        function UpdateChart() {
+            let keys = ["proteins", "fats", "carbohydrates"]
+            let values = [0, 0, 0]
+            let energy = 0
+            let total = 0
+
+            for (let mealItem of document.getElementsByClassName("meal-info")) {
+                mealType = mealItem.id.replace("meal-info-", "")
+
+                for (let i = 0; i < keys.length; i++) {
+                    let value = +document.getElementById(`${mealType}-meal-${keys[i]}`).innerText
+                    values[i] += value
+                    total += value
+                }
+
+                energy += +document.getElementById(`${mealType}-meal-energy`).innerText
+            }
+
+            for (let i = 0; i < keys.length; i++) {
+                let text = `${values[i]} г`
+
+                if (total > 0)
+                    text += ` (${Math.round(values[i] / total * 100)}%)`
+
+                document.getElementById(`chart-${keys[i]}`).innerText = text
+            }
+
+            document.getElementById(`diary-statistic-energy`).innerText = energy
+
+            let svg = document.getElementById("diary-chart")
+            svg.innerHTML = ''
+
+            if (total > 0) {
+                let chart = new Chart()
+                chart.Plot(svg, values)
+            }
+        }
+
         for (let mealItem of document.getElementsByClassName('meal-data')) {
             mealItem.addEventListener('click', () => {
                 EndEditPortions()
@@ -268,9 +322,10 @@
                     caret[0].classList.toggle('fa-caret-right')
                     caret[0].classList.toggle('fa-caret-down')
                 }
-
             })
         }
+
+        UpdateChart()
     </script>
 </body>
 </html>

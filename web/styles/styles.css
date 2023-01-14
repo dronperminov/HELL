@@ -20,6 +20,11 @@
     --menu-hover-background: #1f3028;
     --menu-hover-text-color: #4caf50;
     --menu-border-color: #e1e1e1;
+
+    --chart-color1: #ec6b56;
+    --chart-color2: #ffc154;
+    --chart-color3: #47b39c;
+    --chart-divider-color: #e1e1e1;
 }
 
 [data-theme="dark"] {
@@ -43,6 +48,11 @@
     --menu-hover-background: #1f3028;
     --menu-hover-text-color: #1fb766;
     --menu-border-color: #787a7e;
+
+    --chart-color1: #ec6b56;
+    --chart-color2: #ffc154;
+    --chart-color3: #47b39c;
+    --chart-divider-color: #1e1e1e;
 }
 
 body {
