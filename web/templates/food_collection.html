@@ -77,7 +77,7 @@
         </div>
 
         <div class="add-food">
-            <button onclick="location.href='/add-food?{% if query %}food_query={{query}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';">Добавить новый продукт</button>
+            <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';">Добавить новый продукт</button>
         </div>
     </div>
 
@@ -110,7 +110,7 @@
             portionSize.focus()
             portionSize.select()
         {% else %}
-            location.href = `/edit-food/${foodId}{% if query %}?food_query={{query}}{% endif %}`
+            location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
         }
 

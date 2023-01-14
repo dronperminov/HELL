@@ -95,6 +95,10 @@
 
             for (let unit of Object.keys(PORTION_UNITS_DEFAULT[portion]))
                 AddConversion({unit: unit, value: PORTION_UNITS_DEFAULT[portion][unit]})
+
+            for (let nodes of document.getElementsByClassName("conversions-base-unit")) {
+                nodes.innerText = BASE_UNIT_TO_PORTION[portion]
+            }
         }
 
         function RemoveConversion(unit) {
@@ -112,12 +116,9 @@
             let div = document.createElement('div')
             div.className = 'conversions-item'
 
-            let closeDiv = document.createElement('div')
-            let unitDiv = document.createElement('div')
-            let valueDiv = document.createElement('div')
-            closeDiv.className = 'conversions-close'
-            unitDiv.className = 'conversions-unit'
-            valueDiv.className = 'conversions-value'
+            let closeDiv = MakeDiv('conversions-close')
+            let unitDiv = MakeDiv('conversions-unit')
+            let valueDiv = MakeDiv('conversions-value')
 
             let closeIcon = document.createElement('span')
             closeIcon.innerText = '✖'
@@ -140,17 +141,20 @@
             valueInput.type = "number"
             valueInput.step = 0.01
             valueInput.min = 0.01
-            valueInput.value = 1
+            valueInput.value = 100
 
             if (target !== null) {
                 unitSelect.value = target.unit
-                valueInput.value = target.value
+                valueInput.value = target.value * 100
 
                 if (target.unit in PORTION_UNITS_DEFAULT[portion]) {
                     unitSelect.setAttribute('disabled', '')
                     valueInput.setAttribute('disabled', '')
                 }
             }
+
+            let baseDiv = MakeDiv("conversions-base-unit")
+            baseDiv.innerHTML = BASE_UNIT_TO_PORTION[portion]
 
             if (target === null || !(target.unit in PORTION_UNITS_DEFAULT[portion])) {
                 div.appendChild(closeDiv)
@@ -161,6 +165,7 @@
             valueDiv.appendChild(valueInput)
             div.appendChild(unitDiv)
             div.appendChild(valueDiv)
+            div.appendChild(baseDiv)
 
             block.appendChild(div)
         }
@@ -188,7 +193,7 @@
                     return null
                 }
 
-                conversions[unit] = value
+                conversions[unit] = value / 100
             }
 
             return conversions
@@ -342,7 +347,7 @@
         {% endif %}
 
         {%if query and not food %}
-        ParseFatsecretQuery("{{query}}")
+        ParseFatsecretQuery("{{query.replace('"', '\\"')}}")
         {% endif %}
     </script>
 </body>
