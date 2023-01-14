@@ -8,10 +8,24 @@
 .food-search-clear {
     display: table-cell;
     vertical-align: bottom;
+    width: 0px;
+    transition: width 0.5s 0s;
+}
+
+.food-search-clear span {
+    display: none;
 }
 
 .food-search-clear:hover {
     color: var(--success-color);
+}
+
+.food-search-clear-show {
+    width: 15px;
+}
+
+.food-search-clear-show span {
+    display: inline;
 }
 
 .food-search-button {
