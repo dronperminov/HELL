@@ -238,7 +238,14 @@
             if (!confirm(`Вы уверены, что хотите удалить продукт "${name}"?`))
                 return
 
-            location.href = "/remove-food/{{food._id}}"
+            SendRequest("/remove-food/", {"food_id": "{{food._id}}"}).then((response) => {
+                if (response.status != "ok") {
+                    alert(response.message)
+                    return
+                }
+
+                location.href = `/food-collection{% if query %}?food_query={{query}}{% endif %}`
+            })
         }
         {% endif %}
 

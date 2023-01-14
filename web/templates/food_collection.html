@@ -110,7 +110,7 @@
             portionSize.focus()
             portionSize.select()
         {% else %}
-            location.href = `/edit-food/${foodId}`
+            location.href = `/edit-food/${foodId}{% if query %}?food_query={{query}}{% endif %}`
         {% endif %}
         }
 

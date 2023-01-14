@@ -189,11 +189,11 @@ async def add_food_post(request: Request):
 
 
 @app.get("/edit-food/{food_id}")
-def edit_food(food_id: str):
+def edit_food(food_id: str, food_query: str = Query(None)):
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
     food = food_collection.find_one({"_id": ObjectId(food_id)})
     template = templates.get_template('food_form.html')
-    html = template.render(title="Редактирование продукта", add_text="Обновить продукт", add_url=f"/edit-food/{food_id}", food=food, page="/edit-food")
+    html = template.render(title="Редактирование продукта", add_text="Обновить продукт", add_url=f"/edit-food/{food_id}", food=food, page="/edit-food", query=food_query)
     return HTMLResponse(content=html)
 
 
@@ -215,12 +215,17 @@ async def edit_food_post(food_id: str, request: Request):
         return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить продукт из-за ошибки: {e}"})
 
 
-@app.get("/remove-food/{food_id}")
-def remove_food(food_id: str):
+@app.post("/remove-food")
+def remove_food(food_id: str = Body(..., embed=True)):
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    meal = meal_collection.find_one({"food_id": ObjectId(food_id)})
+
+    if meal:
+        return JSONResponse({"status": "fail", "message": "Невозможно удалить этот продукт, так как он используется в дневнике"})
+
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
     food_collection.delete_one({"_id": ObjectId(food_id)})
-    # TODO: check food_id for usages
-    return RedirectResponse(url="/food-collection", status_code=302)
+    return JSONResponse({"status": "ok"})
 
 
 def get_meal_info(date: str, user_id: str) -> Dict[str, List[ObjectId]]:
@@ -318,7 +323,7 @@ def add_meal(
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
-    meal = meal_collection.insert_one({"food_id": food_id, "portion_size": portion_size, "portion_unit": portion_unit})
+    meal = meal_collection.insert_one({"food_id": ObjectId(food_id), "portion_size": portion_size, "portion_unit": portion_unit})
     diary_collection.update_one({"date": date}, {"$push": {f"meal_info.{meal_type}": meal.inserted_id}}, upsert=True)
 
     return JSONResponse({"status": "ok"})
