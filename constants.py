@@ -14,7 +14,7 @@ DINNER = "dinner"
 MEAL_TYPES = [BREAKFAST, LUNCH, DINNER]
 
 MEAL_TYPES_RUS = {
-    BREAKFAST: "завтрак",
-    LUNCH: "обед",
-    DINNER: "ужин"
+    BREAKFAST: "Завтрак",
+    LUNCH: "Обед",
+    DINNER: "Ужин"
 }

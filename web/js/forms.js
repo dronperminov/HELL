@@ -54,3 +54,13 @@ function ValidateFields(fields) {
 
     return data
 }
+
+function MakeDiv(className, parent=null) {
+    let div = document.createElement("div")
+    div.className = className
+
+    if (parent !== null)
+        parent.appendChild(div)
+
+    return div
+}

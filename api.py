@@ -367,6 +367,34 @@ def edit_meal(
     return JSONResponse({"status": "ok", "statistic": statistic, "meal_statistic": meal_statistic})
 
 
+@app.post("/add-meal-type")
+def add_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    diary_collection.update_one({"date": date}, {"$set": {f"meal_info.{meal_type}": []}})
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/remove-meal-type")
+def remove_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+
+    meal_doc = diary_collection.find_one({"date": date})
+    meal_ids = meal_doc["meal_info"][meal_type]
+    print(meal_ids)
+
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    meal_collection.delete_many({"_id": {"$in": meal_ids}})
+    diary_collection.update_one({"date": date}, {"$unset": {f"meal_info.{meal_type}": 1}})
+
+    return JSONResponse({"status": "ok"})
+
+
 @app.post("/parse-fatsecret")
 async def parse_fatsecret(request: Request):
     data = await request.json()

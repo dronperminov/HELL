@@ -6,13 +6,13 @@
     <title>Дневник питания | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=3">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
     {% include "menu.html" %}
-    <div class="diary">
+    <div class="diary" id="diary">
         <div class="diary-date">
             <a href="/diary?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
             <span class="diary-current-date">{{date}}</span>
@@ -26,7 +26,8 @@
                         {% if meal_statistic[meal_type]["foods"] %}
                         <span id="meal-caret-{{meal_type}}" class="fa fa-caret-right"></span>
                         {% endif %}
-                        {{names[meal_type].title()}}
+
+                        {% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %}
                     </div>
 
                 {% if meal_statistic[meal_type]["foods"] %}
@@ -40,6 +41,9 @@
                 </div>
 
                 <div class="meal-add"><button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'">+</button></div>
+                {% if meal_type not in names %}
+                <div class="meal-type-remove"><button onclick="RemoveMealType('{{meal_type}}')"><span class="fa fa-trash"></span></button></div>
+                {% endif %}
 
                 <div class="foods no-display" id="{{meal_type}}-foods">
                     {% for food_item in meal_statistic[meal_type]["foods"] %}
@@ -88,7 +92,11 @@
         {% endfor %}
     </div>
 
-    <script src="/js/forms.js"></script>
+    <div class="add-meal-type">
+        <button onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
+    </div>
+
+    <script src="/js/forms.js?v=2"></script>
     <script>
         function StatEditPortion(foodItem, mealId) {
             let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
@@ -186,6 +194,66 @@
                 EndEditPortions()
                 UpdateMealInfoStatistic(mealType, response.statistic)
                 UpdateMealStatistic(mealType, response.meal_statistic)
+            })
+        }
+
+        function EnterMealType(e, mealType) {
+            if (e.keyCode == 13) {
+                e.preventDefault()
+                mealType.blur()
+                return
+            }
+        }
+
+        function ValidateMealType(e, mealType) {
+            for (let mealTypeItem of document.getElementsByClassName("meal-type")) {
+                if (mealTypeItem != mealType && mealTypeItem.innerText.trim() == mealType.innerText) {
+                    e.preventDefault()
+                    alert("Нельзя добавить такой приём пищи, так как он уже существует")
+                    mealType.classList.add('error')
+                    return
+                }
+            }
+
+            mealType.classList.remove('error')
+            mealType.removeAttribute("contenteditable")
+
+            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealType.innerText}).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось добавить приём пищи")
+                    return
+                }
+
+                location.reload()
+            })
+        }
+
+        function CreateMealType() {
+            let diary = document.getElementById("diary")
+            let mealItem = MakeDiv("meal-item", diary)
+            let mealData = MakeDiv("meal-data", mealItem)
+            let mealType = MakeDiv("meal-type", mealData)
+
+            mealType.setAttribute("contenteditable", "")
+            mealType.innerText = "Введите название"
+            mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType))
+            mealType.addEventListener("blur", (e) => ValidateMealType(e, mealType))
+            mealType.focus()
+
+            document.execCommand('selectAll', false)
+        }
+
+        function RemoveMealType(mealType) {
+            if (!confirm(`Вы уверены, что хотите удалить "${mealType}"?`))
+                return
+
+            SendRequest("/remove-meal-type", {"date": "{{date}}", "meal_type": mealType}).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось удалить приём пищи")
+                    return
+                }
+
+                location.reload()
             })
         }
 
