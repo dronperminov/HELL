@@ -13,7 +13,7 @@
     stroke: var(--plot-color3);
 }
 
-.chart-devider {
+.chart-divider {
     stroke: var(--plot-divider-color);
 }
 
@@ -32,6 +32,6 @@
     fill: var(--plot-color3);
 }
 
-.bar-devider {
+.bar-divider {
     stroke: var(--plot-divider-color);
 }

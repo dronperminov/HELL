@@ -63,5 +63,5 @@ Chart.prototype.Plot = function(svg, values) {
         this.MakeSegment(svg, i > 0 ? angles[i - 1] : 0, angles[i], `chart-color${i + 1}`)
 
     for (let i = 0; i < angles.length; i++)
-        this.MakeDivider(svg, i > 0 ? angles[i - 1] : 0, angles[i], `chart-devider`)
+        this.MakeDivider(svg, i > 0 ? angles[i - 1] : 0, angles[i], `chart-divider`)
 }
