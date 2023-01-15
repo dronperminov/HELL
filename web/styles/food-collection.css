@@ -22,6 +22,7 @@
 
 .food-search-clear-show {
     width: 15px;
+    transition: none;
 }
 
 .food-search-clear-show span {
