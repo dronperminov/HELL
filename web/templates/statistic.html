@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Статистика с {{start_date}} по {{end_date}} | HELL</title>
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css?v=25">
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
-    <link rel="stylesheet" type="text/css" href="/styles/statistic.css?v=25">
+    <link rel="stylesheet" type="text/css" href="/styles/statistic.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
@@ -89,9 +89,11 @@
             return text
         }
 
-        function MakeBar(svg, x, y, rectWidth, rectHeight, total, data, keys) {
+        function MakeBar(svg, x, y, rectWidth, rectHeight, total, data, keys, gap = 2) {
             if (rectHeight == 0)
-                return
+                return []
+
+            let coords = []
 
             for (let i = 0; i < keys.length; i++) {
                 let rect = document.createElementNS('http://www.w3.org/2000/svg', "rect")
@@ -104,7 +106,18 @@
                 rect.setAttribute("class", `bar-color${i + 1}`)
                 svg.appendChild(rect)
 
+                if (i > 0)
+                    coords.push(y)
+
                 y += partHeight
+            }
+
+            for (let coord of coords) {
+                let path = document.createElementNS('http://www.w3.org/2000/svg', "path")
+                path.setAttribute("d", `M${x} ${coord} l${rectWidth} 0`)
+                path.setAttribute("stroke-width", gap)
+                path.setAttribute("class", "bar-devider")
+                svg.appendChild(path)
             }
         }
 

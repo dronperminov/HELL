@@ -5,6 +5,7 @@
 
 .statistic .label {
     font-size: 0.5em;
+    fill: var(--text-color);
 }
 
 .statistic-info {

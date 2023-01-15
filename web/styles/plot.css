@@ -33,5 +33,5 @@
 }
 
 .bar-devider {
-    fill: var(--plot-divider-color);
+    stroke: var(--plot-divider-color);
 }
