@@ -21,10 +21,10 @@
     --menu-hover-text-color: #4caf50;
     --menu-border-color: #e1e1e1;
 
-    --chart-color1: #ec6b56;
-    --chart-color2: #ffc154;
-    --chart-color3: #47b39c;
-    --chart-divider-color: #e1e1e1;
+    --plot-color1: #ec6b56;
+    --plot-color2: #ffc154;
+    --plot-color3: #47b39c;
+    --plot-divider-color: #e1e1e1;
 }
 
 [data-theme="dark"] {
@@ -49,10 +49,7 @@
     --menu-hover-text-color: #1fb766;
     --menu-border-color: #787a7e;
 
-    --chart-color1: #ec6b56;
-    --chart-color2: #ffc154;
-    --chart-color3: #47b39c;
-    --chart-divider-color: #1e1e1e;
+    --plot-divider-color: #1e1e1e;
 }
 
 body {
@@ -102,6 +99,14 @@ p {
 
 .no-display {
     display: none !important;
+}
+
+.plot-circle {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 100%;
+    margin-bottom: -2px;
 }
 
 .menu {

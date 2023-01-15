@@ -133,29 +133,21 @@
     margin-bottom: 5px;
 }
 
-.chart-circle {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border-radius: 100%;
-    margin-bottom: -2px;
-}
-
 .chart-color1 {
-    background: var(--chart-color1);
-    stroke: var(--chart-color1);
+    background: var(--plot-color1);
+    stroke: var(--plot-color1);
 }
 
 .chart-color2 {
-    background: var(--chart-color2);
-    stroke: var(--chart-color2);
+    background: var(--plot-color2);
+    stroke: var(--plot-color2);
 }
 
 .chart-color3 {
-    background: var(--chart-color3);
-    stroke: var(--chart-color3);
+    background: var(--plot-color3);
+    stroke: var(--plot-color3);
 }
 
 .chart-devider {
-    stroke: var(--chart-divider-color);
+    stroke: var(--plot-divider-color);
 }

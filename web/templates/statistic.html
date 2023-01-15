@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Статистика с {{start_date}} по {{end_date}} | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css?v=23">
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/statistic.css?v=2">
+    <link rel="stylesheet" href="/styles/font-awesome.min.css">
+</head>
+<body>
+    {% include "menu.html" %}
+    <h1>Статистика с {{start_date}} по {{end_date}}</h1>
+
+    <div class="statistic">
+        <svg id="statistic-chart"></svg>
+
+        <div class="statistic-info">
+            <div class="statistic-header">Усреднённые результаты</div>
+            <div class="statistic-row"><span class="plot-circle bar-color1"></span> Белки: <span id="proteins"></span></div>
+            <div class="statistic-row"><span class="plot-circle bar-color2"></span> Жиры: <span id="fats"></span></div>
+            <div class="statistic-row"><span class="plot-circle bar-color3"></span> Углеводы: <span id="carbohydrates"></span></div>
+            <div class="statistic-row">Калории: <span id="energy"></span></div>
+        </div>
+    </div>
+
+    <script>
+        let statisticData = [
+            {% for date in dates_range %}{ {% for key in statistic[date] %}"{{key}}": {{statistic[date][key]}}, {% endfor %}"date": "{{date}}"},
+            {% endfor %}
+        ]
+
+        function Map(x, inMin, inMax, outMin, outMax) {
+            return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+        }
+
+        function GetMaxEnergy() {
+            let maxEnergy = 0
+
+            for (let data of statisticData)
+                maxEnergy = Math.max(maxEnergy, data["energy"])
+
+            return maxEnergy
+        }
+
+        function MakeLabelText(x, y, date) {
+            let text = document.createElementNS('http://www.w3.org/2000/svg', "text")
+            text.textContent = date
+            text.setAttribute("x", x)
+            text.setAttribute("y", y)
+            text.setAttribute("alignment-baseline", "top")
+            text.setAttribute("text-anchor", "middle")
+            text.setAttribute("class", "label")
+            return text
+        }
+
+        function PlotStatistic(padding = 5) {
+            let svg = document.getElementById("statistic-chart")
+            let width = svg.clientWidth
+            let height = svg.clientHeight - 20
+
+            svg.setAttribute("viewBox", `0 0 ${width} ${height + 20}`)
+
+            let maxEnergy = GetMaxEnergy()
+            let rectWidth = width / statisticData.length - padding
+
+            let keys = ["proteins", "fats", "carbohydrates"]
+            let totalStatistic = {"energy": 0}
+            let count = 0
+
+            for (let key of keys)
+                totalStatistic[key] = 0
+
+            for (let i = 0; i < statisticData.length; i++) {
+                let total = 0
+
+                for (let key of keys) {
+                    total += statisticData[i][key]
+                    totalStatistic[key] += statisticData[i][key]
+                }
+
+                totalStatistic["energy"] += statisticData[i]["energy"]
+
+                if (statisticData[i]["energy"] > 0)
+                    count++
+
+                let rectHeight = statisticData[i]["energy"] / maxEnergy * height
+
+                if (rectHeight == 0)
+                    continue
+
+                let x = padding / 2 + i * (padding + rectWidth)
+                let y = height - rectHeight
+
+                for (let j = 0; j < keys.length; j++) {
+                    let rect = document.createElementNS('http://www.w3.org/2000/svg', "rect")
+                    let partHeight = statisticData[i][keys[j]] / total * rectHeight
+
+                    rect.setAttribute("x", x)
+                    rect.setAttribute("y", y)
+                    rect.setAttribute("width", rectWidth)
+                    rect.setAttribute("height", partHeight)
+                    rect.setAttribute("class", `bar-color${j + 1}`)
+                    svg.appendChild(rect)
+                    y += partHeight
+                }
+
+                svg.appendChild(MakeLabelText(x + rectWidth / 2, height + 10, statisticData[i]["date"]))
+                svg.appendChild(MakeLabelText(x + rectWidth / 2, height + 20, `${statisticData[i]["energy"]} ккал`))
+            }
+
+            let totalKeys = 0
+
+            for (let key of keys)
+                totalKeys += totalStatistic[key]
+
+            for (let key of keys) {
+                let span = document.getElementById(key)
+                let average = Math.round(totalStatistic[key] / count * 2) / 2
+                let averagePercent = Math.round(totalStatistic[key] / totalKeys * 200) / 2
+                span.innerText = `${average} г (${averagePercent}%)`
+            }
+
+            let span = document.getElementById("energy")
+            span.innerText = `${Math.round(totalStatistic["energy"] / count * 2) / 2} ккал`
+        }
+
+        PlotStatistic()
+    </script>
+</body>
+</html>

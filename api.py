@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Optional, List, Dict, Tuple
 from collections import OrderedDict
+from itertools import chain
 
 import jwt
 from bson import Decimal128
@@ -67,6 +68,20 @@ def d2s(value: Decimal) -> str:
 
 def parse_date(date: str) -> datetime:
     return datetime.strptime(date, constants.DATE_FORMAT)
+
+
+def get_current_date() -> datetime:
+    today = datetime.today() + timedelta(hours=-3)
+    return today.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def get_dates_range(start_date: datetime, end_date: datetime, step: timedelta = timedelta(days=1)) -> List[datetime]:
+    dates = []
+    while start_date <= end_date:
+        dates.append(start_date)
+        start_date += step
+
+    return dates
 
 
 @app.get("/")
@@ -248,7 +263,7 @@ def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
     return meal_info
 
 
-def get_meal_statistic(meal_ids: List[ObjectId]) -> dict:
+def get_meal_statistic(meal_ids: List[ObjectId], with_food: bool = True) -> dict:
     foods = []
     statistics = {
         "energy": Decimal("0"),
@@ -270,12 +285,15 @@ def get_meal_statistic(meal_ids: List[ObjectId]) -> dict:
             statistics[key] += value
             food_portion[key] = d2s(value)
 
-        foods.append({"food_item": food, **food_portion, "meal_id": str(meal_id), "portion_size": d2s(meal.portion_size), "portion_unit": f'{meal.portion_unit}'})
+        if with_food:
+            foods.append({"food_item": food, **food_portion, "meal_id": str(meal_id), "portion_size": d2s(meal.portion_size), "portion_unit": f'{meal.portion_unit}'})
 
     for key, value in statistics.items():
         statistics[key] = d2s(value)
 
-    statistics["foods"] = foods
+    if with_food:
+        statistics["foods"] = foods
+
     return statistics
 
 
@@ -284,7 +302,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     if not user_id:
         return unauthorized_access("/diary")
 
-    date = parse_date(date) if date else (datetime.today() + timedelta(hours=-3)).replace(hour=0, minute=0, second=0, microsecond=0)
+    date = parse_date(date) if date else get_current_date()
     meal_info = get_meal_info(date, user_id)
     meal_statistic = {meal_type: get_meal_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
@@ -419,6 +437,36 @@ async def parse_fatsecret(request: Request):
         return JSONResponse(food.to_json())
 
     return JSONResponse(None)
+
+
+@app.get("/statistic")
+def get_statistic(start_date: str = Query(None), end_date: str = Query(None), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/statistic")
+
+    if start_date or end_date:
+        start_date = parse_date(start_date) if start_date else get_current_date()
+        end_date = parse_date(end_date) if end_date else get_current_date()
+    else:
+        start_date = get_current_date() + timedelta(days=-6)
+        end_date = get_current_date()
+
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    documents = diary_collection.find({"date": {"$gte": start_date, "$lte": end_date}})
+    date2meal_ids = {document["date"]: chain.from_iterable(meal_ids for meal_ids in document["meal_info"].values()) for document in documents}
+
+    dates_range = get_dates_range(start_date, end_date)
+    statistic = {date.strftime(constants.DATE_FORMAT): get_meal_statistic(date2meal_ids.get(date, []), with_food=False) for date in dates_range}
+
+    template = templates.get_template("statistic.html")
+    content = template.render(
+        start_date=start_date.strftime(constants.DATE_FORMAT),
+        end_date=end_date.strftime(constants.DATE_FORMAT),
+        statistic=statistic,
+        dates_range=[date.strftime(constants.DATE_FORMAT) for date in dates_range]
+    )
+
+    return HTMLResponse(content=content)
 
 
 if __name__ == "__main__":
