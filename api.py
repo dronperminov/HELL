@@ -140,7 +140,8 @@ def get_frequent_foods(meal_type: str, user_id: str) -> list:
         {"$match": {"_id": {"$in": meal_ids}}},
         {"$group": {"_id": "$food_id", "count": {"$sum": 1}}},
         {"$match": {"count": {"$gte": constants.FREQUENT_MEAL_MIN_COUNT}}},
-        {"$sort": {"count": -1}}
+        {"$sort": {"count": -1}},
+        {"$limit": constants.FREQUENT_MEAL_CLIP_COUNT}
     ])
 
     food_ids = [document["_id"] for document in documents]

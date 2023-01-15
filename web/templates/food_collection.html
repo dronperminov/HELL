@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css?v=26">
+    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
@@ -38,10 +38,7 @@
                 </div>
             {% elif frequent_food_items %}
             <div class="frequent-food">
-                <div class="frequent-food-header" onclick="ToggleFoodItems(this, 'frequent-food-items', 'fa-caret-down', 'fa-repeat')"><span class="fa fa-caret-down"></span> Часто употребляемые</div>
-                <div class="frequent-food-items" id="frequent-food-items">
                 {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
-                </div>
             </div>
             </div>
             {% endif %}
@@ -104,22 +101,6 @@
         {% else %}
             location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
-        }
-
-        function ToggleFoodItems(header, itemsId, iconOpen, iconClose) {
-            let items = document.getElementById(itemsId)
-            let span = header.getElementsByClassName("fa")[0]
-
-            items.classList.toggle("no-display")
-
-            if (items.classList.contains("no-display")) {
-                span.classList.remove(iconOpen)
-                span.classList.add(iconClose)
-            }
-            else {
-                span.classList.remove(iconClose)
-                span.classList.add(iconOpen)
-            }
         }
 
         {% if date and meal_type %}
