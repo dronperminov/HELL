@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Дневник питания | HELL</title>
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css?v=23">
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css?v=28">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=23">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=31">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
@@ -110,8 +110,10 @@
         </div>
     </div>
 
-    <script src="/js/forms.js?v=2"></script>
-    <script src="/js/chart.js?v=3"></script>
+    <script src="/js/forms.js"></script>
+    <script src="/js/chart.js"></script>
+    <script src="/js/swipe.js"></script>
+
     <script>
         function StatEditPortion(foodItem, mealId) {
             let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
@@ -167,8 +169,8 @@
             }
         }
 
-        function RemoveMeal(date, mealType, mealId) {
-            if (!confirm("Вы уверены, что хотите удалить этот продукт?"))
+        function RemoveMeal(date, mealType, mealId, withConfirm = true) {
+            if (withConfirm && !confirm("Вы уверены, что хотите удалить этот продукт?"))
                 return
 
             SendRequest('/remove-meal', {"date": date, "meal_type": mealType, "meal_id": mealId}).then((response) => {
@@ -324,6 +326,21 @@
                     caret[0].classList.toggle('fa-caret-down')
                 }
             })
+        }
+
+        for (let item of document.getElementsByClassName("food-item-data")) {
+            let mealType = item.parentNode.parentNode.id.replace("-foods", "")
+            let mealId = item.parentNode.id.replace("food-item-", "")
+
+            let swipe = new Swipe(item)
+            swipe.onStart = () => {
+                EndEditPortions()
+            }
+
+            swipe.onEnd = (swiped) => {
+                if (swiped)
+                    RemoveMeal('{{date}}', mealType, mealId, false)
+            }
         }
 
         UpdateChart()

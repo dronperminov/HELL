@@ -33,6 +33,10 @@
     font-size: 1.3rem;
 }
 
+.meal-type span {
+    width: 10px;
+}
+
 .meal-add {
     position: absolute;
     top: 10px;
@@ -72,6 +76,7 @@
 .food-item {
     padding: 4px;
     border-top: 1px solid var(--border-color);
+    overflow: hidden;
 }
 
 .food-name {

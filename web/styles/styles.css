@@ -40,7 +40,7 @@
     --active-button-color: #fff;
     --active-button-background: #4caf50;
 
-    --block-background-color: #1e1e1e8f;
+    --block-background-color: #1e1e1e;/*8f;*/
     --background-image: url("/images/food_texture_dark.jpg");
 
     --menu-background: #161618;
@@ -113,8 +113,13 @@ p {
     margin-bottom: -2px;
 }
 
+.swipe-animated {
+    transition: transform 0.5s;
+}
+
 .menu {
     position: fixed;
+    z-index: 1;
     bottom: 0;
     left: 0;
     right: 0;
