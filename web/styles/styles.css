@@ -101,6 +101,10 @@ p {
     display: none !important;
 }
 
+.h-scrollable {
+    overflow-x: auto;
+}
+
 .plot-circle {
     display: inline-block;
     width: 16px;
@@ -115,6 +119,7 @@ p {
     left: 0;
     right: 0;
     display: table;
+    table-layout: fixed;
     width: 100%;
     background: var(--menu-background);
     border-top: 1px solid var(--menu-border-color);

@@ -22,21 +22,39 @@
     margin-bottom: 5px;
 }
 
-.bar-color1 {
-    background: var(--plot-color1);
-    fill: var(--plot-color1);
+.statistic-showed {
+    margin-bottom: 10px;
+    font-size: 0.85rem;
 }
 
-.bar-color2 {
-    background: var(--plot-color2);
-    fill: var(--plot-color2);
+.statistic-parameters {
+    display: table;
+    width: 100%;
+    margin-bottom: 10px;
 }
 
-.bar-color3 {
-    background: var(--plot-color3);
-    fill: var(--plot-color3);
+.statistic-period {
+    display: table-cell;
+    vertical-align: bottom;
 }
 
-.bar-devider {
-    fill: var(--plot-divider-color);
+.statistic-button {
+    display: table-cell;
+    width: 80px;
+    text-align: right;
+    vertical-align: top;
+}
+
+.statistic-period-input {
+    display: table;
+    width: 100%;
+    padding-top: 5px;
+}
+
+.statistic-period-input-cell {
+    display: table-cell;
+}
+
+.statistic-period-input-cell input {
+    text-align: center;
 }

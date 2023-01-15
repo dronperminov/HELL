@@ -84,6 +84,31 @@ def get_dates_range(start_date: datetime, end_date: datetime, step: timedelta = 
     return dates
 
 
+def parse_period(period: Optional[str]) -> Tuple[datetime, datetime, str]:
+    current = get_current_date()
+
+    if not period or period == "week":
+        return current + timedelta(days=-6), current, "week"
+
+    if period == "today":
+        return current, current, "today"
+
+    if period == "yesterday":
+        return current + timedelta(days=-1), current + timedelta(days=-1), "yesterday"
+
+    if period == "last-week":
+        return current + timedelta(days=-13), current + timedelta(days=-7), "last-week"
+
+    start_date, end_date = period.split("-")
+    start_date = parse_date(start_date) if start_date else current
+    end_date = parse_date(end_date) if end_date else current
+
+    if end_date > current:
+        end_date = current
+
+    return start_date, end_date, "period"
+
+
 @app.get("/")
 async def index(user_id: Optional[str] = Depends(get_current_user)):
     if user_id:
@@ -440,16 +465,11 @@ async def parse_fatsecret(request: Request):
 
 
 @app.get("/statistic")
-def get_statistic(start_date: str = Query(None), end_date: str = Query(None), user_id: Optional[str] = Depends(get_current_user)):
+def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
         return unauthorized_access("/statistic")
 
-    if start_date or end_date:
-        start_date = parse_date(start_date) if start_date else get_current_date()
-        end_date = parse_date(end_date) if end_date else get_current_date()
-    else:
-        start_date = get_current_date() + timedelta(days=-6)
-        end_date = get_current_date()
+    start_date, end_date, period = parse_period(period)
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     documents = diary_collection.find({"date": {"$gte": start_date, "$lte": end_date}})
@@ -462,6 +482,7 @@ def get_statistic(start_date: str = Query(None), end_date: str = Query(None), us
     content = template.render(
         start_date=start_date.strftime(constants.DATE_FORMAT),
         end_date=end_date.strftime(constants.DATE_FORMAT),
+        period=period,
         statistic=statistic,
         dates_range=[date.strftime(constants.DATE_FORMAT) for date in dates_range]
     )

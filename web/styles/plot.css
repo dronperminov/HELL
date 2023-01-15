@@ -1,0 +1,37 @@
+.chart-color1 {
+    background: var(--plot-color1);
+    stroke: var(--plot-color1);
+}
+
+.chart-color2 {
+    background: var(--plot-color2);
+    stroke: var(--plot-color2);
+}
+
+.chart-color3 {
+    background: var(--plot-color3);
+    stroke: var(--plot-color3);
+}
+
+.chart-devider {
+    stroke: var(--plot-divider-color);
+}
+
+.bar-color1 {
+    background: var(--plot-color1);
+    fill: var(--plot-color1);
+}
+
+.bar-color2 {
+    background: var(--plot-color2);
+    fill: var(--plot-color2);
+}
+
+.bar-color3 {
+    background: var(--plot-color3);
+    fill: var(--plot-color3);
+}
+
+.bar-devider {
+    fill: var(--plot-divider-color);
+}
