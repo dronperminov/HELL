@@ -18,3 +18,5 @@ MEAL_TYPES_RUS = {
     LUNCH: "Обед",
     DINNER: "Ужин"
 }
+
+FREQUENT_MEAL_MIN_COUNT = 2

@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css?v=13">
+    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css?v=26">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
@@ -36,47 +36,18 @@
                     <p>По запросу <i>"{{query}}"</i> продуктов не найдено...</p>
                     <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
                 </div>
+            {% elif frequent_food_items %}
+            <div class="frequent-food">
+                <div class="frequent-food-header" onclick="ToggleFoodItems(this, 'frequent-food-items', 'fa-caret-down', 'fa-repeat')"><span class="fa fa-caret-down"></span> Часто употребляемые</div>
+                <div class="frequent-food-items" id="frequent-food-items">
+                {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
+                </div>
+            </div>
+            </div>
             {% endif %}
         {% else %}
-            {% for food_item in food_items %}
-            <div class="food-item" id="{{food_item._id}}">
-                <div class="food-data" onclick="ClickFoodItem('{{food_item._id}}')">
-                    <div class="food-name">{{food_item.name}}</div>
-                    <div class="food-description">{{food_item.description}}</div>
-                    <div class="food-info">
-                        <div class="food-info-cell food-energy">{{food_item.energy}} ккал / {{food_item.portion}}</div>
-                        <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>
-                        <div class="food-info-cell food-fats">Ж{{food_item.fats}} г</div>
-                        <div class="food-info-cell food-carbohydrates">У{{food_item.carbohydrates}} г</div>
-                    </div>
-                </div>
 
-                {% if date and meal_type %}
-                <div class="food-portion-edit no-display" data-default-unit="{{food_item.default_unit}}" data-default-value="{{food_item.default_value}}">
-                    <div class="food-portion-text">Редактирование порции:</div>
-                    <div class="food-portion-control">
-                        <div class="food-portion-size">
-                            <input id="{{food_item._id}}-portion-size" type="number" value="{{food_item.default_value}}">
-                        </div>
-
-                        <div class="food-portion-unit">
-                            <select id="{{food_item._id}}-portion-unit">
-                                {% for unit in food_item.conversions %}
-                                <option value="{{unit}}" {% if food_item.default_unit == unit %}selected{% endif %}>{{unit}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="food-portion-change">
-                            <button onclick="AddMeal('{{date}}', '{{meal_type}}', '{{food_item._id}}')">
-                                <span class="fa fa-plus"></span>{{food_item.test}}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
+            {% for food_item in food_items %}{% include "food_item.html" %}{% endfor %}
         {% endif %}
         </div>
 
@@ -133,6 +104,22 @@
         {% else %}
             location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
+        }
+
+        function ToggleFoodItems(header, itemsId, iconOpen, iconClose) {
+            let items = document.getElementById(itemsId)
+            let span = header.getElementsByClassName("fa")[0]
+
+            items.classList.toggle("no-display")
+
+            if (items.classList.contains("no-display")) {
+                span.classList.remove(iconOpen)
+                span.classList.add(iconClose)
+            }
+            else {
+                span.classList.remove(iconClose)
+                span.classList.add(iconOpen)
+            }
         }
 
         {% if date and meal_type %}

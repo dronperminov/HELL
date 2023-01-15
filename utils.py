@@ -10,6 +10,10 @@ def d2s(value: Decimal) -> str:
     return f'{round(value * 2) / 2:g}'
 
 
+def format_date(date: datetime) -> str:
+    return date.strftime(constants.DATE_FORMAT)
+
+
 def parse_date(date: str) -> datetime:
     return datetime.strptime(date, constants.DATE_FORMAT)
 
@@ -69,3 +73,11 @@ def get_default_portion(food_item: dict) -> Tuple[str, str]:
 
     raise ValueError(f"Unknown base unit \"{base_unit}\"")
 
+
+def add_default_unit(food_items: list) -> list:
+    for i, food_item in enumerate(food_items):
+        default_unit, default_value = get_default_portion(food_item)
+        food_items[i]["default_unit"] = default_unit
+        food_items[i]["default_value"] = default_value
+
+    return food_items

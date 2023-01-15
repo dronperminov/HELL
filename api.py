@@ -20,7 +20,7 @@ from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, A
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from fatsecret_parser import FatSecretParser
-from utils import d2s, get_current_date, get_dates_range, parse_date, parse_period, get_default_portion
+from utils import d2s, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 
 app = FastAPI()
 app.mount("/styles", StaticFiles(directory="web/styles"))
@@ -107,23 +107,51 @@ def logout():
     return response
 
 
-def get_food_by_query(query: Optional[str], add_default_unit: bool = False):
+def get_food_by_query(query: Optional[str]) -> list:
     if not query:
         return []
 
-    food_collection = database[constants.MONGO_FOOD_COLLECTION]
     try:
-        food_items = list(food_collection.find({"name": {"$regex": query, "$options": "i"}}))
+        food_collection = database[constants.MONGO_FOOD_COLLECTION]
+        return list(food_collection.find({"name": {"$regex": query, "$options": "i"}}))
     except OperationFailure:
         return []
 
-    if add_default_unit:
-        for i, food_item in enumerate(food_items):
-            default_unit, default_value = get_default_portion(food_item)
-            food_items[i]["default_unit"] = default_unit
-            food_items[i]["default_value"] = default_value
 
-    return food_items
+def get_frequent_foods(meal_type: str, user_id: str) -> list:
+    pipeline = []
+
+    if meal_type in constants.MEAL_TYPES:
+        pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
+        pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "_id": 0}})
+    else:
+        pipeline.append({"$project": {"meal_info": {"$objectToArray": "$meal_info"}}})
+        pipeline.append({"$unwind": "$meal_info"})
+        pipeline.append({"$project": {"meal_id": "$meal_info.v", "_id": 0}})
+
+    pipeline.append({"$unwind": "$meal_id"})
+
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    documents = diary_collection.aggregate(pipeline)
+
+    meal_ids = [document["meal_id"] for document in documents]
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    documents = meal_collection.aggregate([
+        {"$match": {"_id": {"$in": meal_ids}}},
+        {"$group": {"_id": "$food_id", "count": {"$sum": 1}}},
+        {"$match": {"count": {"$gte": constants.FREQUENT_MEAL_MIN_COUNT}}},
+        {"$sort": {"count": -1}}
+    ])
+
+    food_ids = [document["_id"] for document in documents]
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
+    food_items = food_collection.aggregate([
+        {"$match": {"_id": {"$in": food_ids}}},
+        {"$addFields": {"order": {"$indexOfArray": [food_ids, "$_id"]}}},
+        {"$sort": {"order": 1}}
+    ])
+
+    return list(food_items)
 
 
 @app.get("/food-collection")
@@ -269,9 +297,9 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
 
     template = templates.get_template('diary.html')
     content = template.render(
-        date=date.strftime(constants.DATE_FORMAT),
-        prev_date=(date + timedelta(days=-1)).strftime(constants.DATE_FORMAT),
-        next_date=(date + timedelta(days=1)).strftime(constants.DATE_FORMAT),
+        date=format_date(date),
+        prev_date=format_date(date + timedelta(days=-1)),
+        next_date=format_date(date + timedelta(days=1)),
         meal_info=meal_info,
         names=constants.MEAL_TYPES_RUS,
         meal_statistic=meal_statistic,
@@ -286,9 +314,19 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
     if not user_id:
         return unauthorized_access("/diary")
 
-    food_items = get_food_by_query(food_query, add_default_unit=True)
+    food_items = get_food_by_query(food_query)
+    frequent_food_items = get_frequent_foods(meal_type, user_id) if not food_query else []
+
     template = templates.get_template('food_collection.html')
-    html = template.render(food_items=food_items, query=food_query, date=date, meal_type=meal_type, names=constants.MEAL_TYPES_RUS, page="/add-meal")
+    html = template.render(
+        food_items=add_default_unit(food_items),
+        frequent_food_items=add_default_unit(frequent_food_items),
+        query=food_query,
+        date=date,
+        meal_type=meal_type,
+        names=constants.MEAL_TYPES_RUS,
+        page="/add-meal"
+    )
     return HTMLResponse(content=html)
 
 
@@ -412,15 +450,15 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
     date2meal_ids = {document["date"]: chain.from_iterable(meal_ids for meal_ids in document["meal_info"].values()) for document in documents}
 
     dates_range = get_dates_range(start_date, end_date)
-    statistic = {date.strftime(constants.DATE_FORMAT): get_meal_statistic(date2meal_ids.get(date, []), with_food=False) for date in dates_range}
+    statistic = {format_date(date): get_meal_statistic(date2meal_ids.get(date, []), with_food=False) for date in dates_range}
 
     template = templates.get_template("statistic.html")
     content = template.render(
-        start_date=start_date.strftime(constants.DATE_FORMAT),
-        end_date=end_date.strftime(constants.DATE_FORMAT),
+        start_date=format_date(start_date),
+        end_date=format_date(end_date),
         period=period,
         statistic=statistic,
-        dates_range=[date.strftime(constants.DATE_FORMAT) for date in dates_range]
+        dates_range=[format_date(date) for date in dates_range]
     )
 
     return HTMLResponse(content=content)
