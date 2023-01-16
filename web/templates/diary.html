@@ -297,11 +297,18 @@
                 energy += +document.getElementById(`${mealType}-meal-energy`).innerText
             }
 
+            let percents = 0
+
             for (let i = 0; i < keys.length; i++) {
                 let text = `${values[i]} г`
+                let percent = Math.round(values[i] / total * 100)
+                percents += percent
+
+                if (percents > 100)
+                    percent = Math.round(percent + 100 - percents)
 
                 if (total > 0)
-                    text += ` (${Math.round(values[i] / total * 100)}%)`
+                    text += ` (${percent}%)`
 
                 document.getElementById(`chart-${keys[i]}`).innerText = text
             }

@@ -129,10 +129,18 @@
             for (let key of keys)
                 totalKeys += totalStatistic[key]
 
-            for (let key of keys) {
+            let percents = 0
+
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i]
                 let span = document.getElementById(key)
                 let average = Math.round(totalStatistic[key] / count * 2) / 2
-                let averagePercent = Math.round(totalStatistic[key] / totalKeys * 200) / 2
+                let averagePercent = Math.round(totalStatistic[key] / totalKeys * 100)
+                percents += averagePercent
+
+                if (percents > 100)
+                    averagePercent = Math.round(averagePercent + 100 - percents)
+
                 span.innerText = `${average} г`
 
                 if (totalKeys > 0)
