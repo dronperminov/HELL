@@ -10,6 +10,11 @@ def d2s(value: Decimal) -> str:
     return f'{round(value * 2) / 2:g}'
 
 
+def normalize_statistic(statistic: dict):
+    for key in constants.STATISTIC_KEYS:
+        statistic[key] = d2s(statistic[key])
+
+
 def format_date(date: datetime) -> str:
     return date.strftime(constants.DATE_FORMAT)
 

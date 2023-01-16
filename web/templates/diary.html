@@ -48,48 +48,31 @@
 
                 <div class="foods no-display" id="{{meal_type}}-foods">
                     {% for food_item in meal_statistic[meal_type]["foods"] %}
-                    <div class="food-item" id="food-item-{{food_item.meal_id}}">
-                        <div class="food-item-remove" style="opacity: 0">
-                            <span class="fa fa-trash"></span>
-                        </div>
-                        <div class="food-item-data" onclick="StatEditPortion(this, '{{food_item.meal_id}}')">
-                            <div class="food-name">{{food_item.food_item.name}}</div>
-                            <div class="food-info">
-                                <div class="food-info-cell food-energy">
-                                    <span id="food-energy-{{food_item.meal_id}}">{{food_item.energy}}</span> ккал
-                                    (<span id="food-portion_size-{{food_item.meal_id}}">{{food_item.portion_size}}</span>
-                                    <span id="food-portion_unit-{{food_item.meal_id}}">{{food_item.portion_unit}}</span>)</div>
-                                <div class="food-info-cell food-proteins"><span id="food-proteins-{{food_item.meal_id}}">{{food_item.proteins}}</span> г</div>
-                                <div class="food-info-cell food-fats"><span id="food-fats-{{food_item.meal_id}}">{{food_item.fats}}</span> г</div>
-                                <div class="food-info-cell food-carbohydrates"><span id="food-carbohydrates-{{food_item.meal_id}}">{{food_item.carbohydrates}}</span> г</div>
+                    {% if "foods" in food_item %}
+                        <div class="food-item-group" id="{{food_item.group_id}}">
+                            <div class="food-item-remove" style="opacity: 0">
+                                <span class="fa fa-trash"></span>
                             </div>
-                        </div>
-                        <div class="food-portion-edit no-display">
-                            <div class="food-portion-text">Редактирование порции:</div>
-                            <div class="food-portion-control">
-                                <div class="food-portion-size">
-                                    <input id="{{food_item.meal_id}}-portion-size" type="number" value="{{food_item.portion_size}}">
+                            <div class="food-item-group-data">
+                                <div class="food-item-group-name">
+                                    <span class="fa fa-caret-right"></span>{{food_item["name"]}}
                                 </div>
-
-                                <div class="food-portion-unit">
-                                    <select id="{{food_item.meal_id}}-portion-unit">
-                                        {% for unit in food_item.food_item.conversions %}
-                                        <option value="{{unit}}">{{unit}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <div class="food-portion-change">
-                                    <button onclick="UpdateMeal('{{date}}', '{{meal_type}}', '{{food_item.meal_id}}')">
-                                        <span class="fa fa-check"></span>
-                                    </button>
-                                    <button onclick="RemoveMeal('{{date}}', '{{meal_type}}', '{{food_item.meal_id}}')">
-                                        <span class="fa fa-trash"></span>
-                                    </button>
+                                <div class="food-info">
+                                    <div class="food-info-cell food-energy"><span id="group-energy-{{food_item.group_id}}">{{food_item["statistic"].energy}}</span> ккал</div>
+                                    <div class="food-info-cell food-proteins"><span id="group-proteins-{{food_item.group_id}}">{{food_item["statistic"].proteins}}</span> г</div>
+                                    <div class="food-info-cell food-fats"><span id="group-fats-{{food_item.group_id}}">{{food_item["statistic"].fats}}</span> г</div>
+                                    <div class="food-info-cell food-carbohydrates"><span id="group-carbohydrates-{{food_item.group_id}}">{{food_item["statistic"].carbohydrates}}</span> г</div>
                                 </div>
                             </div>
+                            <div class="group-foods no-display" id="{{meal_type}}-group-foods">
+                            {% for food_item in food_item["foods"] %}
+                            {% include "meal_food_item.html" %}
+                            {% endfor %}
+                            </div>
                         </div>
-                    </div>
+                    {% else %}
+                        {% include "meal_food_item.html" %}
+                    {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -139,6 +122,36 @@
                     foodEdit.classList.add('no-display')
         }
 
+        function ToggleMeal(mealItem) {
+            EndEditPortions()
+            let foods = mealItem.parentNode.getElementsByClassName('foods')[0]
+            foods.classList.toggle('no-display')
+
+            let caret = mealItem.getElementsByClassName('fa')
+            if (caret.length == 1) {
+                caret[0].classList.toggle('fa-caret-right')
+                caret[0].classList.toggle('fa-caret-down')
+            }
+        }
+
+        function ToggleMealGroup(groupItem, opened = null) {
+            EndEditPortions()
+            let foods = groupItem.parentNode.getElementsByClassName('group-foods')[0]
+
+            if (opened === null)
+                foods.classList.toggle('no-display')
+            else if (opened)
+                foods.classList.remove('no-display')
+            else
+                foods.classList.add('no-display')
+
+            let caret = groupItem.getElementsByClassName('fa')
+            if (caret.length == 1) {
+                caret[0].classList.toggle('fa-caret-right')
+                caret[0].classList.toggle('fa-caret-down')
+            }
+        }
+
         function UpdateMealInfoStatistic(mealType, statistic) {
             for (let key of Object.keys(statistic))
                 document.getElementById(`${mealType}-meal-${key}`).innerText = statistic[key]
@@ -148,9 +161,22 @@
 
         function RemoveMealBlock(mealId) {
             let foodItem = document.getElementById(`food-item-${mealId}`)
-            let mealFood = foodItem.parentNode
-            let mealType = mealFood.id.replace(/food-|-foods/g, "")
-            mealFood.removeChild(foodItem)
+            let mealType = foodItem.getAttribute("data-meal-type")
+            let foodsBlock = foodItem.parentNode
+            let mealFood = null
+
+            foodsBlock.removeChild(foodItem)
+
+            if (foodsBlock.className == "group-foods") {
+                if (foodsBlock.children.length > 0)
+                    return
+
+                mealFood = foodsBlock.parentNode.parentNode
+                foodsBlock.parentNode.parentNode.removeChild(foodsBlock.parentNode)
+            }
+            else {
+                mealFood = foodsBlock
+            }
 
             if (mealFood.children.length == 0) {
                 document.getElementById(`meal-info-${mealType}`).classList.add('no-display')
@@ -159,9 +185,16 @@
         }
 
         function UpdateMealStatistic(mealType, statistic) {
-            for (let mealId of Object.keys(statistic))
-                for (key of Object.keys(statistic[mealId]))
-                    document.getElementById(`food-${key}-${mealId}`).innerText = statistic[mealId][key]
+            for (let mealId of Object.keys(statistic)) {
+                for (key of Object.keys(statistic[mealId])) {
+                    let span = document.getElementById(`food-${key}-${mealId}`)
+
+                    if (span === null)
+                        span = document.getElementById(`group-${key}-${mealId}`)
+
+                    span.innerText = statistic[mealId][key]
+                }
+            }
 
             let foods = document.getElementById(`${mealType}-foods`)
 
@@ -279,6 +312,22 @@
             })
         }
 
+        function RemoveMealGroup(date, mealType, groupId) {
+            SendRequest('/remove-meal-group', {"date": date, "meal_type": mealType, "group_id": groupId}).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось удалить группу...")
+                    return
+                }
+
+                let groupItem = document.getElementById(groupId)
+                groupItem.parentNode.removeChild(groupItem)
+
+                EndEditPortions()
+                UpdateMealInfoStatistic(mealType, response.statistic)
+                UpdateMealStatistic(mealType, response.meal_statistic)
+            })
+        }
+
         function UpdateChart() {
             let keys = ["proteins", "fats", "carbohydrates"]
             let values = [0, 0, 0]
@@ -324,35 +373,39 @@
             }
         }
 
-        for (let mealItem of document.getElementsByClassName('meal-data')) {
-            mealItem.addEventListener('click', () => {
-                EndEditPortions()
-                let foods = mealItem.parentNode.getElementsByClassName('foods')[0]
-                foods.classList.toggle('no-display')
-
-                let caret = mealItem.getElementsByClassName('fa')
-                if (caret.length == 1) {
-                    caret[0].classList.toggle('fa-caret-right')
-                    caret[0].classList.toggle('fa-caret-down')
-                }
-            })
-        }
-
-        for (let item of document.getElementsByClassName("food-item-data")) {
-            let mealType = item.parentNode.parentNode.id.replace("-foods", "")
+        function RemoveFoodItemOnSwipe(item) {
+            let mealType = item.parentNode.getAttribute("data-meal-type")
             let mealId = item.parentNode.id.replace("food-item-", "")
             let remove = item.parentNode.getElementsByClassName("food-item-remove")[0]
 
             let swipe = new Swipe(item, remove)
+            swipe.onStart = () => EndEditPortions()
+            swipe.onSwipe = () => RemoveMeal('{{date}}', mealType, mealId, false)
+        }
+
+        function RemoveFoodGroupOnSwipe(groupItem) {
+            let mealType = groupItem.parentNode.parentNode.id.replace("-foods", "")
+            let groupId = groupItem.parentNode.id
+            let remove = groupItem.parentNode.getElementsByClassName("food-item-remove")[0]
+
+            let swipe = new Swipe(groupItem, remove)
             swipe.onStart = () => {
                 EndEditPortions()
+                ToggleMealGroup(groupItem, false)
             }
-
-            swipe.onEnd = (swiped) => {
-                if (swiped)
-                    RemoveMeal('{{date}}', mealType, mealId, false)
-            }
+            swipe.onSwipe = () => RemoveMealGroup('{{date}}', mealType, groupId, false)
         }
+
+        for (let mealItem of document.getElementsByClassName("meal-data"))
+            mealItem.addEventListener('click', () => ToggleMeal(mealItem))
+
+        for (let groupItem of document.getElementsByClassName("food-item-group-data")) {
+            groupItem.addEventListener('click', () => ToggleMealGroup(groupItem))
+            RemoveFoodGroupOnSwipe(groupItem)
+        }
+
+        for (let item of document.getElementsByClassName("food-item-data"))
+            RemoveFoodItemOnSwipe(item)
 
         UpdateChart()
     </script>

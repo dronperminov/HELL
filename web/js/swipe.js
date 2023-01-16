@@ -8,7 +8,7 @@ function Swipe(element, removeBlock, swipePart = 0.6) {
     this.element.addEventListener('touchend', (e) => this.TouchEnd(e))
     this.element.addEventListener('touchmove', (e) => this.TouchMove(e))
     this.onStart = () => {}
-    this.onEnd = () => {}
+    this.onSwipe = () => {}
 }
 
 Swipe.prototype.TouchStart = function(e) {
@@ -53,12 +53,11 @@ Swipe.prototype.TouchEnd = function(e) {
         this.removeBlock.style.width = `0`
         this.removeBlock.style.opacity = '0'
         this.removeBlock.style.transition = null
-        this.onEnd(swiped)
     }
     else {
         this.removeBlock.style.transition = null
         this.element.style.transform = `translateX(${-this.element.clientWidth}px)`
         this.removeBlock.style.width = `100%`
-        this.element.addEventListener('transitionend', () => this.onEnd(swiped))
+        this.element.addEventListener('transitionend', () => this.onSwipe())
     }
 }

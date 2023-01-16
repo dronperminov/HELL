@@ -20,7 +20,7 @@ from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, A
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from fatsecret_parser import FatSecretParser
-from utils import d2s, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
+from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 
 app = FastAPI()
 app.mount("/styles", StaticFiles(directory="web/styles"))
@@ -253,17 +253,14 @@ def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
     return meal_info
 
 
-def get_meal_statistic(meal_ids: List[ObjectId], with_food: bool = True) -> dict:
-    foods = []
-    statistics = {
-        "energy": Decimal("0"),
-        "fats": Decimal("0"),
-        "proteins": Decimal("0"),
-        "carbohydrates": Decimal("0"),
-    }
-
+# TODO: refactor this function
+def get_meals_statistic(meal_ids: List[ObjectId], with_food: bool = True) -> dict:
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
+
+    statistic = {key: Decimal("0") for key in constants.STATISTIC_KEYS}
+    foods = []
+    last_group = None
 
     for meal_id in meal_ids:
         meal = MealItem.from_dict(meal_collection.find_one({"_id": meal_id}))
@@ -271,20 +268,56 @@ def get_meal_statistic(meal_ids: List[ObjectId], with_food: bool = True) -> dict
         food_item = FoodItem.from_dict(food)
         food_portion = food_item.make_portion(meal.portion_size, meal.portion_unit)
 
-        for key, value in food_portion.items():
-            statistics[key] += value
-            food_portion[key] = d2s(value)
+        for key in constants.STATISTIC_KEYS:
+            statistic[key] += food_portion[key]
 
         if with_food:
-            foods.append({"food_item": food, **food_portion, "meal_id": str(meal_id), "portion_size": d2s(meal.portion_size), "portion_unit": f'{meal.portion_unit}'})
+            food_item_data = {"food_item": food, **food_portion, "meal_id": str(meal_id), "portion_size": d2s(meal.portion_size), "portion_unit": f'{meal.portion_unit}'}
 
-    for key, value in statistics.items():
-        statistics[key] = d2s(value)
+            if not meal.group_id:
+                foods.append(food_item_data)
+                last_group = None
+            else:
+                if not last_group or last_group["group_id"] != meal.group_id:
+                    last_group = {"name": meal.group_name, "group_id": meal.group_id, "foods": [food_item_data], "statistic": {key: Decimal("0") for key in constants.STATISTIC_KEYS}}
+                    foods.append(last_group)
+                else:
+                    last_group["foods"].append(food_item_data)
+
+                for key in constants.STATISTIC_KEYS:
+                    last_group["statistic"][key] += food_portion[key]
+
+            normalize_statistic(food_item_data)
+
+    normalize_statistic(statistic)
 
     if with_food:
-        statistics["foods"] = foods
+        for food_item in foods:
+            if "group_id" in food_item:
+                normalize_statistic(food_item["statistic"])
 
-    return statistics
+        statistic["foods"] = foods
+
+    return statistic
+
+
+def get_meal_statistic(foods: List[dict]) -> dict:
+    statistic = {}
+
+    for food in foods:
+        if "group_id" in food:
+            statistic[food["group_id"]] = {key: Decimal("0") for key in constants.STATISTIC_KEYS}
+            for food_item in food["foods"]:
+                statistic[food_item["meal_id"]] = {key: value for key, value in food_item.items() if key not in ("food_item", "meal_id")}
+
+                for key in constants.STATISTIC_KEYS:
+                    statistic[food["group_id"]][key] += Decimal(food_item[key])
+
+            normalize_statistic(statistic[food["group_id"]])
+        else:
+            statistic[food["meal_id"]] = {key: value for key, value in food.items() if key not in ("food_item", "meal_id")}
+
+    return statistic
 
 
 @app.get("/diary")
@@ -294,7 +327,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
 
     date = parse_date(date) if date else get_current_date()
     meal_info = get_meal_info(date, user_id)
-    meal_statistic = {meal_type: get_meal_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
+    meal_statistic = {meal_type: get_meals_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
     template = templates.get_template('diary.html')
     content = template.render(
@@ -364,9 +397,29 @@ def remove_meal(date: str = Body(..., embed=True), meal_type: str = Body(..., em
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     diary_collection.update_one({"date": date}, {"$pull": {f"meal_info.{meal_type}": ObjectId(meal_id)}})
+
     meal_ids = diary_collection.find_one({"date": date}).get("meal_info", {}).get(meal_type, [])
-    statistic = get_meal_statistic(meal_ids)
-    meal_statistic = {food["meal_id"]: {key: value for key, value in food.items() if key not in ("food_item", "meal_id")} for food in statistic.pop("foods")}
+    statistic = get_meals_statistic(meal_ids)
+    meal_statistic = get_meal_statistic(statistic.pop("foods"))
+    return JSONResponse({"status": "ok", "statistic": statistic, "meal_statistic": meal_statistic})
+
+
+@app.post("/remove-meal-group")
+def remove_meal_group(date: str = Body(..., embed=True), meal_type: str = Body(..., embed=True), group_id: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    date = parse_date(date)
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    meal_ids = [doc["_id"] for doc in meal_collection.find({"group_id": ObjectId(group_id)}, {"_id": 1})]
+    meal_collection.delete_many({"group_id": ObjectId(group_id)})
+
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    diary_collection.update_many({"date": date}, {"$pull": {f"meal_info.{meal_type}": {"$in": meal_ids}}})
+
+    meal_ids = diary_collection.find_one({"date": date}).get("meal_info", {}).get(meal_type, [])
+    statistic = get_meals_statistic(meal_ids)
+    meal_statistic = get_meal_statistic(statistic.pop("foods"))
     return JSONResponse({"status": "ok", "statistic": statistic, "meal_statistic": meal_statistic})
 
 
@@ -388,8 +441,8 @@ def edit_meal(
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     meal_ids = diary_collection.find_one({"date": date}).get("meal_info", {}).get(meal_type, [])
-    statistic = get_meal_statistic(meal_ids)
-    meal_statistic = {food["meal_id"]: {key: value for key, value in food.items() if key not in ("food_item", "meal_id")} for food in statistic.pop("foods")}
+    statistic = get_meals_statistic(meal_ids)
+    meal_statistic = get_meal_statistic(statistic.pop("foods"))
 
     return JSONResponse({"status": "ok", "statistic": statistic, "meal_statistic": meal_statistic})
 
@@ -451,7 +504,7 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
     date2meal_ids = {document["date"]: chain.from_iterable(meal_ids for meal_ids in document["meal_info"].values()) for document in documents}
 
     dates_range = get_dates_range(start_date, end_date)
-    statistic = {format_date(date): get_meal_statistic(date2meal_ids.get(date, []), with_food=False) for date in dates_range}
+    statistic = {format_date(date): get_meals_statistic(date2meal_ids.get(date, []), with_food=False) for date in dates_range}
 
     template = templates.get_template("statistic.html")
     content = template.render(

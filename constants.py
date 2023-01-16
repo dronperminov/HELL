@@ -21,3 +21,5 @@ MEAL_TYPES_RUS = {
 
 FREQUENT_MEAL_MIN_COUNT = 3
 FREQUENT_MEAL_CLIP_COUNT = 15
+
+STATISTIC_KEYS = ["proteins", "fats", "carbohydrates", "energy"]

@@ -73,6 +73,27 @@
     width: 40%;
 }
 
+.food-item-group {
+    border-top: 1px solid var(--border-color);
+    position: relative;
+}
+
+.food-item-group-data {
+    padding: 4px;
+}
+
+.food-item-group-name {
+    margin-bottom: 5px;
+}
+
+.food-item-group-name span {
+    width: 12px;
+}
+
+.group-foods {
+    background: var(--select-background-color);
+}
+
 .food-item {
     padding: 4px;
     border-top: 1px solid var(--border-color);
