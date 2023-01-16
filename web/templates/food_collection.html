@@ -25,7 +25,7 @@
         </div>
 
         <div class="food-search-button">
-            <button type="submit">Найти</button>
+            <button type="submit"><span class="fa fa-search"></span></button>
         </div>
     </form>
 
@@ -49,7 +49,7 @@
         </div>
 
         <div class="add-food">
-            <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';">Добавить новый продукт</button>
+            <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить новый продукт</button>
         </div>
     </div>
 

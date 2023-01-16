@@ -49,7 +49,7 @@
         <div class="form-row">
             <label>Варианты порции</label>
             <div id="conversions-box"></div>
-            <button id="conversion-button">Добавить вариант</button>
+            <button id="conversion-button"><span class="fa fa-plus"></span> Добавить вариант</button>
         </div>
 
         <div class="form-row">
@@ -59,11 +59,11 @@
         </div>
 
         <div class="form-row center">
-            <button id="save-button">{{add_text}}</button>
+            <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
             {% if food %}
-            <button id="remove-button">Удалить</button>
+            <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
             {% endif %}
-            <button id="back-button">Отмена</button>
+            <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
         </div>
     </div>
 
