@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Дневник питания | HELL</title>
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css?v=28">
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=31">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
@@ -49,6 +49,9 @@
                 <div class="foods no-display" id="{{meal_type}}-foods">
                     {% for food_item in meal_statistic[meal_type]["foods"] %}
                     <div class="food-item" id="food-item-{{food_item.meal_id}}">
+                        <div class="food-item-remove" style="opacity: 0">
+                            <span class="fa fa-trash"></span>
+                        </div>
                         <div class="food-item-data" onclick="StatEditPortion(this, '{{food_item.meal_id}}')">
                             <div class="food-name">{{food_item.food_item.name}}</div>
                             <div class="food-info">
@@ -331,8 +334,9 @@
         for (let item of document.getElementsByClassName("food-item-data")) {
             let mealType = item.parentNode.parentNode.id.replace("-foods", "")
             let mealId = item.parentNode.id.replace("food-item-", "")
+            let remove = item.parentNode.getElementsByClassName("food-item-remove")[0]
 
-            let swipe = new Swipe(item)
+            let swipe = new Swipe(item, remove)
             swipe.onStart = () => {
                 EndEditPortions()
             }

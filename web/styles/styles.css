@@ -5,6 +5,7 @@
     --disabled-color: #aaa;
     --success-color: #4caf50;
     --error-color: #f44336;
+    --error-text-color: #f1f1f1;
     --warning-color: #ff9800;
     --active-color: var(--success-color);
     --select-background-color: #feebd58f;
