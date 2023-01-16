@@ -459,7 +459,8 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
         end_date=format_date(end_date),
         period=period,
         statistic=statistic,
-        dates_range=[format_date(date) for date in dates_range]
+        dates_range=[format_date(date) for date in dates_range],
+        page="/statistic"
     )
 
     return HTMLResponse(content=content)
