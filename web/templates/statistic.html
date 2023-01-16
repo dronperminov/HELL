@@ -21,6 +21,7 @@
                 <option value="yesterday"{% if period == "yesterday" %} selected{% endif %}>вчера</option>
                 <option value="week"{% if period == "week" or not period %} selected{% endif %}>текущая неделя</option>
                 <option value="last-week"{% if period == "last-week" %} selected{% endif %}>прошлая неделя</option>
+                <option value="last-14days"{% if period == "last-14days" %} selected{% endif %}>последние 14 дней</option>
                 <option value="period"{% if period == "period" %} selected{% endif %}>период</option>
             </select>
 
@@ -42,6 +43,7 @@
         {% elif period == "yesterday" %}вчера ({{start_date}})
         {% elif period == "week" or not period %}текущую неделю (с {{start_date}} по {{end_date}})
         {% elif period == "last-week" %}прошлую неделю (с {{start_date}} по {{end_date}})
+        {% elif period == "last-14days" %}последние 14 дней (с {{start_date}} по {{end_date}})
         {% else %}период с {{start_date}} по {{end_date}}{% endif %}
     </div>
 

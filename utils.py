@@ -27,7 +27,8 @@ def parse_period(period: Optional[str]) -> Tuple[datetime, datetime, str]:
     current = get_current_date()
 
     if not period or period == "week":
-        return current + timedelta(days=-6), current, "week"
+        start_date = current + timedelta(days=-current.weekday())
+        return start_date, start_date + timedelta(days=6), "week"
 
     if period == "today":
         return current, current, "today"
@@ -36,7 +37,11 @@ def parse_period(period: Optional[str]) -> Tuple[datetime, datetime, str]:
         return current + timedelta(days=-1), current + timedelta(days=-1), "yesterday"
 
     if period == "last-week":
-        return current + timedelta(days=-13), current + timedelta(days=-7), "last-week"
+        start_date = current + timedelta(days=-7 - current.weekday())
+        return start_date, start_date + timedelta(days=6), "last-week"
+
+    if period == "last-14days":
+        return current + timedelta(days=-14), current, "last-14days"
 
     start_date, end_date = period.split("-")
     start_date = parse_date(start_date) if start_date else current
