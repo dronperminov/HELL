@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% include "head.html" %}
     <title>{% if date and meal_type %}{{date}}. Добавление еды на {{names[meal_type]}}{% else %}Коллекция продуктов{% endif %} | HELL</title>
 
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
-    <link rel="stylesheet" href="/styles/font-awesome.min.css">
 </head>
 <body>
     {% include "menu.html" %}

@@ -152,3 +152,18 @@ p {
 .menu-item a.current {
     color: var(--menu-hover-text-color);
 }
+
+@media (min-width: 1200px) {
+    body {
+        width: 380px;
+        margin: 0 auto;
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        min-height: 100vh;
+    }
+
+    .menu {
+        width: 400px;
+        margin: 0 auto;
+    }
+}
