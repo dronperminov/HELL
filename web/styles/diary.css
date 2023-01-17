@@ -25,6 +25,11 @@
     background: var(--block-background-color);
     border-radius: 8px;
     position: relative;
+    overflow: hidden;
+}
+
+.meal-data {
+    position: relative;
 }
 
 .meal-type {
