@@ -4,6 +4,7 @@ MONGO_DATABASE = "hell"
 MONGO_FOOD_COLLECTION = "food_collection"
 MONGO_USER_COLLECTION = "users"
 MONGO_MEAL_COLLECTION = "meal_collection"
+MONGO_TEMPLATE_COLLECTION = "template_collection"
 MONGO_DIARY_COLLECTION = "diary"
 
 DATE_FORMAT = "%d.%m.%Y"
