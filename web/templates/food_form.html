@@ -71,12 +71,14 @@
     <div class="add-from-url">
         <div class="add-from-url-header">Загрузить из FatSecret:</div>
 
-        <label>Ссылка на FatSecret:
-            <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
-        </label>
+        <div class="add-from-url-search">
+            <div class="add-from-url-search-input">
+                <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
+            </div>
 
-        <div class="add-from-url-button">
-            <button id="url-button">Искать / загрузить</button>
+            <div class="add-from-url-button">
+                <button id="url-button"><span class="fa fa-search"></span></button>
+            </div>
         </div>
 
         <div id="fatsecret-search-result"></div>
@@ -267,6 +269,7 @@
                 document.getElementById("fats").value = food.fats
                 document.getElementById("proteins").value = food.proteins
                 document.getElementById("carbohydrates").value = food.carbohydrates
+                window.scrollTo({top: 0, behavior: 'smooth'})
 
                 let block = document.getElementById('conversions-box')
                 block.innerHTML = ''

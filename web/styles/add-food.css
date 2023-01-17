@@ -8,9 +8,21 @@
     text-align: center;
 }
 
+.add-from-url-search {
+    display: table;
+    width: 100%;
+}
+
+.add-from-url-search-input {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
 .add-from-url-button {
+    display: table-cell;
     text-align: center;
     margin-top: 8px;
+    width: 35px;
 }
 
 .conversions-item {
