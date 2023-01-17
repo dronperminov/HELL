@@ -1,6 +1,8 @@
 <div class="food-item" id="food-item-{{food_item.meal_id}}" data-meal-type="{{meal_type}}">
     <div class="food-item-remove" style="opacity: 0">
-        <span class="fa fa-trash"></span>
+        <div class="food-item-remove-cell">
+            <span class="fa fa-trash"></span>
+        </div>
     </div>
     <div class="food-item-data" onclick="StatEditPortion(this, '{{food_item.meal_id}}')">
         <div class="food-name">{{food_item.food_item.name}}</div>
