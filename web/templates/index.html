@@ -26,38 +26,18 @@
         <div class="parameters-header">Мои текущие параметры</div>
         <div class="no-parameters {% if user.body_parameters %}no-display{% endif %}" id="no-parameters">Пока что у вас нет ни одного отслеживаемого параметра</div>
         <div class="parameters-items" id="parameters-items">
-        {% for parameter in user.body_parameters %}
-            {% set data = body_parameters.get(parameter.name, [{"value": ""}])[-1] %}
-            {% if data["date"] == date %}{% set value = data["value"] %}{% else %}{% set value = "" %}{% endif %}
-            <div class="parameter">
-                <div class="remove" style="opacity: 0">
-                    <div class="remove-cell">
-                        <span class="fa fa-trash"></span>
-                    </div>
-                </div>
-                <div class="parameter-data">
-                    <span class="parameter-name">{{parameter.name}}</span>:
-                    <span class="input" id="parameter-{{parameter.name}}-value" role="textbox" contenteditable data-value="{{value}}" onfocus="StartEditParameter(this, '{{parameter.name}}')">{{value}}</span>
-                    {{parameter.unit}}
-                    <span class="parameter-icons no-display" id="parameter-{{parameter.name}}-icons">
-                        <button onclick="SaveParameterValue('{{date}}', '{{parameter.name}}')"><span class="fa fa-check"></span></button>
-                    </span>
-                    <span class="parameter-last">{% if value == "" and data["value"] != "" %}({{data["date"]}}: {{data["value"]}} {{parameter.unit}}){% endif %}</span>
-                    <div class="error-message parameter-error" id="parameter-{{parameter.name}}-error"></div>
-                </div>
-            </div>
-        {% endfor %}
+        {% for parameter in user.body_parameters %}{% include "body_parameter.html" %}{% endfor %}
         </div>
     </div>
 
-    <div class="add-parameter">
-        <button id="add-parameter" onclick="AddParameter()"><span class="fa fa-plus"> Добавить параметр</span></button>
+    <div>
+        <button id="add-parameter" onclick="AddParameter('{{date}}')"><span class="fa fa-plus"> Добавить параметр</span></button>
         <button class="no-display" id="cancel-add-parameter" onclick="CancelAddParameter()"><span class="fa fa-ban"> Отменить</span></button>
     </div>
 
-    <script src="/js/constants.js?v=3"></script>
-    <script src="/js/forms.js?v=4"></script>
-    <script src="/js/swipe.js?v=4"></script>
+    <script src="/js/constants.js"></script>
+    <script src="/js/forms.js"></script>
+    <script src="/js/swipe.js"></script>
 
     <script type="text/javascript">
         function HaveParameterName(name) {
@@ -105,7 +85,7 @@
             cancelButton.classList.toggle("no-display")
         }
 
-        function AddParameter() {
+        function AddParameter(date) {
             EndEditParameters()
             ToggleNewParameterButtons()
 
@@ -125,7 +105,7 @@
             let nameInput = MakeInput("text", nameDiv, {"list": "body-parameters"})
             let valueInput = MakeInput("number", valueDiv, {"min": "0.001", "step": "0.001", "value": 0})
             let unitInput = MakeInput("text", unitDiv, {"list": "body-parameter-units"})
-            let iconAdd = MakeIcon(iconsDiv, "fa fa-check", () => SaveParameter(nameInput, valueInput, unitInput, divError))
+            let iconAdd = MakeIcon(iconsDiv, "fa fa-check", () => SaveParameter(date, nameInput, valueInput, unitInput, divError))
 
             let nameLabel = MakeDiv("parameter-new-label", nameDiv)
             nameLabel.innerText = "название"
@@ -188,12 +168,12 @@
             return true
         }
 
-        function SaveParameter(nameInput, valueInput, unitInput, errorDiv) {
+        function SaveParameter(date, nameInput, valueInput, unitInput, errorDiv) {
             if (!ValidateParameters(nameInput, valueInput, unitInput, errorDiv))
                 return
 
             let data = {
-                date: "{{date}}",
+                date: date,
                 name: nameInput.value,
                 value: valueInput.value,
                 unit: unitInput.value
@@ -267,7 +247,7 @@
         }
 
         function RemoveParameterValue(date, name) {
-            if (!confirm(`Вы уверены, что хотите удалить запись о параметре "${name}" для {{date}}?`))
+            if (!confirm(`Вы уверены, что хотите удалить запись о параметре "${name}" для ${date}?`))
                 return
 
             SendRequest("/remove-body-parameter-value", {"date": date, "name": name}).then((response) => {

@@ -1,0 +1,19 @@
+{% set data = body_parameters.get(parameter.name, [{"value": ""}])[-1] %}
+{% if data["date"] == date %}{% set value = data["value"] %}{% else %}{% set value = "" %}{% endif %}
+<div class="parameter">
+    <div class="remove" style="opacity: 0">
+        <div class="remove-cell">
+            <span class="fa fa-trash"></span>
+        </div>
+    </div>
+    <div class="parameter-data">
+        <span class="parameter-name">{{parameter.name}}</span>:
+        <span class="input" id="parameter-{{parameter.name}}-value" role="textbox" contenteditable data-value="{{value}}" onfocus="StartEditParameter(this, '{{parameter.name}}')">{{value}}</span>
+        {{parameter.unit}}
+        <span class="parameter-icons no-display" id="parameter-{{parameter.name}}-icons">
+            <button onclick="SaveParameterValue('{{date}}', '{{parameter.name}}')"><span class="fa fa-check"></span></button>
+        </span>
+        <span class="parameter-last">{% if value == "" and data["value"] != "" %}({{data["date"]}}: {{data["value"]}} {{parameter.unit}}){% endif %}</span>
+        <div class="error-message parameter-error" id="parameter-{{parameter.name}}-error"></div>
+    </div>
+</div>
