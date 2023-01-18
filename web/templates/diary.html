@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include "head.html" %}
+    <title>Дневник питания | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/plot.css">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css">
+    <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
+</head>
+<body>
+    {% include "menu.html" %}
+    <div class="diary" id="diary">
+        <div class="diary-date">
+            <a href="/diary?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
+            <span class="diary-current-date">{{date}}</span>
+            <a href="/diary?date={{next_date}}"><span class="fa fa-chevron-right"></span></a>
+        </div>
+
+        {% for meal_type, meals in meal_info.items() %}
+            <div class="meal-item" data-meal-type="{{meal_type}}">
+                {% if meal_type not in names %}
+                <div class="food-item-remove" style="opacity: 0">
+                    <div class="food-item-remove-cell">
+                        <span class="fa fa-trash"></span>
+                    </div>
+                </div>
+                <div class="meal-data meal-data-removable">
+                {% else %}
+                <div class="meal-data">
+                {% endif %}
+                    <div class="meal-type">
+                        {% if meal_statistic[meal_type]["foods"] %}
+                        <span id="meal-caret-{{meal_type}}" class="fa fa-caret-right"></span>
+                        {% endif %}
+
+                        {% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %}
+                    </div>
+
+                {% if meal_statistic[meal_type]["foods"] %}
+                    <div class="meal-info" id="meal-info-{{meal_type}}">
+                        <div class="meal-info-cell meal-energy"><span id="{{meal_type}}-meal-energy">{{meal_statistic[meal_type]["energy"]}}</span> ккал<br><sub>калорийность</sub></div>
+                        <div class="meal-info-cell meal-proteins"><span id="{{meal_type}}-meal-proteins">{{meal_statistic[meal_type]["proteins"]}}</span> г<br><sub>белки</sub></div>
+                        <div class="meal-info-cell meal-fats"><span id="{{meal_type}}-meal-fats">{{meal_statistic[meal_type]["fats"]}}</span> г<br><sub>жиры</sub></div>
+                        <div class="meal-info-cell meal-carbohydrates"><span id="{{meal_type}}-meal-carbohydrates">{{meal_statistic[meal_type]["carbohydrates"]}}</span> г<br><sub>углеводы</sub></div>
+                    </div>
+                {% endif %}
+                    <div class="meal-add"><button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'">+</button></div>
+                </div>
+
+
+                <div class="foods no-display" id="{{meal_type}}-foods">
+                    {% for food_item in meal_statistic[meal_type]["foods"] %}
+                    {% if "foods" in food_item %}
+                        <div class="food-item-group" id="{{food_item.group_id}}">
+                            <div class="food-item-remove" style="opacity: 0">
+                                <div class="food-item-remove-cell">
+                                    <span class="fa fa-trash"></span>
+                                </div>
+                            </div>
+                            <div class="food-item-group-data">
+                                <div class="food-item-group-name">
+                                    <span class="fa fa-caret-right"></span>{{food_item["name"]}}
+                                </div>
+                                <div class="food-info">
+                                    <div class="food-info-cell food-energy"><span id="group-energy-{{food_item.group_id}}">{{food_item["statistic"].energy}}</span> ккал</div>
+                                    <div class="food-info-cell food-proteins"><span id="group-proteins-{{food_item.group_id}}">{{food_item["statistic"].proteins}}</span> г</div>
+                                    <div class="food-info-cell food-fats"><span id="group-fats-{{food_item.group_id}}">{{food_item["statistic"].fats}}</span> г</div>
+                                    <div class="food-info-cell food-carbohydrates"><span id="group-carbohydrates-{{food_item.group_id}}">{{food_item["statistic"].carbohydrates}}</span> г</div>
+                                </div>
+                            </div>
+                            <div class="group-foods no-display" id="{{meal_type}}-group-foods">
+                            {% for food_item in food_item["foods"] %}
+                            {% include "meal_food_item.html" %}
+                            {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        {% include "meal_food_item.html" %}
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="add-meal-type">
+        <button onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
+    </div>
+
+    <div class="diary-statistic">
+        <div class="diary-statistic-info">
+            <div class="diary-statistic-row"><b>Суточное потребление:</b></div>
+            <div class="diary-statistic-row"><span class="plot-circle chart-color1"></span> Белки: <span id="chart-proteins"></span></div>
+            <div class="diary-statistic-row"><span class="plot-circle chart-color2"></span> Жиры: <span id="chart-fats"></span></div>
+            <div class="diary-statistic-row"><span class="plot-circle chart-color3"></span> Углеводы: <span id="chart-carbohydrates"></span></div>
+            <div class="diary-statistic-row">Калории: <span id="diary-statistic-energy"></span> ккал</div>
+        </div>
+        <div class="diary-statistic-chart">
+            <svg viewbox="-50 -50 100 100" id="diary-chart"></svg>
+        </div>
+    </div>
+
+    <script src="/js/forms.js"></script>
+    <script src="/js/chart.js"></script>
+    <script src="/js/swipe.js"></script>
+
+    <script>
+        function StatEditPortion(foodItem, mealId) {
+            let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
+            EndEditPortions(portionEdit)
+            portionEdit.classList.toggle('no-display')
+
+            let portionSize = document.getElementById(`${mealId}-portion-size`)
+            let portionUnit = document.getElementById(`${mealId}-portion-unit`)
+            portionSize.value = document.getElementById(`food-portion_size-${mealId}`).innerText
+            portionUnit.value = document.getElementById(`food-portion_unit-${mealId}`).innerText
+            portionSize.focus()
+            portionSize.select()
+        }
+
+        function EndEditPortions(ignoreEdit = null) {
+            let foodEdits = document.getElementsByClassName('food-portion-edit')
+
+            for (let foodEdit of foodEdits)
+                if (foodEdit !== ignoreEdit)
+                    foodEdit.classList.add('no-display')
+        }
+
+        function ToggleMeal(mealItem, opened = null) {
+            EndEditPortions()
+            let foods = mealItem.parentNode.getElementsByClassName('foods')[0]
+
+            if (opened === null)
+                foods.classList.toggle('no-display')
+            else if (opened)
+                foods.classList.remove('no-display')
+            else
+                foods.classList.add('no-display')
+
+            let caret = mealItem.getElementsByClassName('fa')
+            if (caret.length == 1) {
+                caret[0].classList.toggle('fa-caret-right')
+                caret[0].classList.toggle('fa-caret-down')
+            }
+        }
+
+        function ToggleMealGroup(groupItem, opened = null) {
+            EndEditPortions()
+            let foods = groupItem.parentNode.getElementsByClassName('group-foods')[0]
+
+            if (opened === null)
+                foods.classList.toggle('no-display')
+            else if (opened)
+                foods.classList.remove('no-display')
+            else
+                foods.classList.add('no-display')
+
+            let caret = groupItem.getElementsByClassName('fa')
+            if (caret.length == 1) {
+                caret[0].classList.toggle('fa-caret-right')
+                caret[0].classList.toggle('fa-caret-down')
+            }
+        }
+
+        function UpdateMealInfoStatistic(mealType, statistic) {
+            for (let key of Object.keys(statistic))
+                document.getElementById(`${mealType}-meal-${key}`).innerText = statistic[key]
+
+            UpdateChart()
+        }
+
+        function RemoveMealBlock(mealId) {
+            let foodItem = document.getElementById(`food-item-${mealId}`)
+            let mealType = foodItem.getAttribute("data-meal-type")
+            let foodsBlock = foodItem.parentNode
+            let mealFood = null
+
+            foodsBlock.removeChild(foodItem)
+
+            if (foodsBlock.className == "group-foods") {
+                if (foodsBlock.children.length > 0)
+                    return
+
+                mealFood = foodsBlock.parentNode.parentNode
+                foodsBlock.parentNode.parentNode.removeChild(foodsBlock.parentNode)
+            }
+            else {
+                mealFood = foodsBlock
+            }
+
+            if (mealFood.children.length == 0) {
+                document.getElementById(`meal-info-${mealType}`).classList.add('no-display')
+                document.getElementById(`meal-caret-${mealType}`).classList.add('no-display')
+            }
+        }
+
+        function UpdateMealStatistic(mealType, statistic) {
+            for (let mealId of Object.keys(statistic)) {
+                for (key of Object.keys(statistic[mealId])) {
+                    let span = document.getElementById(`food-${key}-${mealId}`)
+
+                    if (span === null)
+                        span = document.getElementById(`group-${key}-${mealId}`)
+
+                    span.innerText = statistic[mealId][key]
+                }
+            }
+
+            let foods = document.getElementById(`${mealType}-foods`)
+
+            for (let mealItem of foods.getElementsByClassName('food-item')) {
+                let mealId = mealItem.id.replace("food-item-", "")
+                if (!(mealId in statistic))
+                    RemoveMealBlock(mealId)
+            }
+        }
+
+        function RemoveMeal(date, mealType, mealId, withConfirm = true) {
+            if (withConfirm && !confirm("Вы уверены, что хотите удалить этот продукт?"))
+                return
+
+            SendRequest('/remove-meal', {"date": date, "meal_type": mealType, "meal_id": mealId}).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось удалить продукт...")
+                    return
+                }
+
+                EndEditPortions()
+                UpdateMealInfoStatistic(mealType, response.statistic)
+                UpdateMealStatistic(mealType, response.meal_statistic)
+            })
+        }
+
+        function UpdateMeal(date, mealType, mealId) {
+            let portionSize = document.getElementById(`${mealId}-portion-size`)
+            let portionUnit = document.getElementById(`${mealId}-portion-unit`)
+
+            if (!IsPositiveReal(portionSize.value)) {
+                portionSize.focus()
+                portionSize.select()
+                alert("Размер порции введён некорректно")
+                return
+            }
+
+            let data = {
+                "date": date,
+                "meal_type": mealType,
+                "meal_id": mealId,
+                "portion_size": portionSize.value,
+                "portion_unit": portionUnit.value
+            }
+
+            SendRequest('/edit-meal', data).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось обновить порцию...")
+                    return
+                }
+
+                EndEditPortions()
+                UpdateMealInfoStatistic(mealType, response.statistic)
+                UpdateMealStatistic(mealType, response.meal_statistic)
+            })
+        }
+
+        function EnterMealType(e, mealType) {
+            if (e.keyCode == 13) {
+                e.preventDefault()
+                mealType.blur()
+                return
+            }
+        }
+
+        function ValidateMealType(e, mealType) {
+            for (let mealTypeItem of document.getElementsByClassName("meal-type")) {
+                if (mealTypeItem != mealType && mealTypeItem.innerText.trim() == mealType.innerText) {
+                    e.preventDefault()
+                    alert("Нельзя добавить такой приём пищи, так как он уже существует")
+                    mealType.classList.add('error')
+                    return
+                }
+            }
+
+            mealType.classList.remove('error')
+            mealType.removeAttribute("contenteditable")
+
+            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealType.innerText.trim()}).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось добавить приём пищи")
+                    return
+                }
+
+                location.reload()
+            })
+        }
+
+        function CreateMealType() {
+            let diary = document.getElementById("diary")
+            let mealItem = MakeDiv("meal-item", diary)
+            let mealData = MakeDiv("meal-data", mealItem)
+            let mealType = MakeDiv("meal-type", mealData)
+
+            mealType.setAttribute("contenteditable", "")
+            mealType.innerText = "Введите название"
+            mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType))
+            mealType.addEventListener("blur", (e) => ValidateMealType(e, mealType))
+            mealType.focus()
+
+            document.execCommand('selectAll', false)
+        }
+
+        function RemoveMealType(mealType) {
+            SendRequest("/remove-meal-type", {"date": "{{date}}", "meal_type": mealType}).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось удалить приём пищи")
+                    return
+                }
+
+                location.reload()
+            })
+        }
+
+        function RemoveMealGroup(date, mealType, groupId) {
+            SendRequest('/remove-meal-group', {"date": date, "meal_type": mealType, "group_id": groupId}).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось удалить группу...")
+                    return
+                }
+
+                let groupItem = document.getElementById(groupId)
+                groupItem.parentNode.removeChild(groupItem)
+
+                EndEditPortions()
+                UpdateMealInfoStatistic(mealType, response.statistic)
+                UpdateMealStatistic(mealType, response.meal_statistic)
+            })
+        }
+
+        function UpdateChart() {
+            let keys = ["proteins", "fats", "carbohydrates"]
+            let values = [0, 0, 0]
+            let energy = 0
+            let total = 0
+
+            for (let mealItem of document.getElementsByClassName("meal-info")) {
+                mealType = mealItem.id.replace("meal-info-", "")
+
+                for (let i = 0; i < keys.length; i++) {
+                    let value = +document.getElementById(`${mealType}-meal-${keys[i]}`).innerText
+                    values[i] += value
+                    total += value
+                }
+
+                energy += +document.getElementById(`${mealType}-meal-energy`).innerText
+            }
+
+            let percents = 0
+
+            for (let i = 0; i < keys.length; i++) {
+                let text = `${values[i]} г`
+                let percent = Math.round(values[i] / total * 100)
+                percents += percent
+
+                if (percents > 100)
+                    percent = Math.round(percent + 100 - percents)
+
+                if (total > 0)
+                    text += ` (${percent}%)`
+
+                document.getElementById(`chart-${keys[i]}`).innerText = text
+            }
+
+            document.getElementById(`diary-statistic-energy`).innerText = energy
+
+            let svg = document.getElementById("diary-chart")
+            svg.innerHTML = ''
+
+            if (total > 0) {
+                let chart = new Chart()
+                chart.Plot(svg, values)
+            }
+        }
+
+        function RemoveFoodItemOnSwipe(foodItem) {
+            let mealType = foodItem.parentNode.getAttribute("data-meal-type")
+            let mealId = foodItem.parentNode.id.replace("food-item-", "")
+            let remove = foodItem.parentNode.getElementsByClassName("food-item-remove")[0]
+
+            let swipe = new Swipe(foodItem, remove)
+            swipe.onStart = () => EndEditPortions()
+            swipe.onSwipe = () => RemoveMeal('{{date}}', mealType, mealId, false)
+        }
+
+        function RemoveFoodGroupOnSwipe(groupItem) {
+            let mealType = groupItem.parentNode.parentNode.id.replace("-foods", "")
+            let groupId = groupItem.parentNode.id
+            let remove = groupItem.parentNode.getElementsByClassName("food-item-remove")[0]
+
+            let swipe = new Swipe(groupItem, remove)
+            swipe.onStart = () => {
+                EndEditPortions()
+                ToggleMealGroup(groupItem, false)
+            }
+            swipe.onSwipe = () => RemoveMealGroup('{{date}}', mealType, groupId, false)
+        }
+
+        function RemoveMealOnSwipe(mealItem) {
+            let mealType = mealItem.parentNode.getAttribute("data-meal-type")
+            let remove = mealItem.parentNode.getElementsByClassName("food-item-remove")[0]
+
+            let swipe = new Swipe(mealItem, remove)
+            swipe.onStart = () => ToggleMeal(mealItem, false)
+            swipe.onSwipe = () => RemoveMealType(mealType)
+        }
+
+        for (let mealItem of document.getElementsByClassName("meal-data")) {
+            mealItem.addEventListener('click', () => ToggleMeal(mealItem))
+
+            if (mealItem.classList.contains("meal-data-removable"))
+                RemoveMealOnSwipe(mealItem)
+        }
+
+        for (let groupItem of document.getElementsByClassName("food-item-group-data")) {
+            groupItem.addEventListener('click', () => ToggleMealGroup(groupItem))
+            RemoveFoodGroupOnSwipe(groupItem)
+        }
+
+        for (let item of document.getElementsByClassName("food-item-data"))
+            RemoveFoodItemOnSwipe(item)
+
+        UpdateChart()
+    </script>
+</body>
+</html>

@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% include "head.html" %}
     <title>{{title}} | HELL</title>
-
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/add-food.css">
 </head>
 <body>
+    {% include "menu.html" %}
     <div>
         <div class="form-row">
             <label>Название продукта:
@@ -27,14 +25,14 @@
         </div>
 
         <div class="form-row">
-            <label>Жиры (г)
-                <input type="number" step="0.01" min="0" value="{% if food %}{{food.fats}}{% else %}0{% endif %}" id="fats">
+            <label>Белки (г)
+                <input type="number" step="0.01" min="0" value="{% if food %}{{food.proteins}}{% else %}0{% endif %}" id="proteins">
             </label>
         </div>
 
         <div class="form-row">
-            <label>Белки (г)
-                <input type="number" step="0.01" min="0" value="{% if food %}{{food.proteins}}{% else %}0{% endif %}" id="proteins">
+            <label>Жиры (г)
+                <input type="number" step="0.01" min="0" value="{% if food %}{{food.fats}}{% else %}0{% endif %}" id="fats">
             </label>
         </div>
 
@@ -47,7 +45,7 @@
         <div class="form-row">
             <label>Варианты порции</label>
             <div id="conversions-box"></div>
-            <button id="conversion-button">Добавить</button>
+            <button id="conversion-button"><span class="fa fa-plus"></span> Добавить вариант</button>
         </div>
 
         <div class="form-row">
@@ -57,11 +55,11 @@
         </div>
 
         <div class="form-row center">
-            <button id="save-button">{{add_text}}</button>
+            <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
             {% if food %}
-            <button id="remove-button">Удалить</button>
+            <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
             {% endif %}
-            <button id="back-button">Отмена</button>
+            <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
         </div>
     </div>
 
@@ -69,13 +67,17 @@
     <div class="add-from-url">
         <div class="add-from-url-header">Загрузить из FatSecret:</div>
 
-        <label>Ссылка на FatSecret:
-            <input type="text" id="url-box" placeholder="https://www.fatsecret.ru/...">
-        </label>
+        <div class="add-from-url-search">
+            <div class="add-from-url-search-input">
+                <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
+            </div>
 
-        <div class="add-from-url-button">
-            <button id="url-button">Загрузить</button>
+            <div class="add-from-url-button">
+                <button id="url-button"><span class="fa fa-search"></span></button>
+            </div>
         </div>
+
+        <div id="fatsecret-search-result"></div>
     </div>
     {% endif %}
 
@@ -91,6 +93,10 @@
 
             for (let unit of Object.keys(PORTION_UNITS_DEFAULT[portion]))
                 AddConversion({unit: unit, value: PORTION_UNITS_DEFAULT[portion][unit]})
+
+            for (let nodes of document.getElementsByClassName("conversions-base-unit")) {
+                nodes.innerText = BASE_UNIT_TO_PORTION[portion]
+            }
         }
 
         function RemoveConversion(unit) {
@@ -108,12 +114,9 @@
             let div = document.createElement('div')
             div.className = 'conversions-item'
 
-            let closeDiv = document.createElement('div')
-            let unitDiv = document.createElement('div')
-            let valueDiv = document.createElement('div')
-            closeDiv.className = 'conversions-close'
-            unitDiv.className = 'conversions-unit'
-            valueDiv.className = 'conversions-value'
+            let closeDiv = MakeDiv('conversions-close')
+            let unitDiv = MakeDiv('conversions-unit')
+            let valueDiv = MakeDiv('conversions-value')
 
             let closeIcon = document.createElement('span')
             closeIcon.innerText = '✖'
@@ -136,17 +139,20 @@
             valueInput.type = "number"
             valueInput.step = 0.01
             valueInput.min = 0.01
-            valueInput.value = 1
+            valueInput.value = 100
 
             if (target !== null) {
                 unitSelect.value = target.unit
-                valueInput.value = target.value
+                valueInput.value = target.value * 100
 
                 if (target.unit in PORTION_UNITS_DEFAULT[portion]) {
                     unitSelect.setAttribute('disabled', '')
                     valueInput.setAttribute('disabled', '')
                 }
             }
+
+            let baseDiv = MakeDiv("conversions-base-unit")
+            baseDiv.innerHTML = BASE_UNIT_TO_PORTION[portion]
 
             if (target === null || !(target.unit in PORTION_UNITS_DEFAULT[portion])) {
                 div.appendChild(closeDiv)
@@ -157,6 +163,7 @@
             valueDiv.appendChild(valueInput)
             div.appendChild(unitDiv)
             div.appendChild(valueDiv)
+            div.appendChild(baseDiv)
 
             block.appendChild(div)
         }
@@ -184,7 +191,7 @@
                     return null
                 }
 
-                conversions[unit] = value
+                conversions[unit] = value / 100
             }
 
             return conversions
@@ -211,6 +218,11 @@
             if (food.conversions === null)
                 return
 
+            {% if date and meal_type %}
+            food.date = "{{date}}"
+            food.meal_type = "{{meal_type}}"
+            {% endif %}
+
             SendRequest("{{add_url}}", food).then((response) => {
                 if (response.status != "OK") {
                     alert(response.message)
@@ -229,21 +241,19 @@
             if (!confirm(`Вы уверены, что хотите удалить продукт "${name}"?`))
                 return
 
-            location.href = "/remove-food/{{food._id}}"
+            SendRequest("/remove-food/", {"food_id": "{{food._id}}"}).then((response) => {
+                if (response.status != "ok") {
+                    alert(response.message)
+                    return
+                }
+
+                location.href = `/food-collection{% if query %}?food_query={{query}}{% endif %}`
+            })
         }
         {% endif %}
 
-        function ParseFatsecret() {
-            let url = document.getElementById("url-box").value
-
-            if (!IsNotEmptyValue(url)) {
-                alert("Ссылка пуста")
-                return
-            }
-
+        function ParseFatsecretUrl(url) {
             SendRequest("/parse-fatsecret", {"url": url}).then((food) => {
-                console.log(food)
-
                 if (food === null) {
                     alert("Не удалось распарсить продукт.")
                     return
@@ -255,6 +265,7 @@
                 document.getElementById("fats").value = food.fats
                 document.getElementById("proteins").value = food.proteins
                 document.getElementById("carbohydrates").value = food.carbohydrates
+                window.scrollTo({top: 0, behavior: 'smooth'})
 
                 let block = document.getElementById('conversions-box')
                 block.innerHTML = ''
@@ -262,6 +273,52 @@
                 for (let unit of Object.keys(food.conversions))
                     AddConversion({unit: unit, value: food.conversions[unit]})
             })
+        }
+
+        function ParseFatsecretQuery(query) {
+            SendRequest("/parse-fatsecret", {"query": query}).then((response) => {
+                let resultsDiv = document.getElementById("fatsecret-search-result")
+
+                if (response.length == 0)
+                    resultsDiv.innerText = `К сожалению, по запросу "${query}" ничего не нашлось`
+
+                for (let result of response) {
+                    console.log(result)
+                    let resultDiv = document.createElement("div")
+                    let link = document.createElement("div")
+                    let info = document.createElement("div")
+
+                    resultDiv.className = "fatsecret-result"
+                    link.className = "fatsecret-link"
+                    info.className = "fatsecret-info"
+                    link.addEventListener('click', () => ParseFatsecretUrl(result.link))
+
+                    link.innerText = result.name
+                    info.innerText = result.info
+
+                    resultDiv.appendChild(link)
+                    resultDiv.appendChild(info)
+                    resultsDiv.appendChild(resultDiv)
+                }
+            })
+        }
+
+        function ParseFatsecret() {
+            let value = document.getElementById("url-box").value
+
+            if (!IsNotEmptyValue(value)) {
+                alert("Пустая ссылка или текстовый запрос")
+                return
+            }
+
+            document.getElementById("fatsecret-search-result").innerHTML = ''
+
+            if (value.match(/^https?:\/\/fatsecret/)) {
+                ParseFatsecretUrl(value)
+            }
+            else {
+                ParseFatsecretQuery(value)
+            }
         }
 
         let portionBox = document.getElementById("portion")
@@ -286,6 +343,10 @@
             urlButton.addEventListener('click', () => ParseFatsecret())
 
             InitConversions()
+        {% endif %}
+
+        {%if query and not food %}
+        ParseFatsecretQuery("{{query.replace('"', '\\"')}}")
         {% endif %}
     </script>
 </body>

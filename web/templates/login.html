@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include "head.html" %}
+    <title>Вход | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+</head>
+<body>
+    <form id="login-form" action="/login" method="post">
+        <div class="form-row">
+            <label>Имя пользователя: <input type="text" name="username" value="admin"></label>
+        </div>
+        <div class="form-row">
+            <label>Пароль: <input type="password" name="password" value="admin"></label>
+        </div>
+        <div class="center">
+            <button type="submit">Войти в HELL</button>
+        </div>
+    </form>
+
+    <span class="error" id="error-message"></span>
+
+    <script>
+        async function SubmitForm(e) {
+            e.preventDefault()
+            let username = form.elements.username.value
+            let password = form.elements.password.value
+            let data = {username, password}
+
+            try {
+                let response = await fetch("/login", {
+                    method: "POST",
+                    body: Object.keys(data).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key])).join('&'),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    }
+                })
+
+                if (!response.ok)
+                    throw new Error(response.statusText)
+
+                response = await response.json()
+
+                if (response.status != "ok")
+                    throw new Error(response.message)
+
+                window.location.href = '/'
+            } catch (error) {
+                let errorMessage = document.getElementById("error-message");
+                errorMessage.textContent = error.message;
+            }
+        }
+
+        let form = document.getElementById("login-form")
+        form.addEventListener("submit", (e) => SubmitForm(e))
+    </script>
+</body>
+</html>

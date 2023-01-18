@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Коллекция продуктов | HELL</title>
+    {% include "head.html" %}
+    <title>{% if date and meal_type %}{{date}}. Добавление еды на {{names[meal_type]}}{% else %}Коллекция продуктов{% endif %} | HELL</title>
 
-    <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
+    <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
 </head>
 <body>
-    <h1>Продукты</h1>
+    {% include "menu.html" %}
+    <h1>{% if date and meal_type %}{% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %} {{date}}{% else %}Продукты{% endif %}</h1>
 
-    <form class="food-search" method="get" action="/food-collection">
+    <form class="food-search" method="get" action="{% if date and meal_type %}/add-meal/{{date}}/{{meal_type}}{% else %}/food-collection{% endif %}">
+        <div class="food-search-clear{%if query %} food-search-clear-show{% endif %}" id="food-query-clear" onclick="ClearQuery()">
+            <span class="fa fa-times">
+        </div>
+
         <div class="food-search-input">
-            <input type="text" name="food_query" class="search-input" placeholder="Введите название продукта" {% if query %}value="{{query}}"{% endif %}>
+            <input type="text" name="food_query" id="food-query" oninput="UpdateClearQuery()" class="search-input" placeholder="Введите название продукта" {% if query %}value="{{query}}"{% endif %}>
         </div>
 
         <div class="food-search-button">
-            <button type="submit">Найти</button>
+            <button type="submit"><span class="fa fa-search"></span></button>
         </div>
     </form>
 
@@ -29,28 +33,103 @@
                     <p>По запросу <i>"{{query}}"</i> продуктов не найдено...</p>
                     <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
                 </div>
-            {% else %}
-                Ещё не было добавлено никаких продуктов. Но Вы можете
+            {% elif frequent_food_items %}
+            <div class="frequent-food">
+                {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
+            </div>
+            </div>
             {% endif %}
-
-            <div class="add-food">
-                <button onclick="location.href='/add-food';">Добавить новый продукт</button>
-            </div>
         {% else %}
-            {% for food_item in food_items %}
-            <div class="food-item" id="{{food_item._id}}" onclick="location.href = '{{click_url}}/{{food_item._id}}'">
-                <div class="food-name">{{food_item.name}}</div>
-                <div class="food-description">{{food_item.description}}</div>
-                <div class="food-info">
-                    <div class="food-info-cell food-energy">{{food_item.energy}} ккал / {{food_item.portion}}</div>
-                    <div class="food-info-cell food-fats">Ж{{food_item.fats}} г</div>
-                    <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>
-                    <div class="food-info-cell food-carbohydrates">У{{food_item.carbohydrates}} г</div>
-                </div>
-            </div>
-            {% endfor %}
+
+            {% for food_item in food_items %}{% include "food_item.html" %}{% endfor %}
         {% endif %}
         </div>
+
+        <div class="add-food">
+            <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить новый продукт</button>
+        </div>
     </div>
+
+    <script src="/js/forms.js"></script>
+    <script>
+        function ClearQuery() {
+            let query = document.getElementById("food-query")
+            let clear = document.getElementById("food-query-clear")
+            query.value = ""
+            clear.classList.remove("food-search-clear-show")
+        }
+
+        function UpdateClearQuery() {
+            let query = document.getElementById("food-query")
+            let clear = document.getElementById("food-query-clear")
+
+            if (query.value.length > 0)
+                clear.classList.add("food-search-clear-show")
+            else
+                clear.classList.remove("food-search-clear-show")
+        }
+
+        function EndEditPortions(ignoreEdit = null) {
+            let foodEdits = document.getElementsByClassName('food-portion-edit')
+
+            for (let foodEdit of foodEdits) {
+                if (foodEdit === ignoreEdit)
+                    continue
+
+                foodEdit.classList.add('no-display')
+                foodEdit.parentNode.classList.remove('food-item-colored')
+            }
+        }
+
+        function ClickFoodItem(foodId) {
+        {% if date and meal_type %}
+            let foodItem = document.getElementById(foodId)
+            let portionEdit = foodItem.getElementsByClassName('food-portion-edit')[0]
+            EndEditPortions(portionEdit)
+            portionEdit.classList.toggle('no-display')
+            foodItem.classList.toggle('food-item-colored')
+
+            let portionSize = document.getElementById(`${foodId}-portion-size`)
+            let portionUnit = document.getElementById(`${foodId}-portion-unit`)
+            portionSize.value = portionEdit.getAttribute("data-default-value")
+            portionUnit.value = portionEdit.getAttribute("data-default-unit")
+            portionSize.focus()
+            portionSize.select()
+        {% else %}
+            location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
+        {% endif %}
+        }
+
+        {% if date and meal_type %}
+        function AddMeal(date, mealType, foodId) {
+            let portionSize = document.getElementById(`${foodId}-portion-size`)
+            let portionUnit = document.getElementById(`${foodId}-portion-unit`)
+
+            if (!IsPositiveReal(portionSize.value)) {
+                portionSize.focus()
+                portionSize.select()
+                alert("Размер порции введён некорректно")
+                return
+            }
+
+            let data = {
+                date: date,
+                meal_type: mealType,
+                food_id: foodId,
+                portion_size: portionSize.value,
+                portion_unit: portionUnit.value
+            }
+
+            SendRequest("/add-meal", data).then((response) => {
+                if (response.status != "ok") {
+                    alert("Не удалось добавить продукт")
+                    return
+                }
+
+                location.href = `/diary?date={{date}}`
+            })
+        }
+        {% endif %}
+    </script>
 </body>
 </html>

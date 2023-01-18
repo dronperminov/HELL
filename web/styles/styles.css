@@ -1,24 +1,71 @@
 :root {
-    --text-color: #000;
-    --background-color: #fff;
-    --border-color: #ddd;
+    --text-color: #2f2f2f;
+    --label-color: #5f5f5f;
+    --background-color: transparent;
+    --border-color: #bbb;
     --disabled-color: #aaa;
     --success-color: #4caf50;
-    --active-color: #4caf50;
+    --error-color: #f44336;
+    --error-text-color: #f1f1f1;
+    --warning-color: #ff9800;
+    --active-color: var(--success-color);
+    --select-background-color: #feebd58f;
 
     --active-button-color: #fff;
     --active-button-background: #4caf50;
+
+    --block-background-color: #e8e8e88f;
+    --background-image: url("/images/food_texture.jpg");
+
+    --menu-background: #e5e5e5;
+    --menu-text-color: #6f6f6f;
+    --menu-hover-background: #1f3028;
+    --menu-hover-text-color: #4caf50;
+    --menu-border-color: #e1e1e1;
+
+    --plot-color1: #ec6b56;
+    --plot-color2: #ffc154;
+    --plot-color3: #47b39c;
+    --plot-divider-color: #e1e1e1;
+}
+
+[data-theme="dark"] {
+    --text-color: #e1e1e1;
+    --background-color: transparent;
+    --border-color: #767676;
+    --disabled-color: #888888;
+    --success-color: #419a64;
+    --error-color: #f44336;
+    --warning-color: #ff9800;
+    --select-background-color: #7c73698f;
+
+    --active-button-color: #fff;
+    --active-button-background: #4caf50;
+
+    --block-background-color: #1e1e1e;/*8f;*/
+    --background-image: url("/images/food_texture_dark.jpg");
+
+    --menu-background: #161618;
+    --menu-text-color: #787a7e;
+    --menu-hover-background: #1f3028;
+    --menu-hover-text-color: #1fb766;
+    --menu-border-color: #787a7e;
+
+    --plot-divider-color: #1e1e1e;
 }
 
 body {
-    padding: 0;
+    padding: 10px 10px 0 10px;
     margin: 0;
     color: var(--text-color);
-    background: var(--background-color);
+    background: var(--background-image);
+    background-color: var(--background-color);
+    margin-bottom: 50px;
 }
 
 h1 {
     text-align: center;
+    margin-top: 0;
     margin-bottom: 8px;
 }
 
@@ -29,7 +76,6 @@ p {
 
 .form-row {
     margin-bottom: 8px;
-    padding: 0 10px;
 }
 
 .form-row label {
@@ -43,4 +89,110 @@ p {
 
 .center {
     text-align: center;
+}
+
+.success {
+    color: var(--success-color);
+}
+
+.error {
+    color: var(--error-color) !important;
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 0.9rem;
+}
+
+.no-display {
+    display: none !important;
+}
+
+.h-scrollable {
+    overflow-x: auto;
+}
+
+.plot-circle {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 100%;
+    margin-bottom: -2px;
+}
+
+.remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+    text-align: right;
+    background: var(--error-color);
+    color: var(--disabled-color);
+    pointer-events: none;
+    transition: width 0.5s, opacity 0.5s;
+    display: table;
+    height: 100%;
+}
+
+.remove-cell {
+    display: table-cell;
+    vertical-align: middle;
+    padding-right: 10px;
+}
+
+.remove span {
+    color: var(--error-text-color);
+}
+
+.swipe-animated {
+    transition: transform 0.5s;
+}
+
+.menu {
+    position: fixed;
+    z-index: 1;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+    background: var(--menu-background);
+    border-top: 1px solid var(--menu-border-color);
+    border-collapse: collapse;
+    height: 50px;
+}
+
+.menu-item {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.menu-item a {
+    text-decoration: none;
+    color: var(--menu-text-color);
+    display: block;
+}
+
+.menu-item span {
+    font-size: 20px;
+}
+
+.menu-item a.current {
+    color: var(--menu-hover-text-color);
+}
+
+@media (min-width: 1200px) {
+    body {
+        width: 380px;
+        margin: 0 auto;
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        min-height: 100vh;
+    }
+
+    .menu {
+        width: 400px;
+        margin: 0 auto;
+    }
 }

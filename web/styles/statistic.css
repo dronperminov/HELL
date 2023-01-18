@@ -1,0 +1,61 @@
+.statistic svg {
+    width: 100%;
+    height: 150px;
+}
+
+.statistic .label {
+    font-size: 0.5em;
+    fill: var(--text-color);
+}
+
+.statistic-info {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.statistic-row {
+    margin-bottom: 5px;
+}
+
+.statistic-header {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.statistic-showed {
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+}
+
+.statistic-parameters {
+    display: table;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.statistic-period {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.statistic-button {
+    display: table-cell;
+    width: 80px;
+    text-align: right;
+    vertical-align: top;
+}
+
+.statistic-period-input {
+    display: table;
+    width: 100%;
+    padding-top: 5px;
+}
+
+.statistic-period-input-cell {
+    display: table-cell;
+}
+
+.statistic-period-input-cell input {
+    text-align: center;
+}

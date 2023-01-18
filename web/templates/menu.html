@@ -1,0 +1,27 @@
+<div class="menu">
+    <div class="menu-item">
+        <a {% if page == "/" %}class="current"{% endif %} href="/">
+            <span class="fa fa-user"></span><br>
+            <sub>Я</sub>
+        </a>
+    </div>
+    <div class="menu-item">
+        <a {% if page == "/diary" %}class="current"{% endif %} href="/diary">
+            <span class="fa fa-cutlery"></span><br>
+            <sub>Дневник</sub>
+        </a>
+    </div>
+    <div class="menu-item">
+        <a {% if page == "/food-collection" %}class="current"{% endif %} href="/food-collection">
+            <span class="fa fa-shopping-basket"></span><br>
+            <sub>Продукты</sub>
+        </a>
+    </div>
+
+    <div class="menu-item">
+        <a {% if page == "/statistic" %}class="current"{% endif %} href="/statistic">
+            <span class="fa fa-bar-chart"></span><br>
+            <sub>Статистика</sub>
+        </a>
+    </div>
+</div>

@@ -1,20 +1,31 @@
 input[type="text"],
+input[type="password"],
 input[type="number"],
 input[type="range"],
-select {
+select,
+.input {
     box-sizing: border-box;
     width: 100%;
     border: none;
+    color: var(--text-color);
     border-bottom: 1px solid var(--border-color);
     padding: 0;
     background: var(--background-color);
     font-size: 0.9rem;
 }
 
+.input {
+    display: inline-block;
+    min-width: 10px;
+    width: fit-content;
+}
+
 input[type="text"]:focus, input[type="text"]:hover,
+input[type="password"]:focus, input[type="password"]:hover,
 input[type="range"]:focus, input[type="range"]:hover,
 input[type="number"]:focus, input[type="number"]:hover,
-select:focus, select:hover {
+select:focus, select:hover,
+.input:focus, .input:hover {
     outline: none;
     border-bottom: 1px solid var(--active-color);
 }
@@ -23,6 +34,7 @@ input[type="text"]:disabled,
 input[type="number"]:disabled,
 input[type="range"]:disabled,
 select:disabled {
+    color: var(--disabled-color);
     border-color: var(--border-color);
 }
 
@@ -38,6 +50,12 @@ button:focus, button:hover {
     background: var(--active-button-background);
     border-color: var(--active-button-background);
     color: var(--active-button-color);
+}
+
+button:disabled {
+    border: 1px solid var(--disabled-color);
+    color: var(--disabled-color);
+    background: none;
 }
 
 textarea {

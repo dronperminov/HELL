@@ -1,6 +1,6 @@
 .add-from-url {
     border-top: 1px solid var(--border-color);
-    padding: 5px 10px;
+    padding: 5px 0;
 }
 
 .add-from-url-header {
@@ -8,28 +8,58 @@
     text-align: center;
 }
 
+.add-from-url-search {
+    display: table;
+    width: 100%;
+}
+
+.add-from-url-search-input {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
 .add-from-url-button {
+    display: table-cell;
     text-align: center;
     margin-top: 8px;
+    width: 35px;
 }
 
 .conversions-item {
     display: table;
     margin-bottom: 10px;
+    width: 100%;
 }
 
 .conversions-close {
     display: table-cell;
-    width: 30px;
 }
 
 .conversions-unit {
     display: table-cell;
-    width: 45%;
+    width: 45vw;
 }
 
 .conversions-value {
     display: table-cell;
     width: 50%;
     padding-left: 5px;
+}
+
+.conversions-base-unit {
+    display: table-cell;
+}
+
+.fatsecret-result {
+    margin-top: 5px;
+    border-top: 1px solid var(--border-color);
+}
+
+.fatsecret-link {
+    color: var(--success-color);
+}
+
+.fatsecret-info {
+    color: var(--disabled-color);
+    font-size: 0.9em;
 }
