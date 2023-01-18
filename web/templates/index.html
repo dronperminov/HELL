@@ -7,8 +7,9 @@
     {% else %}
     <title>Главная страница | HELL</title>
     {% endif %}
-    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/index.css">
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css?v=8">
+    <link rel="stylesheet" type="text/css" href="/styles/index.css?v=8">
+    <link rel="stylesheet" type="text/css" href="/styles/plot.css?v=8">
 </head>
 <body>
     {% include "menu.html" %}
@@ -35,11 +36,19 @@
         <button class="no-display" id="cancel-add-parameter" onclick="CancelAddParameter()"><span class="fa fa-ban"> Отменить</span></button>
     </div>
 
-    <script src="/js/constants.js"></script>
-    <script src="/js/forms.js"></script>
-    <script src="/js/swipe.js"></script>
+    <script src="/js/constants.js?v=8"></script>
+    <script src="/js/forms.js?v=8"></script>
+    <script src="/js/swipe.js?v=8"></script>
+    <script src="/js/plot.js"></script>
 
     <script type="text/javascript">
+        const parametersData = {}
+        {% for parameter in user.body_parameters %}
+        parametersData["{{parameter.name}}"] = [
+            {% for data in body_parameters.get(parameter.name, []) %}{"date": "{{data["date"]}}", "value": {{data["value"]}}}, {% endfor %}
+        ]
+        {% endfor %}
+
         function HaveParameterName(name) {
             for (let nameSpan of document.getElementsByClassName("parameter-name"))
                 if (nameSpan.innerText.trim().toLowerCase() == name.trim().toLowerCase())
@@ -220,7 +229,7 @@
             let parameterName = parameterItem.getElementsByClassName("parameter-name")[0].innerText
 
             let swipe = new Swipe(parameterItem, parameterRemove)
-            swipe.onStart = () => EndEditParameters()
+            swipe.onStart = () => { ToggleParameterPlot(parameterName, false); EndEditParameters() }
             swipe.onSwipe = () => RemoveParameter(parameterItem, parameterName, swipe)
         }
 
@@ -240,8 +249,9 @@
             }
         }
 
-        function StartEditParameter(parameterItem, name) {
-            EndEditParameters(parameterItem)
+        function StartEditParameter(parameterInput, name) {
+            EndEditParameters(parameterInput)
+
             let icons = document.getElementById(`parameter-${name}-icons`)
             icons.classList.remove("no-display")
         }
@@ -262,6 +272,18 @@
             })
         }
 
+        function UpdateDataParameterValue(date, name, value) {
+            for (let i = 0; i < parametersData[name].length; i++) {
+                if (parametersData[name][i].date == date) {
+                    parametersData[name][i].value = +value
+                    return
+                }
+            }
+
+            parametersData[name].push({date: date, value: value})
+            parametersData[name].sort((a, b) => CompareDates(a.date, b.date))
+        }
+
         function UpdateParameterValue(date, name, value) {
             let errorDiv = document.getElementById(`parameter-${name}-error`)
             let valueInput = document.getElementById(`parameter-${name}-value`)
@@ -274,7 +296,9 @@
 
                 errorDiv.innerText = ''
                 valueInput.setAttribute("data-value", value)
+                UpdateDataParameterValue(date, name, value)
                 EndEditParameters()
+                BuildPlot(name)
             })
         }
 
@@ -305,8 +329,40 @@
             UpdateParameterValue(date, name, value)
         }
 
-        for (let parameterItem of document.getElementsByClassName("parameter-data"))
+        function BuildPlot(name) {
+            let parameter = document.getElementById(`parameter-${name}`)
+            let svg = parameter.getElementsByTagName("svg")[0]
+
+            if (parametersData[name].length < 2) {
+                svg.classList.add("no-display")
+                return
+            }
+
+            let data = parametersData[name]
+            let plot = new Plot()
+            plot.Plot(svg, data)
+        }
+
+        function ToggleParameterPlot(name, open = null) {
+            let parameter = document.getElementById(`parameter-${name}`)
+            let parameterPlot = parameter.getElementsByClassName("parameter-plot")[0]
+
+            if (open === null)
+                parameterPlot.classList.toggle("no-display")
+            else if (open)
+                parameterPlot.classList.remove("no-display")
+            else
+                parameterPlot.classList.add("no-display")
+
+            if (parameterPlot.classList.contains("no-display"))
+                return
+
+            BuildPlot(name)
+        }
+
+        for (let parameterItem of document.getElementsByClassName("parameter-data")) {
             SwipeParameter(parameterItem)
+        }
     </script>
     {% else %}
     <p class="center">Добро пожаловать в <b>HELL</b>!</p>

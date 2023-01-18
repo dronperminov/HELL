@@ -95,7 +95,7 @@ def logout():
     return response
 
 
-def have_parameter(user_id: str, name: str) -> bool:
+def have_body_parameter(user_id: str, name: str) -> bool:
     user_collection = database[constants.MONGO_USER_COLLECTION]
     return user_collection.find_one({"_id": ObjectId(user_id), "body_parameters.name": name}) is not None
 
@@ -111,7 +111,7 @@ def get_body_parameters(user_id: str, date: datetime):
 
     for parameter_doc in parameter_docs:
         values = [{"date": format_date(parameter["date"]), "value": d2s(Decimal(str(parameter["value"])), 100)} for parameter in parameter_doc["values"]]
-        parameters[parameter_doc["_id"]] = sorted(values, key=lambda value_item: value_item["date"])
+        parameters[parameter_doc["_id"]] = sorted(values, key=lambda value_item: parse_date(value_item["date"]))
 
     return parameters
 
@@ -146,7 +146,7 @@ def add_body_parameter(date: str = Body(..., embed=True), name: str = Body(..., 
     if not user_id:
         return unauthorized_access("/")
 
-    if have_parameter(user_id, name):
+    if have_body_parameter(user_id, name):
         return JSONResponse({"status": "fail", "message": f"Не удалось добавить параметр \"{name}\", так как он уже есть. Пожалуйста, обновите страницу."})
 
     date = parse_date(date)
@@ -166,7 +166,7 @@ def remove_body_parameter(name: str = Body(..., embed=True), user_id: Optional[s
     if not user_id:
         return unauthorized_access("/")
 
-    if not have_parameter(user_id, name):
+    if not have_body_parameter(user_id, name):
         return JSONResponse({"status": "fail", "message": f"Не удалось удалить параметр \"{name}\", так как его нет среди параметров. Пожалуйста, обновите страницу."})
 
     user_collection = database[constants.MONGO_USER_COLLECTION]
@@ -183,7 +183,7 @@ def update_body_parameter_value(date: str = Body(..., embed=True), name: str = B
     if not user_id:
         return unauthorized_access("/")
 
-    if not have_parameter(user_id, name):
+    if not have_body_parameter(user_id, name):
         return JSONResponse({"status": "fail", "message": f"Не удалось обновить параметр \"{name}\", так как его нет среди параметров"})
 
     date = parse_date(date)
@@ -200,7 +200,7 @@ def remove_body_parameter_value(date: str = Body(..., embed=True), name: str = B
     if not user_id:
         return unauthorized_access("/")
 
-    if not have_parameter(user_id, name):
+    if not have_body_parameter(user_id, name):
         return JSONResponse({"status": "fail", "message": f"Не удалось удалить значение параметра \"{name}\", так как его нет среди параметров"})
 
     date = parse_date(date)

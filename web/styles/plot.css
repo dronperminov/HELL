@@ -35,3 +35,18 @@
 .bar-divider {
     stroke: var(--plot-divider-color);
 }
+
+.plot-line {
+    stroke: var(--plot-color);
+    stroke-width: 2px;
+    fill: none;
+}
+
+.plot-area {
+    fill: var(--plot-background-color);
+}
+
+.label {
+    font-size: 0.5em;
+    fill: var(--text-color);
+}

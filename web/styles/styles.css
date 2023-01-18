@@ -23,6 +23,9 @@
     --menu-hover-text-color: #4caf50;
     --menu-border-color: #e1e1e1;
 
+    --plot-background-color: #a4dbcf80;
+    --plot-color: #47b39c;
+
     --plot-color1: #ec6b56;
     --plot-color2: #ffc154;
     --plot-color3: #47b39c;
@@ -42,7 +45,7 @@
     --active-button-color: #fff;
     --active-button-background: #4caf50;
 
-    --block-background-color: #1e1e1e;/*8f;*/
+    --block-background-color: #1e1e1e8f;
     --background-image: url("/images/food_texture_dark.jpg");
 
     --menu-background: #161618;

@@ -90,3 +90,16 @@ function MakeIcon(parent, className, onclick = null) {
 
     return icon
 }
+
+function CompareDates(date1, date2) {
+    date1 = date1.split('.').reverse().join('.')
+    date2 = date2.split('.').reverse().join('.')
+
+    if (date1 < date2)
+        return -1
+
+    if (date1 > date2)
+        return 1
+
+    return 0
+}
