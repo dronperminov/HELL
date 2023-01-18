@@ -6,8 +6,8 @@ import constants
 from entities.portion_unit import BasePortionUnit, PortionUnit
 
 
-def d2s(value: Decimal) -> str:
-    return f'{round(value * 2) / 2:g}'
+def d2s(value: Decimal, scale: int = 2) -> str:
+    return f'{round(value * scale) / scale:g}'
 
 
 def normalize_statistic(statistic: dict):

@@ -23,3 +23,11 @@ PORTION_UNITS_DEFAULT[BASE_UNIT_ML100][PORTION_UNIT_TABLE_SPOON] = 0.18
 const BASE_UNIT_TO_PORTION = {}
 BASE_UNIT_TO_PORTION[BASE_UNIT_G100] = PORTION_UNIT_G
 BASE_UNIT_TO_PORTION[BASE_UNIT_ML100] = PORTION_UNIT_ML
+
+const BODY_PARAMETERS = [
+    "Вес", "Рост", "Обхват груди", "Обхват талии", "Обхват бёдер", "Обхват ягодиц"
+]
+
+const BODY_PARAMETER_UNITS = [
+    "кг", "см"
+]

@@ -1,5 +1,6 @@
 :root {
     --text-color: #2f2f2f;
+    --label-color: #5f5f5f;
     --background-color: transparent;
     --border-color: #bbb;
     --disabled-color: #aaa;
@@ -98,6 +99,11 @@ p {
     color: var(--error-color);
 }
 
+.error-message {
+    color: var(--error-color);
+    font-size: 0.9rem;
+}
+
 .no-display {
     display: none !important;
 }
@@ -112,6 +118,29 @@ p {
     height: 16px;
     border-radius: 100%;
     margin-bottom: -2px;
+}
+
+.remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+    text-align: right;
+    background: var(--error-color);
+    color: var(--disabled-color);
+    pointer-events: none;
+    transition: width 0.5s, opacity 0.5s;
+    display: table;
+    height: 100%;
+}
+
+.remove-cell {
+    display: table-cell;
+    vertical-align: middle;
+    padding-right: 10px;
+}
+
+.remove span {
+    color: var(--error-text-color);
 }
 
 .swipe-animated {

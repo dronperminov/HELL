@@ -1,0 +1,108 @@
+.logout {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
+.date {
+    padding: 5px;
+    text-align: center;
+}
+
+.date a {
+    color: var(--text-color);
+}
+
+.date a:hover {
+    color: var(--success-color);
+}
+
+.current-date {
+    padding: 0 10px;
+}
+
+.parameters {
+    margin-bottom: 10px;
+}
+
+.parameters-header {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.no-parameters {
+    color: var(--disabled-color);
+    font-size: 0.9rem;
+}
+
+.parameter {
+    padding: 5px;
+    background: var(--block-background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    margin-top: 5px;
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.parameter-data {
+    display: table-cell;
+}
+
+.parameter-icons {
+    
+}
+
+.parameter-name {
+    font-weight: bold;
+}
+
+.parameter-new {
+    display: table;
+    width: 100%;
+    padding: 5px 0;
+    box-sizing: border-box;
+}
+
+.parameter-new-cell {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.parameter-new-value {
+    max-width: 100px;
+    padding-left: 5px;
+}
+
+.parameter-new-value input {
+    text-align: right;
+}
+
+.parameter-new-unit {
+    width: 50px;
+    padding-left: 5px;
+}
+
+.parameter-new-icons {
+    vertical-align: top;
+    text-align: right;
+    padding-left: 5px;
+}
+
+.parameter-new-label {
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--label-color);
+}
+
+.parameter-new-cell input:focus + .parameter-new-label,
+.parameter-new-cell input:focus + .parameter-new-label {
+    color: var(--success-color);
+}
+
+.parameter-new-error {
+    text-align: center;
+}

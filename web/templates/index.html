@@ -2,22 +2,325 @@
 <html>
 <head>
     {% include "head.html" %}
+    {% if user %}
+    <title>Личная страница | HELL</title>
+    {% else %}
     <title>Главная страница | HELL</title>
-    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    {% endif %}
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css?v=6">
+    <link rel="stylesheet" type="text/css" href="/styles/index.css?v=5">
 </head>
 <body>
     {% include "menu.html" %}
-    <h1>Добро пожаловать в HELL!</h1>
     {% if user %}
-        <p>Текущий пользователь: <span class="success">{{ user.username }}</span>, но Вы можете <a href="/logout">выйти</a></p>
-    {% else %}
-        <p>Вы неавторизованный пользователь, поэтому Вы можете <a href="/login">авторизоваться</a></p>
-    {% endif %}
+    <button class="logout" onclick="location.href='/logout'"><span class="fa fa-sign-out"></span></button>
+    <p class="center"><span class="success">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</span></p>
 
-    <p>Сейчас у нас есть: <a href="/food-collection">список продуктов</a></p>
-    <p>Вы можете <button onclick="location.href='/add-food';">добавить продукт</button> в него</p>
-    {% if user %}
-    <p>А ещё у нас есть: <a href="/diary">дневник питания</a></p>
+    <div class="date">
+        <a href="/?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
+        <span class="current-date">{{date}}</span>
+        <a href="/?date={{next_date}}"><span class="fa fa-chevron-right"></span></a>
+    </div>
+
+    <div class="parameters">
+        <div class="parameters-header">Мои текущие параметры</div>
+        <div class="no-parameters {% if user.body_parameters %}no-display{% endif %}" id="no-parameters">Пока что у вас нет ни одного отслеживаемого параметра</div>
+        <div class="parameters-items" id="parameters-items">
+        {% for parameter in user.body_parameters %}
+            <div class="parameter">
+                <div class="remove" style="opacity: 0">
+                    <div class="remove-cell">
+                        <span class="fa fa-trash"></span>
+                    </div>
+                </div>
+                <div class="parameter-data">
+                    <span class="parameter-name">{{parameter.name}}</span>:
+                    <span class="input" id="parameter-{{parameter.name}}-value" role="textbox" contenteditable data-value="{{body_parameters.get(parameter.name, [{"value": ""}])[-1]["value"]}}" onfocus="StartEditParameter(this, '{{parameter.name}}')">{{body_parameters.get(parameter.name, [{"value": ""}])[-1]["value"]}}</span>
+                    {{parameter.unit}}
+                    <span class="parameter-icons no-display" id="parameter-{{parameter.name}}-icons">
+                        <button onclick="SaveParameterValue('{{date}}', '{{parameter.name}}')"><span class="fa fa-check"></span></button>
+                    </span>
+                    <div class="error-message parameter-error" id="parameter-{{parameter.name}}-error"></div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+
+    <div class="add-parameter">
+        <button id="add-parameter" onclick="AddParameter()"><span class="fa fa-plus"> Добавить параметр</span></button>
+    </div>
+
+    <script src="/js/constants.js?v=3"></script>
+    <script src="/js/forms.js?v=4"></script>
+    <script src="/js/swipe.js?v=4"></script>
+
+    <script type="text/javascript">
+        function HaveParameterName(name) {
+            for (let nameSpan of document.getElementsByClassName("parameter-name"))
+                if (nameSpan.innerText.trim().toLowerCase() == name.trim().toLowerCase())
+                    return true
+
+            return false
+        }
+
+        function MakeBodyParameterDatalist() {
+            let datalist = document.createElement("datalist")
+            datalist.id = "body-parameters"
+
+            for (let name of BODY_PARAMETERS) {
+                if (HaveParameterName(name))
+                    continue
+
+                let option = document.createElement("option")
+                option.value = name
+                datalist.appendChild(option)
+            }
+
+            return datalist
+        }
+
+        function MakeUnitParameterDatalist() {
+            let datalist = document.createElement("datalist")
+            datalist.id = "body-parameter-units"
+
+            for (let key of Object.values(BODY_PARAMETER_UNITS)) {
+                let option = document.createElement("option")
+                option.value = key
+                datalist.appendChild(option)
+            }
+
+            return datalist
+        }
+
+        function AddParameter() {
+            EndEditParameters()
+
+            let button = document.getElementById("add-parameter")
+            button.setAttribute("disabled", "")
+
+            let block = document.getElementById('parameters-items')
+            let div = MakeDiv("parameter-new", block)
+            let divInput = MakeDiv("parameter-new-inputs", div)
+            let divError = MakeDiv("error-message parameter-new-error", div)
+
+            divInput.appendChild(MakeBodyParameterDatalist())
+            divInput.appendChild(MakeUnitParameterDatalist())
+
+            let nameDiv = MakeDiv("parameter-new-cell parameter-new-name", divInput)
+            let valueDiv = MakeDiv("parameter-new-cell parameter-new-value", divInput)
+            let unitDiv = MakeDiv("parameter-new-cell parameter-new-unit", divInput)
+            let iconsDiv = MakeDiv("parameter-new-cell parameter-new-icons", divInput)
+
+            let nameInput = MakeInput("text", nameDiv, {"list": "body-parameters"})
+            let valueInput = MakeInput("number", valueDiv, {"min": "0.001", "step": "0.001", "value": 0})
+            let unitInput = MakeInput("text", unitDiv, {"list": "body-parameter-units"})
+            let iconAdd = MakeIcon(iconsDiv, "fa fa-check", () => SaveParameter(nameInput, valueInput, unitInput, divError))
+
+            let nameLabel = MakeDiv("parameter-new-label", nameDiv)
+            nameLabel.innerText = "название"
+
+            let valueLabel = MakeDiv("parameter-new-label", valueDiv)
+            valueLabel.innerText = "значение"
+
+            let unitLabel = MakeDiv("parameter-new-label", unitDiv)
+            unitLabel.innerText = "ед.изм."
+        }
+
+        function ValidateParameters(nameInput, valueInput, unitInput, errorDiv) {
+            let name = nameInput.value.trim()
+            let value = valueInput.value
+            let unit = unitInput.value.trim()
+
+            nameInput.value = name
+            unitInput.value = unit
+
+            if (!IsNotEmptyValue(name)) {
+                errorDiv.innerText = "Название параметра не заполнено"
+                nameInput.focus()
+                return false
+            }
+
+            if (HaveParameterName(name)) {
+                errorDiv.innerText = "Параметр с таким именем уже существует"
+                nameInput.focus()
+                return false
+            }
+
+            if (!IsNotEmptyValue(unit)) {
+                errorDiv.innerText = `Единица измерения параметра "${name}" не заполнено`
+                unitInput.focus()
+                return false
+            }
+
+            if (!IsRealValue(value) ) {
+                errorDiv.innerText = `Значение параметра "${name}" введено некорректно`
+                valueInput.focus()
+                valueInput.select()
+                return false
+            }
+
+            if (+value <= 0) {
+                errorDiv.innerText = `Значение параметра "${name}" должно быть положительным`
+                valueInput.focus()
+                valueInput.select()
+                return false
+            }
+
+            errorDiv.innerText = ''
+            return true
+        }
+
+        function SaveParameter(nameInput, valueInput, unitInput, errorDiv) {
+            if (!ValidateParameters(nameInput, valueInput, unitInput, errorDiv))
+                return
+
+            let data = {
+                date: "{{date}}",
+                name: nameInput.value,
+                value: valueInput.value,
+                unit: unitInput.value
+            }
+
+            SendRequest("/add-body-parameter", data).then((response) => {
+                if (response.status != "ok") {
+                    errorDiv.innerText = response.message
+                    return
+                }
+
+                let button = document.getElementById("add-parameter")
+                button.removeAttribute("disabled")
+                location.reload()
+            })
+        }
+
+        function RemoveParameter(parameterItem, name, swipe) {
+            if (!confirm(`Вы уверены,что хотите удалить параметр "${name}"? Это приведёт к удалению всех записей о нём.`)) {
+                swipe.CancelSwipe()
+                return
+            }
+
+            SendRequest("/remove-body-parameter", {"name": name}).then((response) => {
+                let errorDiv = parameterItem.getElementsByClassName("parameter-error")[0]
+                let noParameters = document.getElementById("no-parameters")
+
+                if (response.status != "ok") {
+                    swipe.CancelSwipe()
+                    errorDiv.innerText = response.message
+                    return
+                }
+
+                let parameter = parameterItem.parentNode
+                let parameters = document.getElementById("parameters-items")
+                parameters.removeChild(parameter)
+
+                if (parameters.children.length == 0)
+                    noParameters.classList.remove("no-display")
+            })
+        }
+
+        function SwipeParameter(parameterItem) {
+            let parameterRemove = parameterItem.parentNode.getElementsByClassName("remove")[0]
+            let parameterName = parameterItem.getElementsByClassName("parameter-name")[0].innerText
+
+            let swipe = new Swipe(parameterItem, parameterRemove)
+            swipe.onStart = () => EndEditParameters()
+            swipe.onSwipe = () => RemoveParameter(parameterItem, parameterName, swipe)
+        }
+
+        function EndEditParameters(ignore = null) {
+            for (let parameterData of document.getElementsByClassName("parameter-data")) {
+                let input = parameterData.getElementsByClassName("input")[0]
+                let icons = parameterData.getElementsByClassName("parameter-icons")[0]
+                let error = parameterData.getElementsByClassName("parameter-error")[0]
+
+                if (input === ignore)
+                    continue
+
+                input.innerText = input.getAttribute("data-value")
+                input.blur()
+                error.innerText = ""
+                icons.classList.add("no-display")
+            }
+        }
+
+        function StartEditParameter(parameterItem, name) {
+            EndEditParameters(parameterItem)
+            let icons = document.getElementById(`parameter-${name}-icons`)
+            icons.classList.remove("no-display")
+        }
+
+        function RemoveParameterValue(date, name) {
+            if (!confirm(`Вы уверены, что хотите удалить запись о параметре "${name}" для {{date}}?`))
+                return
+
+            SendRequest("/remove-body-parameter-value", {"date": date, "name": name}).then((response) => {
+                let errorDiv = document.getElementById(`parameter-${name}-error`)
+
+                if (response.status != "ok") {
+                    errorDiv.innerText = response.message
+                    return
+                }
+
+                location.reload()
+            })
+        }
+
+        function UpdateParameterValue(date, name, value) {
+            let errorDiv = document.getElementById(`parameter-${name}-error`)
+            let valueInput = document.getElementById(`parameter-${name}-value`)
+
+            SendRequest("/update-body-parameter-value", {"date": date, "name": name, "value": value}).then((response) => {
+                if (response.status != "ok") {
+                    errorDiv.innerText = response.message
+                    return
+                }
+
+                errorDiv.innerText = ''
+                valueInput.setAttribute("data-value", value)
+                EndEditParameters()
+            })
+        }
+
+        function SaveParameterValue(date, name) {
+            let valueInput = document.getElementById(`parameter-${name}-value`)
+            let errorDiv = document.getElementById(`parameter-${name}-error`)
+            let value = valueInput.innerText.trim()
+            let valueOriginal = valueInput.getAttribute("data-value")
+
+            valueInput.innerText = value
+
+            if (value == valueOriginal) {
+                EndEditParameters()
+                return
+            }
+
+            if (value == "") {
+                RemoveParameterValue(date, name)
+                return
+            }
+
+            if (!IsPositiveReal(value)) {
+                errorDiv.innerText = `Значение параметра "${name}" введено некорректно`
+                valueInput.focus()
+                return
+            }
+
+            UpdateParameterValue(date, name, value)
+        }
+
+        for (let parameterItem of document.getElementsByClassName("parameter-data"))
+            SwipeParameter(parameterItem)
+    </script>
+    {% else %}
+    <p class="center">Добро пожаловать в <b>HELL</b>!</p>
+    <p>
+        Пожалуйста, <button onclick="location.href='/login'"><span class="fa fa-sign-in"></span> войдите</button>, чтобы получить доступ ко всем функциям нашего приложения.
+    </p>
+    <p>
+        Но если не хотите, то можете посмотреть наш <button onclick="location.href='/food-collection'"><span class="fa fa-shopping-basket"></span> список продуктов</button>
+        или <button onclick="location.href='/add-food';"><span class="fa fa-plus"></span> добавить продукт</button>.ы
+    </p>
     {% endif %}
 </body>
 </html>

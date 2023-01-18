@@ -7,8 +7,17 @@ function Swipe(element, removeBlock, swipePart = 0.6) {
     this.element.addEventListener('touchstart', (e) => this.TouchStart(e))
     this.element.addEventListener('touchend', (e) => this.TouchEnd(e))
     this.element.addEventListener('touchmove', (e) => this.TouchMove(e))
+    this.element.addEventListener('transitionend', () => this.Swipe())
+
     this.onStart = () => {}
     this.onSwipe = () => {}
+}
+
+Swipe.prototype.Swipe = function() {
+    if (this.element.style.transform.match(/^translateX\(0(px)?\)$/g))
+        return
+
+    this.onSwipe()
 }
 
 Swipe.prototype.TouchStart = function(e) {
@@ -43,21 +52,28 @@ Swipe.prototype.TouchMove = function(e) {
     this.removeBlock.style.width = `${Math.max(0, -this.deltaX)}px`
 }
 
+Swipe.prototype.CancelSwipe = function() {
+    this.element.style.transform = `translateX(0)`
+    this.removeBlock.style.width = `0`
+    this.removeBlock.style.opacity = '0'
+    this.removeBlock.style.transition = null
+    this.isStarted = false
+}
+
 Swipe.prototype.TouchEnd = function(e) {
+    if (!this.isStarted)
+        return
+
     this.isStarted = false
     this.element.classList.add('swipe-animated')
     let swiped = Math.abs(this.deltaX) > this.element.clientWidth * this.swipePart
 
     if (!swiped) {
-        this.element.style.transform = `translateX(0)`
-        this.removeBlock.style.width = `0`
-        this.removeBlock.style.opacity = '0'
-        this.removeBlock.style.transition = null
+        this.CancelSwipe()
+        return
     }
-    else {
-        this.removeBlock.style.transition = null
-        this.element.style.transform = `translateX(${-this.element.clientWidth}px)`
-        this.removeBlock.style.width = `100%`
-        this.element.addEventListener('transitionend', () => this.onSwipe())
-    }
+
+    this.removeBlock.style.transition = null
+    this.element.style.transform = `translateX(${-this.element.clientWidth}px)`
+    this.removeBlock.style.width = `100%`
 }

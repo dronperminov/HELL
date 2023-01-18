@@ -62,18 +62,6 @@ def unauthorized_access(url: str) -> Response:
     return RedirectResponse("/login", status_code=302)
 
 
-@app.get("/")
-async def index(user_id: Optional[str] = Depends(get_current_user)):
-    if user_id:
-        user_collection = database[constants.MONGO_USER_COLLECTION]
-        user = user_collection.find_one({"_id": ObjectId(user_id)})
-    else:
-        user = None
-
-    template = templates.get_template('index.html')
-    return HTMLResponse(content=template.render(user=user, page="/"))
-
-
 @app.get("/login")
 def login_get(user_id: Optional[str] = Depends(get_current_user)):
     if user_id:
@@ -105,6 +93,123 @@ def logout():
     response = RedirectResponse("/", status_code=302)
     response.delete_cookie(COOKIE_NAME)
     return response
+
+
+def have_parameter(user_id: str, name: str) -> bool:
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    return user_collection.find_one({"_id": ObjectId(user_id), "body_parameters.name": name}) is not None
+
+
+def get_body_parameters(user_id: str, date: datetime):
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
+    parameter_docs = parameters_collection.aggregate([
+        {"$match": {"date": {"$lte": date}}},
+        {"$group": {"_id": "$name", "values": {"$addToSet": {"value": "$value", "date": "$date"}}}}
+    ])
+
+    parameters = {}
+
+    for parameter_doc in parameter_docs:
+        values = [{"date": format_date(parameter["date"]), "value": d2s(Decimal(str(parameter["value"])), 100)} for parameter in parameter_doc["values"]]
+        parameters[parameter_doc["_id"]] = sorted(values, key=lambda value_item: value_item["date"])
+
+    return parameters
+
+
+@app.get("/")
+async def index(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        template = templates.get_template('index.html')
+        return HTMLResponse(content=template.render(page="/"))
+
+    date = parse_date(date) if date else get_current_date()
+
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    user = user_collection.find_one({"_id": ObjectId(user_id)})
+    body_parameters = get_body_parameters(user_id, date)
+
+    template = templates.get_template('index.html')
+    content = template.render(
+        user=user,
+        date=format_date(date),
+        prev_date=format_date(date + timedelta(days=-1)),
+        next_date=format_date(date + timedelta(days=1)),
+        body_parameters=body_parameters,
+        page="/"
+    )
+
+    return HTMLResponse(content=content)
+
+
+@app.post("/add-body-parameter")
+def add_body_parameter(date: str = Body(..., embed=True), name: str = Body(..., embed=True), value: str = Body(..., embed=True), unit: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
+    if have_parameter(user_id, name):
+        return JSONResponse({"status": "fail", "message": f"Не удалось добавить параметр \"{name}\", так как он уже есть. Пожалуйста, обновите страницу."})
+
+    date = parse_date(date)
+    value = Decimal128(value)
+
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    user_collection.update_one({"_id": ObjectId(user_id)}, {"$push": {"body_parameters": {"name": name, "unit": unit}}}, upsert=True)
+
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
+    parameters_collection.insert_one({"date": date, "name": name, "value": value})
+
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/remove-body-parameter")
+def remove_body_parameter(name: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
+    if not have_parameter(user_id, name):
+        return JSONResponse({"status": "fail", "message": f"Не удалось удалить параметр \"{name}\", так как его нет среди параметров. Пожалуйста, обновите страницу."})
+
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    user_collection.update_one({"_id": ObjectId(user_id)}, {"$pull": {"body_parameters": {"name": name}}})
+
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
+    parameters_collection.delete_many({"name": name})
+
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/update-body-parameter-value")
+def update_body_parameter_value(date: str = Body(..., embed=True), name: str = Body(..., embed=True), value: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
+    if not have_parameter(user_id, name):
+        return JSONResponse({"status": "fail", "message": f"Не удалось обновить параметр \"{name}\", так как его нет среди параметров"})
+
+    date = parse_date(date)
+    value = Decimal128(value)
+
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
+    parameters_collection.update_one({"date": date, "name": name}, {"$set": {"value": value}}, upsert=True)
+
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/remove-body-parameter-value")
+def remove_body_parameter_value(date: str = Body(..., embed=True), name: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
+    if not have_parameter(user_id, name):
+        return JSONResponse({"status": "fail", "message": f"Не удалось удалить значение параметра \"{name}\", так как его нет среди параметров"})
+
+    date = parse_date(date)
+
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
+    result = parameters_collection.delete_one({"date": date, "name": name})
+    print(result)
+
+    return JSONResponse({"status": "ok"})
 
 
 def get_food_by_query(query: Optional[str]) -> list:
@@ -187,7 +292,7 @@ async def add_food_post(request: Request):
         food = FoodItem.from_dict(data)
         food_collection = database[constants.MONGO_FOOD_COLLECTION]
 
-        if list(food_collection.find({"name": food.name})):
+        if food_collection.find_one({"name": food.name}):
             return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить, так как продукт с названием \"{food.name}\" уже существует"})
 
         food_collection.insert_one(food.to_dict())
