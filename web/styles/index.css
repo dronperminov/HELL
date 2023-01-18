@@ -60,6 +60,11 @@
     font-weight: bold;
 }
 
+.parameter-last {
+    font-size: 0.9rem;
+    color: var(--disabled-color);
+}
+
 .parameter-new {
     display: table;
     width: 100%;

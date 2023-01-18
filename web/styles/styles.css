@@ -96,7 +96,7 @@ p {
 }
 
 .error {
-    color: var(--error-color);
+    color: var(--error-color) !important;
 }
 
 .error-message {

@@ -7,8 +7,8 @@
     {% else %}
     <title>Главная страница | HELL</title>
     {% endif %}
-    <link rel="stylesheet" type="text/css" href="/styles/inputs.css?v=6">
-    <link rel="stylesheet" type="text/css" href="/styles/index.css?v=5">
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/index.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -27,6 +27,8 @@
         <div class="no-parameters {% if user.body_parameters %}no-display{% endif %}" id="no-parameters">Пока что у вас нет ни одного отслеживаемого параметра</div>
         <div class="parameters-items" id="parameters-items">
         {% for parameter in user.body_parameters %}
+            {% set data = body_parameters.get(parameter.name, [{"value": ""}])[-1] %}
+            {% if data["date"] == date %}{% set value = data["value"] %}{% else %}{% set value = "" %}{% endif %}
             <div class="parameter">
                 <div class="remove" style="opacity: 0">
                     <div class="remove-cell">
@@ -35,11 +37,12 @@
                 </div>
                 <div class="parameter-data">
                     <span class="parameter-name">{{parameter.name}}</span>:
-                    <span class="input" id="parameter-{{parameter.name}}-value" role="textbox" contenteditable data-value="{{body_parameters.get(parameter.name, [{"value": ""}])[-1]["value"]}}" onfocus="StartEditParameter(this, '{{parameter.name}}')">{{body_parameters.get(parameter.name, [{"value": ""}])[-1]["value"]}}</span>
+                    <span class="input" id="parameter-{{parameter.name}}-value" role="textbox" contenteditable data-value="{{value}}" onfocus="StartEditParameter(this, '{{parameter.name}}')">{{value}}</span>
                     {{parameter.unit}}
                     <span class="parameter-icons no-display" id="parameter-{{parameter.name}}-icons">
                         <button onclick="SaveParameterValue('{{date}}', '{{parameter.name}}')"><span class="fa fa-check"></span></button>
                     </span>
+                    <span class="parameter-last">{% if value == "" and data["value"] != "" %}({{data["date"]}}: {{data["value"]}} {{parameter.unit}}){% endif %}</span>
                     <div class="error-message parameter-error" id="parameter-{{parameter.name}}-error"></div>
                 </div>
             </div>
@@ -49,6 +52,7 @@
 
     <div class="add-parameter">
         <button id="add-parameter" onclick="AddParameter()"><span class="fa fa-plus"> Добавить параметр</span></button>
+        <button class="no-display" id="cancel-add-parameter" onclick="CancelAddParameter()"><span class="fa fa-ban"> Отменить</span></button>
     </div>
 
     <script src="/js/constants.js?v=3"></script>
@@ -93,11 +97,17 @@
             return datalist
         }
 
+        function ToggleNewParameterButtons() {
+            let addButton = document.getElementById("add-parameter")
+            let cancelButton = document.getElementById("cancel-add-parameter")
+
+            addButton.classList.toggle("no-display")
+            cancelButton.classList.toggle("no-display")
+        }
+
         function AddParameter() {
             EndEditParameters()
-
-            let button = document.getElementById("add-parameter")
-            button.setAttribute("disabled", "")
+            ToggleNewParameterButtons()
 
             let block = document.getElementById('parameters-items')
             let div = MakeDiv("parameter-new", block)
@@ -125,6 +135,13 @@
 
             let unitLabel = MakeDiv("parameter-new-label", unitDiv)
             unitLabel.innerText = "ед.изм."
+        }
+
+        function CancelAddParameter() {
+            let block = document.getElementById('parameters-items')
+            let parameterBlock = document.getElementsByClassName("parameter-new")[0]
+            block.removeChild(parameterBlock)
+            ToggleNewParameterButtons()
         }
 
         function ValidateParameters(nameInput, valueInput, unitInput, errorDiv) {
@@ -188,8 +205,7 @@
                     return
                 }
 
-                let button = document.getElementById("add-parameter")
-                button.removeAttribute("disabled")
+                ToggleNewParameterButtons()
                 location.reload()
             })
         }
