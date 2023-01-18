@@ -559,7 +559,7 @@ def add_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..., 
 
     date = parse_date(date)
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
-    diary_collection.update_one({"date": date}, {"$set": {f"meal_info.{meal_type}": []}})
+    diary_collection.update_one({"date": date}, {"$set": {f"meal_info.{meal_type}": []}}, upsert=True)
     return JSONResponse({"status": "ok"})
 
 

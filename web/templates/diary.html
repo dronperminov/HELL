@@ -284,7 +284,7 @@
             mealType.classList.remove('error')
             mealType.removeAttribute("contenteditable")
 
-            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealType.innerText}).then((response) => {
+            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealType.innerText.trim()}).then((response) => {
                 if (response.status != "ok") {
                     alert("Не удалось добавить приём пищи")
                     return
