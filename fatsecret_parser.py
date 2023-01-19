@@ -103,7 +103,7 @@ class FatSecretParser:
         if portion_text in [BasePortionUnit.g100, BasePortionUnit.ml100]:
             return BasePortionUnit(portion_text), conversions, Decimal("1")
 
-        match = re.match(r"^1 +(?P<unit>порция|штука|бургер|батончик|ломтик) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
+        match = re.match(r"^1 +(?P<unit>порция|штука|шт|бургер|батончик|ломтик) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
         if match:
             unit, value = re.sub(r'штука|бургер|батончик', "шт", match.group("unit")), match.group("value")
             scale = Decimal("100") / Decimal(value)
