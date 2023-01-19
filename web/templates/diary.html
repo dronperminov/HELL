@@ -223,6 +223,7 @@
             SendRequest('/remove-meal', {"date": date, "meal_type": mealType, "meal_id": mealId}).then((response) => {
                 if (response.status != "ok") {
                     alert("Не удалось удалить продукт...")
+                    location.reload()
                     return
                 }
 
@@ -235,11 +236,13 @@
         function UpdateMeal(date, mealType, mealId) {
             let portionSize = document.getElementById(`${mealId}-portion-size`)
             let portionUnit = document.getElementById(`${mealId}-portion-unit`)
+            let portionError = document.getElementById(`${mealId}-portion-error`)
+            portionError.innerText = ""
 
             if (!IsPositiveReal(portionSize.value)) {
                 portionSize.focus()
                 portionSize.select()
-                alert("Размер порции введён некорректно")
+                portionError.innerText = "Размер порции введён некорректно"
                 return
             }
 
@@ -285,10 +288,8 @@
             mealType.removeAttribute("contenteditable")
 
             SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealType.innerText.trim()}).then((response) => {
-                if (response.status != "ok") {
+                if (response.status != "ok")
                     alert("Не удалось добавить приём пищи")
-                    return
-                }
 
                 location.reload()
             })
@@ -311,10 +312,8 @@
 
         function RemoveMealType(mealType) {
             SendRequest("/remove-meal-type", {"date": "{{date}}", "meal_type": mealType}).then((response) => {
-                if (response.status != "ok") {
+                if (response.status != "ok")
                     alert("Не удалось удалить приём пищи")
-                    return
-                }
 
                 location.reload()
             })
@@ -324,6 +323,7 @@
             SendRequest('/remove-meal-group', {"date": date, "meal_type": mealType, "group_id": groupId}).then((response) => {
                 if (response.status != "ok") {
                     alert("Не удалось удалить группу...")
+                    location.reload()
                     return
                 }
 
