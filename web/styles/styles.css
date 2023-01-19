@@ -100,12 +100,21 @@ p {
 }
 
 .error {
-    color: var(--error-color) !important;
+    color: var(--error-color);
 }
 
-.error-message {
+.error-center {
+    color: var(--error-color) !important;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.error-left {
     color: var(--error-color);
     font-size: 0.9rem;
+    text-align: left;
+    margin-bottom: 5px;
 }
 
 .no-display {

@@ -17,7 +17,7 @@
             <button onclick="SaveParameterValue('{{date}}', '{{parameter.name}}')"><span class="fa fa-check"></span></button>
         </span>
         <span class="parameter-last">{% if value == "" and data[-1]["value"] != "" %}({{data[-1]["date"]}}: {{data[-1]["value"]}} {{parameter.unit}}){% endif %}</span>
-        <div class="error-message parameter-error" id="parameter-{{parameter.name}}-error"></div>
+        <div class="error-left parameter-error" id="parameter-{{parameter.name}}-error"></div>
     </div>
 
     <div class="parameter-plot no-display">
@@ -38,7 +38,7 @@
                     <div class="parameter-period-input-cell"><input type="text" value="{{end_date}}" id="parameter-{{parameter.name}}-end-date"></div>
                 </div>
 
-                <div class="parameter-period-error error" id="parameter-{{parameter.name}}-period-error"></div>
+                <div class="error-center" id="parameter-{{parameter.name}}-period-error"></div>
             </div>
             <div class="parameter-button">
                 <button onclick="ChangeParameterPeriod('{{parameter.name}}')">Показать</button>

@@ -92,11 +92,6 @@
     text-align: center;
 }
 
-.parameter-period-error {
-    font-size: 0.9rem;
-    text-align: center;
-}
-
 .parameter-plot-info {
     font-size: 0.9rem;
     color: var(--disabled-color);
@@ -153,8 +148,4 @@
 .parameter-new-cell input:focus + .parameter-new-label,
 .parameter-new-cell input:focus + .parameter-new-label {
     color: var(--success-color);
-}
-
-.parameter-new-error {
-    text-align: center;
 }

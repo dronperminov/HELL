@@ -26,12 +26,6 @@
     min-width: 100px;
 }
 
-.food-portion-error {
-    color: var(--error-color);
-    font-size: 0.9rem;
-    text-align: center;
-}
-
 .food-portion-change {
     text-align: right;
 }

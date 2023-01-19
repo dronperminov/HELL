@@ -59,10 +59,3 @@
 .statistic-period-input-cell input {
     text-align: center;
 }
-
-.statistic-error {
-    color: var(--error-color);
-    font-size: 0.9rem;
-    text-align: center;
-    margin-bottom: 5px;
-}
