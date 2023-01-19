@@ -59,80 +59,46 @@
     </div>
 
     <script src="/js/chart.js"></script>
+    <script src="/js/bar_chart.js"></script>
+    <script src="/js/forms.js"></script>
     <script>
         let statisticData = [
             {% for date in dates_range %}{ {% for key in statistic[date] %}"{{key}}": {{statistic[date][key]}}, {% endfor %}"date": "{{date}}"},
             {% endfor %}
         ]
 
-        function GetMaxEnergy() {
-            let maxEnergy = 0
-
-            for (let data of statisticData)
-                maxEnergy = Math.max(maxEnergy, data["energy"])
-
-            if (maxEnergy == 0)
-                return 1
-
-            return maxEnergy
-        }
-
-        function MakeLabelText(x, y, date, baseline = "middle") {
-            let text = document.createElementNS('http://www.w3.org/2000/svg', "text")
-            text.textContent = date
-            text.setAttribute("x", x)
-            text.setAttribute("y", y)
-            text.setAttribute("alignment-baseline", baseline)
-            text.setAttribute("text-anchor", "middle")
-            text.setAttribute("class", "label")
-            return text
-        }
-
-        function MakeBar(svg, x, y, rectWidth, rectHeight, total, data, keys, gap = 2) {
-            if (rectHeight == 0)
-                return []
-
-            let coords = []
-
-            for (let i = 0; i < keys.length; i++) {
-                let rect = document.createElementNS('http://www.w3.org/2000/svg', "rect")
-                let partHeight = data[keys[i]] / total * rectHeight
-
-                rect.setAttribute("x", x)
-                rect.setAttribute("y", y)
-                rect.setAttribute("width", rectWidth)
-                rect.setAttribute("height", partHeight)
-                rect.setAttribute("class", `bar-color${i + 1}`)
-                svg.appendChild(rect)
-
-                if (i > 0)
-                    coords.push(y)
-
-                y += partHeight
-            }
-
-            for (let coord of coords) {
-                let path = document.createElementNS('http://www.w3.org/2000/svg', "path")
-                path.setAttribute("d", `M${x} ${coord} l${rectWidth} 0`)
-                path.setAttribute("stroke-width", gap)
-                path.setAttribute("class", "bar-divider")
-                svg.appendChild(path)
-            }
-        }
-
-        function PrintInfo(keys, totalStatistic, count) {
-            let totalKeys = 0
+        function GetTotalStatistic(keys) {
+            let statistic = {energy: 0, count: 0, total: 0}
 
             for (let key of keys)
-                totalKeys += totalStatistic[key]
+                statistic[key] = 0
 
+            for (let data of statisticData) {
+                for (let key of keys)
+                    statistic[key] += data[key]
+
+                statistic.energy += data.energy
+
+                if (data.energy > 0)
+                    statistic.count++
+            }
+
+            for (let key of keys)
+                statistic.total += statistic[key]
+
+            statistic.count = Math.max(statistic.count, 1)
+
+            return statistic
+        }
+
+        function PrintInfo(keys) {
+            let statistic = GetTotalStatistic(keys)
             let percents = 0
 
-            for (let i = 0; i < keys.length; i++) {
-                let key = keys[i]
+            for (let key of keys) {
                 let span = document.getElementById(key)
-                let average = Math.round(totalStatistic[key] / count * 2) / 2
-                let averagePercent = Math.round(totalStatistic[key] / totalKeys * 100)
+                let average = Math.round(statistic[key] / statistic.count * 2) / 2
+                let averagePercent = Math.round(statistic[key] / statistic.total * 100)
                 percents += averagePercent
 
                 if (percents > 100)
@@ -140,77 +106,27 @@
 
                 span.innerText = `${average} г`
 
-                if (totalKeys > 0)
+                if (statistic.total > 0)
                     span.innerText += ` (${averagePercent}%)`
             }
 
             let span = document.getElementById("energy")
-            span.innerText = `${Math.round(totalStatistic["energy"] / count * 2) / 2} ккал`
+            span.innerText = `${Math.round(statistic.energy / statistic.count * 2) / 2} ккал`
         }
 
-        function PlotBarStatistic(svg, keys, padding = 5, topPadding = 18, bottomPadding = 10, minRectWidth=42, maxRectWidth = 60) {
-            let width = svg.clientWidth
-            let height = svg.clientHeight
-
-            let rectWidth = width / statisticData.length - padding
-
-            if (rectWidth < minRectWidth) {
-                rectWidth = minRectWidth
-                width = (rectWidth + padding) * statisticData.length
-                svg.style.width = `${width}px`
-            }
-            else if (rectWidth > maxRectWidth) {
-                rectWidth = maxRectWidth
-            }
-
-            svg.setAttribute("viewBox", `0 0 ${width} ${height}`)
-
-            let maxEnergy = GetMaxEnergy()
-            let totalStatistic = {"energy": 0}
-            let count = 0
-
-            for (let key of keys)
-                totalStatistic[key] = 0
-
-            for (let i = 0; i < statisticData.length; i++) {
-                let total = 0
-
-                for (let key of keys) {
-                    total += statisticData[i][key]
-                    totalStatistic[key] += statisticData[i][key]
-                }
-
-                totalStatistic["energy"] += statisticData[i]["energy"]
-
-                if (statisticData[i]["energy"] > 0)
-                    count++
-
-                let rectHeight = statisticData[i]["energy"] / maxEnergy * (height - topPadding - bottomPadding)
-                let x = padding / 2 + i * (padding + rectWidth)
-                let y = height - bottomPadding - rectHeight
-
-                MakeBar(svg, x, y, rectWidth, rectHeight, total, statisticData[i], keys)
-
-                svg.appendChild(MakeLabelText(x + rectWidth / 2, height - bottomPadding / 2, statisticData[i]["date"]))
-                svg.appendChild(MakeLabelText(x + rectWidth / 2, y - 8, `${statisticData[i]["energy"]}`, "top"))
-                svg.appendChild(MakeLabelText(x + rectWidth / 2, y - 2, "ккал", "top"))
-            }
-
-            PrintInfo(keys, totalStatistic, Math.max(count, 1))
+        function PlotBarStatistic(svg, keys) {
+            let barChart = new BarChart()
+            barChart.Plot(svg, statisticData, keys, "date", "energy", "ккал")
         }
 
         function PlotDonutStatistic(svg, keys) {
-            PrintInfo(keys, statisticData[0], 1)
-
             if (statisticData[0]["energy"] == 0) {
                 svg.style.display = "none"
                 return
             }
 
-            svg.setAttribute("viewBox", "-50 -50 100 100")
             let chart = new Chart()
-            let values = keys.map((key) => statisticData[0][key])
-            chart.Plot(svg, values)
+            chart.Plot(svg, keys.map((key) => statisticData[0][key]))
         }
 
         function PlotStatistic() {
@@ -223,6 +139,8 @@
             else {
                 PlotBarStatistic(svg, keys)
             }
+
+            PrintInfo(keys)
         }
 
         function UpdateStatisticParameters() {
@@ -237,37 +155,6 @@
             }
         }
 
-        function ValidateDate(day, month, year) {
-            let days = new Date(year, month, 0).getDate()
-            return day >= 1 && day <= days && month >= 1 && month <= 12
-        }
-
-        function ParseDate(value) {
-            let today = new Date()
-            let year = today.getFullYear()
-            let month = today.getMonth() + 1
-
-            let match = /^(?<day>\d\d?).(?<month>\d\d?).(?<year>\d\d\d\d)$/g.exec(value)
-            if (match && ValidateDate(match.groups.day, match.groups.month, match.groups.year))
-                return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${match.groups.year}`
-
-            match = /^(?<day>\d\d?).(?<month>\d\d?)$/g.exec(value)
-            if (match && ValidateDate(match.groups.day, match.groups.month, year))
-                return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${year}`
-
-            match = /^(?<day>\d\d?)$/g.exec(value)
-            if (match && ValidateDate(match.groups.day, month, year))
-                return `${match.groups.day.padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`
-
-            return null
-        }
-
-        function ValidateInterval(startDate, endDate) {
-            let start = startDate.split('.').reverse().join('.')
-            let end = endDate.split('.').reverse().join('.')
-            return start <= end
-        }
-
         function ChangeStatisticParameters() {
             let period = document.getElementById("period").value
 
@@ -279,13 +166,13 @@
                 let endDate = ParseDate(endDateBox.value)
 
                 if (startDate == null) {
-                    alert("Введена некорректная дата начала")
+                    alert("Начальная дата введена некорректно")
                     startDateBox.focus()
                     return
                 }
 
                 if (endDate == null) {
-                    alert("Введена некорректная дата начала")
+                    alert("Конечная дата введена некорректно")
                     endDateBox.focus()
                     return
                 }
