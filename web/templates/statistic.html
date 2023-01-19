@@ -33,7 +33,7 @@
             <button onclick="ChangeStatisticParameters()">Показать</button>
         </div>
     </div>
-
+    <div class="statistic-error" id="period-error"></div>
     <div class="statistic-showed">
         Показана информация за
         {% if period == "today" %}сегодня ({{start_date}})
@@ -157,6 +157,8 @@
 
         function ChangeStatisticParameters() {
             let period = document.getElementById("period").value
+            let periodError = document.getElementById("period-error")
+            periodError.innerText = ""
 
             if (period == "period") {
                 let startDateBox = document.getElementById("start-date")
@@ -166,19 +168,19 @@
                 let endDate = ParseDate(endDateBox.value)
 
                 if (startDate == null) {
-                    alert("Начальная дата введена некорректно")
+                    periodError.innerText = "Начальная дата введена некорректно"
                     startDateBox.focus()
                     return
                 }
 
                 if (endDate == null) {
-                    alert("Конечная дата введена некорректно")
+                    periodError.innerText = "Конечная дата введена некорректно"
                     endDateBox.focus()
                     return
                 }
 
                 if (!ValidateInterval(startDate, endDate)) {
-                    alert("Введён некорректный интервал: дата начала должна быть не больше конечной")
+                    periodError.innerText = "Введён некорректный интервал: дата начала должна быть не больше конечной"
                     startDateBox.focus()
                     return
                 }
