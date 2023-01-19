@@ -1,4 +1,4 @@
-function Plot(padding = 5, paddingBottom = 20, minWidth = 10, steps = 40, lineClass="plot-line", areaClass = "plot-area") {
+function Plot(padding = 5, paddingBottom = 20, minWidth = 10, steps = 40, lineClass="plot-line", areaClass = "plot-area", axisClass = "plot-axis") {
     this.padding = padding
     this.paddingBottom = paddingBottom
     this.minWidth = minWidth
@@ -6,6 +6,7 @@ function Plot(padding = 5, paddingBottom = 20, minWidth = 10, steps = 40, lineCl
 
     this.lineClass = lineClass
     this.areaClass = areaClass
+    this.axisClass = axisClass
 }
 
 Plot.prototype.ExtractKey = function(value) {
@@ -27,6 +28,9 @@ Plot.prototype.GetDelta = function(x1, x2) {
 }
 
 Plot.prototype.PreprocessX = function(x) {
+    if (x.length == 1)
+        return {x: [0.5], min: 1, max: 1}
+
     let max = this.GetDelta(x[x.length - 1], x[0])
     let min = Infinity
 
@@ -64,6 +68,9 @@ Plot.prototype.PreprocessY = function(y) {
 }
 
 Plot.prototype.Interpolate = function(xi, x, y) {
+    if (x.length == 1)
+        return y[0]
+
     if (x.length == 2)
         return y[0] + (y[1] - y[0]) * (xi - x[0]) / (x[1] - x[0])
 
@@ -104,6 +111,20 @@ Plot.prototype.MakePoint = function(radius, x, y) {
     return `M${x} ${y} m ${-radius}, 0 a ${radius},${radius} 0 1,0 ${radius*2},0 a ${radius},${radius} 0 1,0 ${-radius*2},0`
 }
 
+Plot.prototype.AddPoint = function(xi, yi, viewWidth, viewHeight, linePoints, areaPoints, points, makePoint = false) {
+    let x = this.padding + xi * viewWidth
+    let y = this.padding + yi * viewHeight
+
+    linePoints.push(`${linePoints.length == 0 ? 'M' : 'L'}${x} ${y}`)
+    areaPoints.push(`L${x} ${y}`)
+
+    if (makePoint) {
+        points.push({x: x, y: y})
+        linePoints.push(this.MakePoint(2, x, y))
+        linePoints.push(this.MakePoint(1, x, y))
+    }
+}
+
 Plot.prototype.Plot = function(svg, data, className = "plot-color", keyX = "date", keyY = "value") {
     svg.innerHTML = ''
     svg.style.width = null
@@ -131,38 +152,38 @@ Plot.prototype.Plot = function(svg, data, className = "plot-color", keyX = "date
     let linePoints = []
     let areaPoints = [`M${this.padding} ${height - this.paddingBottom}`]
 
+    if (data.length == 1)
+        this.AddPoint(infoX.x[0], infoY.max - dataY[0], viewWidth, viewHeight, linePoints, areaPoints, points, true)
+
     for (let i = 1; i < data.length; i++) {
         for (let j = 0; j < this.steps; j++) {
             let t = j / (this.steps - 1)
             let xi = infoX.x[i - 1] * (1 - t) + infoX.x[i] * t
-            let yi = this.Interpolate(xi, infoX.x, dataY)
-
-            let x = this.padding + xi * viewWidth
-            let y = this.padding + (infoY.max - yi) * viewHeight
-
-            linePoints.push(`${linePoints.length == 0 ? 'M' : 'L'}${x} ${y}`)
-            areaPoints.push(`L${x} ${y}`)
-
-            if (i == 1 && j == 0 || j == this.steps - 1) {
-                points.push({x: x, y: y})
-                linePoints.push(this.MakePoint(2, x, y))
-                linePoints.push(this.MakePoint(1, x, y))
-            }
+            let yi = infoY.max - this.Interpolate(xi, infoX.x, dataY)
+            this.AddPoint(xi, yi, viewWidth, viewHeight, linePoints, areaPoints, points, i == 1 && j == 0 || j == this.steps - 1)
         }
     }
 
     areaPoints.push(`L${width - this.padding} ${height - this.paddingBottom}`)
 
-    let areaPath = document.createElementNS('http://www.w3.org/2000/svg', "path")
-    areaPath.setAttribute("d", areaPoints.join(" "))
-    areaPath.setAttribute("class", this.areaClass)
-    svg.appendChild(areaPath)
+    if (data.length > 1) {
+        let areaPath = document.createElementNS('http://www.w3.org/2000/svg', "path")
+        areaPath.setAttribute("d", areaPoints.join(" "))
+        areaPath.setAttribute("class", this.areaClass)
+        svg.appendChild(areaPath)
+    }
 
     let linePath = document.createElementNS('http://www.w3.org/2000/svg', "path")
     linePath.setAttribute("d", linePoints.join(" "))
     linePath.setAttribute("class", this.lineClass)
     svg.appendChild(linePath)
 
+    let axisPath = document.createElementNS('http://www.w3.org/2000/svg', "path")
+    axisPath.setAttribute("d", `M${this.padding} ${this.padding} L${this.padding} ${height - this.paddingBottom} L${width - this.padding} ${height - this.paddingBottom}`)
+    axisPath.setAttribute("class", this.axisClass)
+    svg.appendChild(axisPath)
+
+    svg.appendChild(linePath)
     for (let i = 0; i < data.length; i++) {
         let x = points[i].x
         let y = points[i].y
