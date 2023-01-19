@@ -5,7 +5,7 @@
     <title>Статистика с {{start_date}} по {{end_date}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
-    <link rel="stylesheet" type="text/css" href="/styles/statistic.css">
+    <link rel="stylesheet" type="text/css" href="/styles/statistic.css?v=2">
 </head>
 <body>
     {% include "menu.html" %}
@@ -45,35 +45,60 @@
     </div>
 
     <div class="statistic">
+        <div class="statistic-name">Все приёмы пищи</div>
         <div class="h-scrollable">
-            <svg id="statistic-chart"></svg>
+            <svg id="statistic-total-chart"></svg>
         </div>
 
         <div class="statistic-info">
             <div class="statistic-header">Усреднённые результаты</div>
-            <div class="statistic-row"><span class="plot-circle bar-color1"></span> Белки: <span id="proteins"></span></div>
-            <div class="statistic-row"><span class="plot-circle bar-color2"></span> Жиры: <span id="fats"></span></div>
-            <div class="statistic-row"><span class="plot-circle bar-color3"></span> Углеводы: <span id="carbohydrates"></span></div>
-            <div class="statistic-row">Калории: <span id="energy"></span></div>
+            <div class="statistic-row"><span class="plot-circle bar-color1"></span> Белки: <span id="total-proteins"></span></div>
+            <div class="statistic-row"><span class="plot-circle bar-color2"></span> Жиры: <span id="total-fats"></span></div>
+            <div class="statistic-row"><span class="plot-circle bar-color3"></span> Углеводы: <span id="total-carbohydrates"></span></div>
+            <div class="statistic-row">Калории: <span id="total-energy"></span></div>
         </div>
     </div>
+
+    {% for meal_type, meal_name in meal_types.items() %}
+    <div class="statistic">
+        <div class="statistic-name">{{meal_name}}</div>
+        <div class="h-scrollable">
+            <svg id="statistic-{{meal_type}}-chart"></svg>
+        </div>
+
+        <div class="statistic-info">
+            <div class="statistic-header">Усреднённые результаты</div>
+            <div class="statistic-row"><span class="plot-circle bar-color1"></span> Белки: <span id="{{meal_type}}-proteins"></span></div>
+            <div class="statistic-row"><span class="plot-circle bar-color2"></span> Жиры: <span id="{{meal_type}}-fats"></span></div>
+            <div class="statistic-row"><span class="plot-circle bar-color3"></span> Углеводы: <span id="{{meal_type}}-carbohydrates"></span></div>
+            <div class="statistic-row">Калории: <span id="{{meal_type}}-energy"></span></div>
+        </div>
+    </div>
+    {% endfor %}
 
     <script src="/js/chart.js"></script>
     <script src="/js/bar_chart.js"></script>
     <script src="/js/forms.js"></script>
     <script>
-        let statisticData = [
+        const CALORIES_DATA = [
             {% for date in dates_range %}{ {% for key in statistic[date] %}"{{key}}": {{statistic[date][key]}}, {% endfor %}"date": "{{date}}"},
             {% endfor %}
         ]
 
-        function GetTotalStatistic(keys) {
+        const CALORIES_MEAL_TYPE_DATA = {
+            {% for meal_type in meal_types %}"{{meal_type}}": [
+            {% for date in dates_range %}    { {% for key in statistic_meal_type[date][meal_type] %}"{{key}}": {{statistic_meal_type[date][meal_type][key]}}, {% endfor %}"date": "{{date}}"},
+            {% endfor %}],
+            {% endfor %}
+        }
+
+        function GetTotalStatistic(caloriesData, keys) {
             let statistic = {energy: 0, count: 0, total: 0}
 
             for (let key of keys)
                 statistic[key] = 0
 
-            for (let data of statisticData) {
+            for (let data of caloriesData) {
                 for (let key of keys)
                     statistic[key] += data[key]
 
@@ -91,17 +116,18 @@
             return statistic
         }
 
-        function PrintInfo(keys) {
-            let statistic = GetTotalStatistic(keys)
+        function PrintInfo(caloriesData, name, keys) {
+            let statistic = GetTotalStatistic(caloriesData, keys)
             let percents = 0
 
-            for (let key of keys) {
-                let span = document.getElementById(key)
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i]
+                let span = document.getElementById(`${name}-${key}`)
                 let average = Math.round(statistic[key] / statistic.count * 2) / 2
                 let averagePercent = Math.round(statistic[key] / statistic.total * 100)
                 percents += averagePercent
 
-                if (percents > 100)
+                if (i == keys.length - 1)
                     averagePercent = Math.round(averagePercent + 100 - percents)
 
                 span.innerText = `${average} г`
@@ -110,37 +136,37 @@
                     span.innerText += ` (${averagePercent}%)`
             }
 
-            let span = document.getElementById("energy")
+            let span = document.getElementById(`${name}-energy`)
             span.innerText = `${Math.round(statistic.energy / statistic.count * 2) / 2} ккал`
         }
 
-        function PlotBarStatistic(svg, keys) {
+        function PlotBarStatistic(svg, caloriesData, keys) {
             let barChart = new BarChart()
-            barChart.Plot(svg, statisticData, keys, "date", "energy", "ккал")
+            barChart.Plot(svg, caloriesData, keys, "date", "energy", "ккал")
         }
 
-        function PlotDonutStatistic(svg, keys) {
-            if (statisticData[0]["energy"] == 0) {
+        function PlotDonutStatistic(svg, caloriesData, keys) {
+            if (caloriesData[0]["energy"] == 0) {
                 svg.style.display = "none"
                 return
             }
 
             let chart = new Chart()
-            chart.Plot(svg, keys.map((key) => statisticData[0][key]))
+            chart.Plot(svg, keys.map((key) => caloriesData[0][key]))
         }
 
-        function PlotStatistic() {
+        function PlotStatistic(caloriesData, name) {
             let keys = ["proteins", "fats", "carbohydrates"]
-            let svg = document.getElementById("statistic-chart")
+            let svg = document.getElementById(`statistic-${name}-chart`)
 
-            if (statisticData.length == 1) {
-                PlotDonutStatistic(svg, keys)
+            if (caloriesData.length == 1) {
+                PlotDonutStatistic(svg, caloriesData, keys)
             }
             else {
-                PlotBarStatistic(svg, keys)
+                PlotBarStatistic(svg, caloriesData, keys)
             }
 
-            PrintInfo(keys)
+            PrintInfo(caloriesData, name, keys)
         }
 
         function UpdateStatisticParameters() {
@@ -191,7 +217,10 @@
             location.href = `/statistic?period=${period}`
         }
 
-        PlotStatistic()
+        PlotStatistic(CALORIES_DATA, "total")
+        {% for meal_type in meal_types %}PlotStatistic(CALORIES_MEAL_TYPE_DATA["{{meal_type}}"], "{{meal_type}}")
+        {% endfor %}
+
     </script>
 </body>
 </html>

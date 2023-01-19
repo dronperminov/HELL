@@ -89,6 +89,7 @@ BarChart.prototype.Plot = function(svg, data, keys, axisKey, labelKey, labelUnit
     }
 
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`)
+    svg.innerHTML = ''
 
     for (let i = 0; i < data.length; i++) {
         let rectHeight = data[i][labelKey] / maxValue * (height - this.topPadding - this.bottomPadding)

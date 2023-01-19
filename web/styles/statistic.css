@@ -9,13 +9,18 @@
 }
 
 .statistic-info {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 5px;
 }
 
 .statistic-row {
     margin-bottom: 5px;
+}
+
+.statistic-name {
+    padding-bottom: 5px;
+    font-size: 1.2rem;
+    font-weight: bold;
 }
 
 .statistic-header {
@@ -26,6 +31,7 @@
 .statistic-showed {
     margin-bottom: 10px;
     font-size: 0.85rem;
+    color: var(--disabled-color);
 }
 
 .statistic-parameters {

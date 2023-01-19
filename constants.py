@@ -13,12 +13,14 @@ DATE_FORMAT = "%d.%m.%Y"
 BREAKFAST = "breakfast"
 LUNCH = "lunch"
 DINNER = "dinner"
+OTHER = "other"
 MEAL_TYPES = [BREAKFAST, LUNCH, DINNER]
 
-MEAL_TYPES_RUS = {
+MEAL_TYPE_NAMES = {
     BREAKFAST: "Завтрак",
     LUNCH: "Обед",
-    DINNER: "Ужин"
+    DINNER: "Ужин",
+    OTHER: "Прочее"
 }
 
 FREQUENT_MEAL_MIN_COUNT = 3

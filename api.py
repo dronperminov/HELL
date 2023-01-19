@@ -2,7 +2,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from decimal import Decimal
 from itertools import chain
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple, Iterable
 
 import jwt
 from bson import Decimal128
@@ -358,7 +358,7 @@ def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
 
 
 # TODO: refactor this function
-def get_meals_statistic(meal_ids: List[ObjectId], with_food: bool = True) -> dict:
+def get_meals_statistic(meal_ids: Iterable[ObjectId], with_food: bool = True) -> dict:
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
 
@@ -424,6 +424,23 @@ def get_meal_statistic(foods: List[dict]) -> dict:
     return statistic
 
 
+def prepare_meal_statistic(dates_range: List[datetime], date2meal_info_ids: Dict[datetime, dict]) -> Tuple[Dict[str, dict], Dict[str, dict]]:
+    statistic, statistic_meal_type = {}, {}
+
+    for date in dates_range:
+        meal_ids = chain.from_iterable(date2meal_info_ids.get(date, {}).values())
+        meal_type_ids = date2meal_info_ids.get(date, {})
+        date = format_date(date)
+
+        statistic[date] = get_meals_statistic(meal_ids, with_food=False)
+        statistic_meal_type[date] = {}
+
+        for meal_type in constants.MEAL_TYPE_NAMES:
+            statistic_meal_type[date][meal_type] = get_meals_statistic(meal_type_ids.get(meal_type, []), with_food=False)
+
+    return statistic, statistic_meal_type
+
+
 @app.get("/diary")
 def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
@@ -439,7 +456,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
         prev_date=format_date(date + timedelta(days=-1)),
         next_date=format_date(date + timedelta(days=1)),
         meal_info=meal_info,
-        names=constants.MEAL_TYPES_RUS,
+        names=constants.MEAL_TYPE_NAMES,
         meal_statistic=meal_statistic,
         page="/diary"
     )
@@ -462,7 +479,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
         query=food_query,
         date=date,
         meal_type=meal_type,
-        names=constants.MEAL_TYPES_RUS,
+        names=constants.MEAL_TYPE_NAMES,
         page="/add-meal"
     )
     return HTMLResponse(content=html)
@@ -605,10 +622,17 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     documents = diary_collection.find({"date": {"$gte": start_date, "$lte": end_date}})
-    date2meal_ids = {document["date"]: chain.from_iterable(meal_ids for meal_ids in document["meal_info"].values()) for document in documents}
+    date2meal_info_ids = {}
+
+    for document in documents:
+        date2meal_info_ids[document["date"]] = {meal_type: [] for meal_type in constants.MEAL_TYPE_NAMES}
+
+        for meal_type, meal_ids in document["meal_info"].items():
+            meal_type_key = meal_type if meal_type in constants.MEAL_TYPE_NAMES else constants.OTHER
+            date2meal_info_ids[document["date"]][meal_type_key].extend(meal_ids)
 
     dates_range = get_dates_range(start_date, end_date)
-    statistic = {format_date(date): get_meals_statistic(date2meal_ids.get(date, []), with_food=False) for date in dates_range}
+    statistic, statistic_meal_type = prepare_meal_statistic(dates_range, date2meal_info_ids)
 
     template = templates.get_template("statistic.html")
     content = template.render(
@@ -616,6 +640,8 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
         end_date=format_date(end_date),
         period=period,
         statistic=statistic,
+        statistic_meal_type=statistic_meal_type,
+        meal_types=constants.MEAL_TYPE_NAMES,
         dates_range=[format_date(date) for date in dates_range],
         page="/statistic"
     )
