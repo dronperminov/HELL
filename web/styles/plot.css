@@ -46,6 +46,12 @@
     fill: var(--plot-background-color);
 }
 
+.plot-axis {
+    stroke: var(--plot-axis-color);
+    stroke-width: 1px;
+    fill: none;
+}
+
 .label {
     font-size: 0.5em;
     fill: var(--text-color);

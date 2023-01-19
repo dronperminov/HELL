@@ -103,3 +103,43 @@ function CompareDates(date1, date2) {
 
     return 0
 }
+
+function ValidateDate(day, month, year) {
+    let days = new Date(year, month, 0).getDate()
+    return day >= 1 && day <= days && month >= 1 && month <= 12
+}
+
+function ParseDate(value) {
+    let today = new Date()
+    let year = today.getFullYear()
+    let month = today.getMonth() + 1
+
+    let match = /^(?<day>\d\d?).(?<month>\d\d?).(?<year>\d\d\d\d)$/g.exec(value)
+    if (match && ValidateDate(match.groups.day, match.groups.month, match.groups.year))
+        return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${match.groups.year}`
+
+    match = /^(?<day>\d\d?).(?<month>\d\d?)$/g.exec(value)
+    if (match && ValidateDate(match.groups.day, match.groups.month, year))
+        return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${year}`
+
+    match = /^(?<day>\d\d?)$/g.exec(value)
+    if (match && ValidateDate(match.groups.day, month, year))
+        return `${match.groups.day.padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`
+
+    return null
+}
+
+function FormatDate(day, month, year) {
+    if (month == 0) {
+        month = 12
+        year--
+    }
+
+    return `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`
+}
+
+function ValidateInterval(startDate, endDate) {
+    let start = startDate.split('.').reverse().join('.')
+    let end = endDate.split('.').reverse().join('.')
+    return start <= end
+}

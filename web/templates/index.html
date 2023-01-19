@@ -7,9 +7,9 @@
     {% else %}
     <title>Главная страница | HELL</title>
     {% endif %}
-    <link rel="stylesheet" type="text/css" href="/styles/inputs.css?v=8">
-    <link rel="stylesheet" type="text/css" href="/styles/index.css?v=8">
-    <link rel="stylesheet" type="text/css" href="/styles/plot.css?v=8">
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/index.css">
+    <link rel="stylesheet" type="text/css" href="/styles/plot.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -36,9 +36,9 @@
         <button class="no-display" id="cancel-add-parameter" onclick="CancelAddParameter()"><span class="fa fa-ban"> Отменить</span></button>
     </div>
 
-    <script src="/js/constants.js?v=8"></script>
-    <script src="/js/forms.js?v=8"></script>
-    <script src="/js/swipe.js?v=8"></script>
+    <script src="/js/constants.js"></script>
+    <script src="/js/forms.js"></script>
+    <script src="/js/swipe.js"></script>
     <script src="/js/plot.js"></script>
 
     <script type="text/javascript">
@@ -331,16 +331,113 @@
 
         function BuildPlot(name) {
             let parameter = document.getElementById(`parameter-${name}`)
+            let parameterPlot = parameter.getElementsByClassName("parameter-plot")[0]
+            let parameterPlotInfo = document.getElementById(`parameter-${name}-plot-info`)
+            let {startDate, endDate} = GetPlotPeriod(name)
             let svg = parameter.getElementsByTagName("svg")[0]
+            let data = parametersData[name].filter((dataItem) => CompareDates(startDate, dataItem["date"]) <= 0 && CompareDates(dataItem["date"], endDate) <= 0)
 
-            if (parametersData[name].length < 2) {
+            if (data.length == 0) {
+                parameterPlotInfo.innerText = `Нет данных для отображения с ${startDate} по ${endDate}`
                 svg.classList.add("no-display")
                 return
             }
 
-            let data = parametersData[name]
+            parameterPlotInfo.innerText = `Показаны данные с ${startDate} по ${endDate}`
+            svg.classList.remove("no-display")
             let plot = new Plot()
             plot.Plot(svg, data)
+        }
+
+        function UpdateParameterPeriod(name) {
+            let period = document.getElementById(`parameter-${name}-period`).value
+            let dates = document.getElementById(`parameter-${name}-dates`)
+
+            if (period == "period") {
+                dates.classList.remove("no-display")
+            }
+            else {
+                dates.classList.add("no-display")
+            }
+        }
+
+        function GetPlotPeriod(name) {
+            let period = document.getElementById(`parameter-${name}-period`).value
+            let startDateInput = document.getElementById(`parameter-${name}-start-date`)
+            let endDateInput = document.getElementById(`parameter-${name}-end-date`)
+
+            let today = new Date()
+            let year = today.getFullYear()
+            let month = today.getMonth() + 1
+            let day = today.getDate()
+
+            let startDate = null
+            let endDate = null
+
+            if (period == "all") {
+                startDate = parametersData[name][0]["date"]
+                endDate = parametersData[name][parametersData[name].length - 1]["date"]
+            }
+            else if (period == "period") {
+                startDate = ParseDate(startDateInput.value)
+                endDate = ParseDate(endDateInput.value)
+            }
+            else if (period == "month") {
+                startDate = FormatDate(1, month, year)
+                endDate = FormatDate(day, month, year)
+            }
+            else if (period == "last-month") {
+                startDate = FormatDate(1, month - 1, year)
+                endDate = FormatDate(new Date(year, month - 1, 0).getDate(), month - 1, year)
+            }
+            else if (period == "last-100days") {
+                let start = new Date(year, month, day - 100)
+                startDate = FormatDate(start.getDate(), start.getMonth() + 1, start.getFullYear())
+                endDate = FormatDate(day, month, year)
+            }
+
+            if (startDate !== null)
+                startDateInput.value = startDate
+
+            if (endDate !== null)
+                endDateInput.value = endDate
+
+            return {startDate, endDate}
+        }
+
+        function ChangeParameterPeriod(name) {
+            let startDateInput = document.getElementById(`parameter-${name}-start-date`)
+            let endDateInput = document.getElementById(`parameter-${name}-end-date`)
+            let periodError = document.getElementById(`parameter-${name}-period-error`)
+            let period = document.getElementById(`parameter-${name}-period`).value
+            let {startDate, endDate} = this.GetPlotPeriod(name)
+
+            periodError.innerText = ''
+
+            if (period == "period") {
+                if (startDate == null) {
+                    periodError.innerText = "Начальная дата введена некорректно"
+                    startDateInput.focus()
+                    startDateInput.select()
+                    return
+                }
+
+                if (endDate == null) {
+                    periodError.innerText = "Конечная дата введена некорректно"
+                    endDateInput.focus()
+                    endDateInput.select()
+                    return
+                }
+
+                if (!ValidateInterval(startDate, endDate)) {
+                    periodError.innerText = "Введён некорректный интервал: дата начала должна быть не больше конечной"
+                    startDateInput.focus()
+                    startDateInput.select()
+                    return
+                }
+            }
+
+            BuildPlot(name)
         }
 
         function ToggleParameterPlot(name, open = null) {
@@ -371,7 +468,7 @@
     </p>
     <p>
         Но если не хотите, то можете посмотреть наш <button onclick="location.href='/food-collection'"><span class="fa fa-shopping-basket"></span> список продуктов</button>
-        или <button onclick="location.href='/add-food';"><span class="fa fa-plus"></span> добавить продукт</button>.ы
+        или <button onclick="location.href='/add-food';"><span class="fa fa-plus"></span> добавить продукт</button>.
     </p>
     {% endif %}
 </body>

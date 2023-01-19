@@ -58,7 +58,52 @@
     color: var(--disabled-color);
 }
 
-.parameter-plot {
+.parameter-plot-controls {
+    display: table;
+    box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 0 5px;
+}
+
+.parameter-period {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.parameter-button {
+    display: table-cell;
+    width: 80px;
+    text-align: right;
+    vertical-align: top;
+}
+
+.parameter-period-input {
+    display: table;
+    width: 100%;
+    padding-top: 5px;
+}
+
+.parameter-period-input-cell {
+    display: table-cell;
+}
+
+.parameter-period-input-cell input {
+    text-align: center;
+}
+
+.parameter-period-error {
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.parameter-plot-info {
+    font-size: 0.9rem;
+    color: var(--disabled-color);
+    text-align: center;
+}
+
+.parameter-plot-svg {
     overflow-x: auto;
 }
 
