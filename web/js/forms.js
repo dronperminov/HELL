@@ -35,25 +35,6 @@ function IsPositiveReal(value) {
     return value.match(/^\d+(.\d{0,2})?$/g) && +value > 0
 }
 
-function ValidateFields(fields) {
-    let data = {}
-
-    for (const field of fields) {
-        const fieldBox = document.getElementById(field.name)
-        const value = fieldBox.value
-
-        if (field.func !== null && !field.func(value)) {
-            alert(field.message)
-            fieldBox.focus()
-            return null
-        }
-
-        data[field.name] = value
-    }
-
-    return data
-}
-
 function MakeDiv(className, parent=null) {
     let div = document.createElement("div")
     div.className = className

@@ -13,6 +13,7 @@
             <label>Название продукта:
                 <input type="text" id="name" {% if food %}value="{{food.name}}"{% endif %}>
             </label>
+            <div class="error-center" id="name-error"></div>
         </div>
 
         <div class="form-row">
@@ -22,29 +23,34 @@
                 <option value="100 г" {% if food %}{%if food.portion == "100 г" %}selected{% endif %}{% else %}selected{% endif %}>100 г</option>
                 <option value="100 мл" {% if food and food.portion == "100 мл" %}selected{% endif %}>100 мл</option>
             </select>
+            <div class="error-center" id="energy-error"></div>
         </div>
 
         <div class="form-row">
             <label>Белки (г)
                 <input type="number" step="0.01" min="0" value="{% if food %}{{food.proteins}}{% else %}0{% endif %}" id="proteins">
             </label>
+            <div class="error-center" id="proteins-error"></div>
         </div>
 
         <div class="form-row">
             <label>Жиры (г)
                 <input type="number" step="0.01" min="0" value="{% if food %}{{food.fats}}{% else %}0{% endif %}" id="fats">
             </label>
+            <div class="error-center" id="fats-error"></div>
         </div>
 
         <div class="form-row">
             <label>Углеводы (г)
                 <input type="number" step="0.01" min="0" value="{% if food %}{{food.carbohydrates}}{% else %}0{% endif %}" id="carbohydrates">
             </label>
+            <div class="error-center" id="carbohydrates-error"></div>
         </div>
 
         <div class="form-row">
             <label>Варианты порции</label>
             <div id="conversions-box"></div>
+            <div class="error-center" id="conversions-error"></div>
             <button id="conversion-button"><span class="fa fa-plus"></span> Добавить вариант</button>
         </div>
 
@@ -61,6 +67,7 @@
             {% endif %}
             <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
         </div>
+        <div class="error-center" id="save-error"></div>
     </div>
 
     {% if not food %}
@@ -77,6 +84,7 @@
             </div>
         </div>
 
+        <div class="error-center" id="fatsecret-error"></div>
         <div id="fatsecret-search-result"></div>
     </div>
     {% endif %}
@@ -168,8 +176,9 @@
             block.appendChild(div)
         }
 
-        function GetConversions(portion) {
+        function GetConversions() {
             let items = document.getElementsByClassName('conversions-item')
+            let error = document.getElementById("conversions-error")
             let conversions = {}
 
             for (let item of items) {
@@ -180,13 +189,13 @@
                 let value = valueBox.value
 
                 if (unit in conversions) {
-                    alert(`Вариант "${unit}" уже был добавлен`)
+                    error.innerText = `Вариант "${unit}" уже был добавлен`
                     unitBox.focus()
                     return null
                 }
 
                 if (!IsRealValue(value) || +value <= 0) {
-                    alert(`Коэффициент для варианта "${unit}" введён некорректно`)
+                    error.innerText = `Коэффициент для варианта "${unit}" введён некорректно`
                     valueBox.focus()
                     return null
                 }
@@ -194,11 +203,39 @@
                 conversions[unit] = value / 100
             }
 
+            error.innerText = ""
             return conversions
         }
 
+        function ValidateFields(fields) {
+            let data = {}
+            let haveErrors = false
+
+            for (const field of fields) {
+                let fieldBox = document.getElementById(field.name)
+                let value = fieldBox.value
+
+                if (field.func !== null) {
+                    let error = document.getElementById(`${field.name}-error`)
+
+                    if (!field.func(value)) {
+                        error.innerText = field.message
+                        fieldBox.focus()
+                        haveErrors = true
+                    }
+                    else {
+                        error.innerText = ''
+                    }
+                }
+
+                data[field.name] = value
+            }
+
+            return haveErrors ? null : data
+        }
+
         function SaveFood() {
-            const fields = [
+            let fields = [
                 {name: "name", func: IsNotEmptyValue, message: "Название продукта не заполнено"},
                 {name: "description", func: null},
                 {name: "portion", func: null},
@@ -208,24 +245,25 @@
                 {name: "carbohydrates", func: IsRealValue, message: "Углеводы введены некорректно"}
             ]
 
-            const food = ValidateFields(fields)
+            let food = ValidateFields(fields)
+            let conversions = GetConversions()
 
-            if (food === null)
+            if (food === null || conversions === null)
                 return
 
-            food.conversions = GetConversions(food.portion)
-
-            if (food.conversions === null)
-                return
-
+            food.conversions = conversions
             {% if date and meal_type %}
             food.date = "{{date}}"
             food.meal_type = "{{meal_type}}"
             {% endif %}
 
+            let error = document.getElementById("save-error")
+            error.innerText = ""
+
             SendRequest("{{add_url}}", food).then((response) => {
                 if (response.status != "OK") {
-                    alert(response.message)
+                    error.innerText = response.message
+                    window.scrollTo({top: error.offsetTop, behavior: 'smooth'})
                 }
                 else {
                     alert(response.message)
@@ -237,13 +275,16 @@
         {% if food %}
         function RemoveFood() {
             let name = document.getElementById("name").value
+            let error = document.getElementById("save-error")
+            error.innerText = ""
 
             if (!confirm(`Вы уверены, что хотите удалить продукт "${name}"?`))
                 return
 
             SendRequest("/remove-food/", {"food_id": "{{food._id}}"}).then((response) => {
                 if (response.status != "ok") {
-                    alert(response.message)
+                    error.innerText = response.message
+                    window.scrollTo({top: error.offsetTop, behavior: 'smooth'})
                     return
                 }
 
@@ -253,9 +294,13 @@
         {% endif %}
 
         function ParseFatsecretUrl(url) {
+            let error = document.getElementById("fatsecret-error")
+            error.innerText = ""
+
             SendRequest("/parse-fatsecret", {"url": url}).then((food) => {
                 if (food === null) {
-                    alert("Не удалось распарсить продукт.")
+                    error.innerText = "Не удалось распарсить продукт."
+                    window.scrollTo({top: error.offsetTop, behavior: 'smooth'})
                     return
                 }
 
@@ -283,7 +328,6 @@
                     resultsDiv.innerText = `К сожалению, по запросу "${query}" ничего не нашлось`
 
                 for (let result of response) {
-                    console.log(result)
                     let resultDiv = document.createElement("div")
                     let link = document.createElement("div")
                     let info = document.createElement("div")
@@ -305,9 +349,12 @@
 
         function ParseFatsecret() {
             let value = document.getElementById("url-box").value
+            let error = document.getElementById("fatsecret-error")
+            error.innerText = ""
 
             if (!IsNotEmptyValue(value)) {
-                alert("Пустая ссылка или текстовый запрос")
+                error.innerText = "Пустая ссылка или текстовый запрос"
+                window.scrollTo({top: error.offsetTop, behavior: 'smooth'})
                 return
             }
 

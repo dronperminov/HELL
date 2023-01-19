@@ -298,7 +298,7 @@ async def add_food_post(request: Request):
         href = "food-collection" if "date" not in data else f"add-meal/{data['date']}/{data['meal_type']}"
         return JSONResponse({"status": "OK", "href": f"/{href}?food_query={food.name[:25]}", "message": "Продукт успешно добавлен"})
     except Exception as e:
-        return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить продукт из-за ошибки: {e}"})
+        return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить продукт из-за ошибки: {e}"})
 
 
 @app.get("/edit-food/{food_id}")
