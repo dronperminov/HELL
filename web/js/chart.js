@@ -57,6 +57,9 @@ Chart.prototype.MakeDivider = function(svg, startAngle, endAngle, className) {
 }
 
 Chart.prototype.Plot = function(svg, values) {
+    svg.setAttribute("viewBox", "-50 -50 100 100 ")
+    svg.innerHTML = ''
+
     let angles = this.GetAngles(values)
 
     for (let i = 0; i < angles.length; i++)
@@ -64,4 +67,5 @@ Chart.prototype.Plot = function(svg, values) {
 
     for (let i = 0; i < angles.length; i++)
         this.MakeDivider(svg, i > 0 ? angles[i - 1] : 0, angles[i], `chart-divider`)
+
 }
