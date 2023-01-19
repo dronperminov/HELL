@@ -39,6 +39,11 @@ Plot.prototype.PreprocessX = function(x) {
         x[i] = this.GetDelta(x[i], x[0]) / max
     }
 
+    if (x.length == 2) {
+        min = 1
+        max = 1
+    }
+
     x[0] = 0
 
     return {x, min, max}
