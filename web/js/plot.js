@@ -76,9 +76,6 @@ Plot.prototype.Interpolate = function(xi, x, y) {
     if (x.length == 1)
         return y[0]
 
-    if (x.length == 2)
-        return y[0] + (y[1] - y[0]) * (xi - x[0]) / (x[1] - x[0])
-
     let result = 0
     let sumWeights = 0
 
