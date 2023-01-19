@@ -52,6 +52,9 @@ def parse_period(period: Optional[str]) -> Tuple[datetime, datetime, str]:
     start_date = parse_date(start_date) if start_date else current
     end_date = parse_date(end_date) if end_date else current
 
+    if start_date > current:
+        start_date = current
+
     if end_date > current:
         end_date = current
 

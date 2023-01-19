@@ -206,8 +206,7 @@ def remove_body_parameter_value(date: str = Body(..., embed=True), name: str = B
     date = parse_date(date)
 
     parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
-    result = parameters_collection.delete_one({"date": date, "name": name})
-    print(result)
+    parameters_collection.delete_one({"date": date, "name": name})
 
     return JSONResponse({"status": "ok"})
 
