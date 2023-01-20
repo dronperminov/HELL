@@ -458,6 +458,16 @@
         }
 
         for (let parameterItem of document.getElementsByClassName("parameter-data")) {
+            let parameterName = parameterItem.getElementsByClassName("parameter-name")[0].innerText
+
+            parameterItem.addEventListener('click', (e) => {
+                for (let item of e.composedPath())
+                    if (item.tagName == "SPAN" && item.classList.contains("input") || item.tagName == "BUTTON")
+                        return
+
+                ToggleParameterPlot(parameterName)
+            })
+
             SwipeParameter(parameterItem)
         }
     </script>
