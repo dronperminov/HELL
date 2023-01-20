@@ -31,7 +31,7 @@
                 {% endif %}
                     <div class="meal-type">
                         {% if meal_statistic[meal_type]["foods"] %}
-                        <span id="meal-caret-{{meal_type}}" class="fa fa-caret-right"></span>
+                        <span id="meal-caret-{{meal_type}}" class="fa meal-caret fa-caret-right"></span>
                         {% endif %}
 
                         {% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %}
@@ -160,7 +160,7 @@
             else
                 foods.classList.add('no-display')
 
-            let caret = mealItem.getElementsByClassName('fa')
+            let caret = mealItem.getElementsByClassName('meal-caret')
             if (caret.length == 1) {
                 caret[0].classList.toggle('fa-caret-right')
                 caret[0].classList.toggle('fa-caret-down')
