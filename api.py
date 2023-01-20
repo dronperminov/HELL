@@ -269,6 +269,7 @@ def food_collection_get(food_query: str = Query(None)):
     if food_query is not None and not food_query:
         return RedirectResponse(url="/food-collection", status_code=302)
 
+    food_query = food_query.strip() if food_query else None
     food_items = get_food_by_query(food_query)
     template = templates.get_template('food_collection.html')
     html = template.render(food_items=food_items, query=food_query, page="/food-collection")
@@ -477,6 +478,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
     if not user_id:
         return unauthorized_access("/diary")
 
+    food_query = food_query.strip() if food_query else None
     food_items = get_food_by_query(food_query)
     frequent_food_items = get_frequent_foods(meal_type, user_id) if not food_query else []
 
