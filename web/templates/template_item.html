@@ -1,0 +1,12 @@
+<div class="food-item" id="{{food_item._id}}">
+    <div class="food-data" onclick="ClickTemplateItem('{{food_item._id}}')">
+        <div class="food-name">{{food_item.name}} (шаблон)</div>
+        <div class="food-description">{{food_item.description}}</div>
+        <div class="food-info">
+            <div class="food-info-cell food-energy">{{food_item.energy}} ккал</div>
+            <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>
+            <div class="food-info-cell food-fats">Ж{{food_item.fats}} г</div>
+            <div class="food-info-cell food-carbohydrates">У{{food_item.carbohydrates}} г</div>
+        </div>
+    </div>
+</div>

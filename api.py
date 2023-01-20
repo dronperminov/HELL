@@ -223,12 +223,20 @@ def get_food_by_query(query: Optional[str], user_id: Optional[str] = None) -> li
         query = re.escape(query)
         food_collection = database[constants.MONGO_FOOD_COLLECTION]
         food_items = list(food_collection.find({"name": {"$regex": query, "$options": "i"}}))
+        food_items = [normalize_statistic(food_item) for food_item in food_items]
 
-        if user_id:
-            template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
-            food_items.extend(list(template_collection.find({"name": {"$regex": query, "$options": "i"}})))
-            # food_items.extend(list(template_collection.find({"name": {"$regex": query, "$options": "i"}, "creator_id": ObjectId(user_id)})))
-            food_items.sort(key=lambda food_item: food_item["name"])
+        if not user_id:
+            return food_items
+
+        template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+        templates = list(template_collection.find({"name": {"$regex": query, "$options": "i"}}))
+        # templates = list(template_collection.find({"name": {"$regex": query, "$options": "i"}, "creator_id": ObjectId(user_id)}))
+
+        for template in templates:
+            set_template_statistic(template)
+
+        food_items.extend(templates)
+        food_items.sort(key=lambda food_item: food_item["name"])
 
         return food_items
     except OperationFailure:
@@ -436,6 +444,24 @@ def get_meals_statistic(meal_ids: Iterable[ObjectId], with_food: bool = True) ->
         statistic["foods"] = foods
 
     return statistic
+
+
+def set_template_statistic(template: dict) -> dict:
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
+
+    for key in constants.STATISTIC_KEYS:
+        template[key] = Decimal("0")
+
+    for meal_item in template["meal_items"]:
+        meal = MealItem.from_dict(meal_item)
+        food = food_collection.find_one({"_id": ObjectId(meal.food_id)})
+        food_item = FoodItem.from_dict(food)
+        food_portion = food_item.make_portion(meal.portion_size, meal.portion_unit)
+
+        for key in constants.STATISTIC_KEYS:
+            template[key] += food_portion[key]
+
+    return normalize_statistic(template)
 
 
 def get_meal_statistic(foods: List[dict]) -> dict:

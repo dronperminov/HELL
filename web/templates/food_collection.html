@@ -18,7 +18,7 @@
         </div>
 
         <div class="food-search-input">
-            <input type="text" name="food_query" id="food-query" oninput="UpdateClearQuery()" class="search-input" placeholder="Введите название продукта" {% if query %}value="{{query}}"{% endif %}>
+            <input type="text" name="food_query" id="food-query" oninput="UpdateClearQuery()" class="search-input" placeholder="Введите название продукта или шаблона" {% if query %}value="{{query}}"{% endif %}>
         </div>
 
         <div class="food-search-button">
@@ -41,12 +41,14 @@
             {% endif %}
         {% else %}
 
-            {% for food_item in food_items %}{% include "food_item.html" %}{% endfor %}
+            {% for food_item in food_items %}{% if "meal_items" in food_item %}{% include "template_item.html" %}{% else %}{% include "food_item.html" %}{% endif %}{% endfor %}
         {% endif %}
         </div>
 
         <div class="add-food">
-            <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить новый продукт</button>
+            <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить продукт</button>
+
+            <button onclick="location.href='/add-template?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить шаблон</button>
         </div>
     </div>
 
@@ -100,6 +102,27 @@
         {% endif %}
         }
 
+        function ClickTemplateItem(templateId) {
+        {% if date and meal_type %}
+            let data = {
+                date: "{{date}}",
+                meal_type: "{{meal_type}}",
+                template_id: templateId
+            }
+
+            SendRequest("/add-meal-template", data).then((response) => {
+                if (response.status != "ok") {
+                    alert(response.message)
+                    return
+                }
+
+                location.href = `/diary?date={{date}}`
+            })
+        {% else %}
+            location.href = `/edit-template/${templateId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
+        {% endif %}
+        }
+
         {% if date and meal_type %}
         function AddMeal(date, mealType, foodId) {
             let portionSize = document.getElementById(`${foodId}-portion-size`)
@@ -123,7 +146,7 @@
 
             SendRequest("/add-meal", data).then((response) => {
                 if (response.status != "ok") {
-                    alert("Не удалось добавить продукт")
+                    alert(response.message)
                     return
                 }
 

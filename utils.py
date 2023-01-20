@@ -1,18 +1,24 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
+
+from bson import Decimal128
 
 import constants
 from entities.portion_unit import BasePortionUnit, PortionUnit
 
 
-def d2s(value: Decimal, scale: int = 2) -> str:
+def d2s(value: Union[Decimal, Decimal128], scale: int = 2) -> str:
+    if isinstance(value, Decimal128):
+        value = Decimal(str(value))
+
     return f'{round(value * scale) / scale:g}'
 
 
 def normalize_statistic(statistic: dict):
     for key in constants.STATISTIC_KEYS:
         statistic[key] = d2s(statistic[key])
+    return statistic
 
 
 def format_date(date: datetime) -> str:

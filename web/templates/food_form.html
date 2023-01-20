@@ -372,13 +372,27 @@
         let saveButton = document.getElementById("save-button")
         let backButton = document.getElementById("back-button")
         let conversionButton = document.getElementById("conversion-button")
-        let urlBox = document.getElementById("url-box")
         let error = document.getElementById("fatsecret-error")
 
         portionBox.addEventListener('change', () => InitConversions())
         conversionButton.addEventListener('click', () => AddConversion())
         saveButton.addEventListener('click', () => SaveFood())
         backButton.addEventListener('click', () => history.back())
+
+        {% if food %}
+        let removeButton = document.getElementById("remove-button")
+        removeButton.addEventListener('click', () => RemoveFood())
+
+        {% for unit, value in food.conversions.items() %}
+        AddConversion({unit: "{{unit}}", value: "{{value}}"})
+        {% endfor %}
+        {% else %}
+        let urlButton = document.getElementById("url-button")
+        urlButton.addEventListener('click', () => ParseFatsecret())
+
+        InitConversions()
+
+        let urlBox = document.getElementById("url-box")
         urlBox.addEventListener('keydown', (e) => {
             error.innerText = ""
 
@@ -387,19 +401,6 @@
                 ParseFatsecret()
             }
         })
-
-        {% if food %}
-            let removeButton = document.getElementById("remove-button")
-            removeButton.addEventListener('click', () => RemoveFood())
-
-            {% for unit, value in food.conversions.items() %}
-            AddConversion({unit: "{{unit}}", value: "{{value}}"})
-            {% endfor %}
-        {% else %}
-            let urlButton = document.getElementById("url-button")
-            urlButton.addEventListener('click', () => ParseFatsecret())
-
-            InitConversions()
         {% endif %}
 
         {%if query and not food %}
