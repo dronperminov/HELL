@@ -89,6 +89,9 @@ def get_default_portion(food_item: dict) -> Tuple[str, str]:
 
 def add_default_unit(food_items: list) -> list:
     for i, food_item in enumerate(food_items):
+        if "creator_id" in food_item:
+            continue
+
         default_unit, default_value = get_default_portion(food_item)
         food_items[i]["default_unit"] = default_unit
         food_items[i]["default_value"] = default_value

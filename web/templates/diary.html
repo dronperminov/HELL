@@ -73,7 +73,7 @@
                 <div class="foods no-display" id="{{meal_type}}-foods">
                     {% for food_item in meal_statistic[meal_type]["foods"] %}
                     {% if "foods" in food_item %}
-                        <div class="food-item-group" id="{{food_item.group_id}}">
+                        <div class="food-item-group" id="{{food_item.group_id}}" data-meal-type="{{meal_type}}">
                             <div class="food-item-remove" style="opacity: 0">
                                 <div class="food-item-remove-cell">
                                     <span class="fa fa-trash"></span>
@@ -194,7 +194,7 @@
         }
 
         function RemoveMealBlock(mealId) {
-            let foodItem = document.getElementById(`food-item-${mealId}`)
+            let foodItem = document.getElementById(mealId)
             let mealType = foodItem.getAttribute("data-meal-type")
             let foodsBlock = foodItem.parentNode
             let mealFood = null
@@ -235,7 +235,14 @@
             for (let mealItem of foods.getElementsByClassName('food-item')) {
                 let mealId = mealItem.id.replace("food-item-", "")
                 if (!(mealId in statistic))
-                    RemoveMealBlock(mealId)
+                    RemoveMealBlock(`food-item-${mealId}`)
+            }
+
+            for (let groupItem of foods.getElementsByClassName('food-item-group')) {
+                let groupId = groupItem.id
+
+                if (!(groupId in statistic))
+                    RemoveMealBlock(groupId)
             }
         }
 
@@ -384,9 +391,7 @@
                     return
                 }
 
-                let groupItem = document.getElementById(groupId)
-                groupItem.parentNode.removeChild(groupItem)
-
+                RemoveMealBlock(groupId)
                 EndEditPortions()
                 UpdateMealInfoStatistic(mealType, response.statistic)
                 UpdateMealStatistic(mealType, response.meal_statistic)

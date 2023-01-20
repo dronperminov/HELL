@@ -215,13 +215,21 @@ def remove_body_parameter_value(date: str = Body(..., embed=True), name: str = B
     return JSONResponse({"status": "ok"})
 
 
-def get_food_by_query(query: Optional[str]) -> list:
+def get_food_by_query(query: Optional[str], user_id: Optional[str] = None) -> list:
     if not query:
         return []
 
     try:
+        query = re.escape(query)
         food_collection = database[constants.MONGO_FOOD_COLLECTION]
-        food_items = list(food_collection.find({"name": {"$regex": re.escape(query), "$options": "i"}}))
+        food_items = list(food_collection.find({"name": {"$regex": query, "$options": "i"}}))
+
+        if user_id:
+            template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+            food_items.extend(list(template_collection.find({"name": {"$regex": query, "$options": "i"}})))
+            # food_items.extend(list(template_collection.find({"name": {"$regex": query, "$options": "i"}, "creator_id": ObjectId(user_id)})))
+            food_items.sort(key=lambda food_item: food_item["name"])
+
         return food_items
     except OperationFailure:
         return []
@@ -265,12 +273,12 @@ def get_frequent_foods(meal_type: str, user_id: str) -> list:
 
 
 @app.get("/food-collection")
-def food_collection_get(food_query: str = Query(None)):
+def food_collection_get(food_query: str = Query(None), user_id: str = Depends(get_current_user)):
     if food_query is not None and not food_query:
         return RedirectResponse(url="/food-collection", status_code=302)
 
     food_query = food_query.strip() if food_query else None
-    food_items = get_food_by_query(food_query)
+    food_items = get_food_by_query(food_query, user_id)
     template = templates.get_template('food_collection.html')
     html = template.render(food_items=food_items, query=food_query, page="/food-collection")
     return HTMLResponse(content=html)
@@ -336,15 +344,34 @@ async def edit_food_post(food_id: str, request: Request):
 
 @app.post("/remove-food")
 def remove_food(food_id: str = Body(..., embed=True)):
+    food_id = ObjectId(food_id)
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
-    meal = meal_collection.find_one({"food_id": ObjectId(food_id)})
+    meal = meal_collection.find_one({"food_id": food_id})
 
     if meal:
         return JSONResponse({"status": "fail", "message": "Невозможно удалить этот продукт, так как он используется в дневнике"})
 
+    template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+    template = template_collection.find_one({"meal_items": {"$elemMatch": {"food_id": food_id }}})
+
+    if template:
+        return JSONResponse({"status": "fail", "message": f'Невозможно удалить этот продукт, так как он используется в шаблоне "{template["name"]}"'})
+
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
-    food_collection.delete_one({"_id": ObjectId(food_id)})
+    food_collection.delete_one({"_id": food_id})
     return JSONResponse({"status": "ok"})
+
+
+@app.get("/add-template")
+def add_template_get(food_query: str = Query(None)):
+    template = templates.get_template('template_form.html')
+    html = template.render(
+        title="Добавление нового шаблона",
+        add_text="Добавить шаблон",
+        add_url="/add-template",
+        page="/add-template",
+        query=food_query)
+    return HTMLResponse(content=html)
 
 
 def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
@@ -479,7 +506,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
         return unauthorized_access("/diary")
 
     food_query = food_query.strip() if food_query else None
-    food_items = get_food_by_query(food_query)
+    food_items = get_food_by_query(food_query, user_id)
     frequent_food_items = get_frequent_foods(meal_type, user_id) if not food_query else []
 
     template = templates.get_template('food_collection.html')
@@ -504,15 +531,55 @@ def add_meal(
         portion_unit: str = Body(..., embed=True),
         user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
-        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+        return JSONResponse({"status": "fail", "message": "Не удалось добавить продукт, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    meal = meal_collection.insert_one({"food_id": ObjectId(food_id), "portion_size": portion_size, "portion_unit": portion_unit})
+
+    if not meal:
+        return JSONResponse({"status": "fail", "message": "Не удалось добавить продукт, так как его больше не существует"})
 
     date = parse_date(date)
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    diary_collection.update_one({"date": date}, {"$push": {f"meal_info.{meal_type}": meal.inserted_id}}, upsert=True)
+
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/add-meal-template")
+def add_meal_template(
+        date: str = Body(..., embed=True),
+        meal_type: str = Body(..., embed=True),
+        template_id: str = Body(..., embed=True),
+        user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Не удалось добавить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+    template = template_collection.find_one({"_id": ObjectId(template_id)})
+
+    if not template:
+        return JSONResponse({"status": "fail", "message": "Не удалось добавить шаблон, так как его больше не существует"})
+
+    date = parse_date(date)
+    meal_items = template["meal_items"]
+    group_id = ObjectId()
 
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
-    meal = meal_collection.insert_one({"food_id": ObjectId(food_id), "portion_size": portion_size, "portion_unit": portion_unit})
-    diary_collection.update_one({"date": date}, {"$push": {f"meal_info.{meal_type}": meal.inserted_id}}, upsert=True)
+    for meal_item in meal_items:
+        meal = meal_collection.insert_one({
+            "food_id": meal_item["food_id"],
+            "portion_size": meal_item["portion_size"],
+            "portion_unit": meal_item["portion_unit"],
+            "group_name": template["name"],
+            "group_id": group_id
+        })
+
+        print(meal.inserted_id)
+        diary_collection.update_one({"date": date}, {"$push": {f"meal_info.{meal_type}": meal.inserted_id}}, upsert=True)
+        print("update diary")
 
     return JSONResponse({"status": "ok"})
 
@@ -625,7 +692,18 @@ def copy_meal_type(
     meal_doc = diary_collection.find_one({"date": date})
     meal_ids = meal_doc["meal_info"][meal_type]
 
-    meals = meal_collection.find({"_id": {"$in": meal_ids}}, {"_id": 0})
+    meals = list(meal_collection.find({"_id": {"$in": meal_ids}}, {"_id": 0}))
+    group_ids = dict()
+
+    for meal_item in meals:
+        if "group_id" not in meal_item:
+            continue
+
+        group_id = meal_item["group_id"]
+        if group_id not in group_ids:
+            group_ids[group_id] = ObjectId()
+        meal_item["group_id"] = group_ids[group_id]
+
     inserted_meals = meal_collection.insert_many(meals)
 
     for meal_id in inserted_meals.inserted_ids:
