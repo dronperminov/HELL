@@ -16,7 +16,7 @@ select,
 
 .input {
     display: inline-block;
-    min-width: 10px;
+    min-width: 20px;
     width: fit-content;
 }
 
