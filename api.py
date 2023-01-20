@@ -446,7 +446,9 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     if not user_id:
         return unauthorized_access("/diary")
 
-    date = parse_date(date) if date else get_current_date()
+    curr_date = get_current_date()
+    date = parse_date(date) if date else curr_date
+    copy_date = curr_date + timedelta(days=(1 if date == curr_date else 0))
     meal_info = get_meal_info(date, user_id)
     meal_statistic = {meal_type: get_meals_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
@@ -455,6 +457,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
         date=format_date(date),
         prev_date=format_date(date + timedelta(days=-1)),
         next_date=format_date(date + timedelta(days=1)),
+        copy_date=format_date(copy_date),
         meal_info=meal_info,
         names=constants.MEAL_TYPE_NAMES,
         meal_statistic=meal_statistic,
@@ -594,6 +597,32 @@ def remove_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..
     meal_collection.delete_many({"_id": {"$in": meal_ids}})
     diary_collection.update_one({"date": date}, {"$unset": {f"meal_info.{meal_type}": 1}})
 
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/copy-meal-type")
+def copy_meal_type(
+        date: str = Body(..., embed=True),
+        meal_type: str = Body(..., embed=True),
+        paste_date: str = Body(..., embed=True),
+        paste_meal_type: str = Body(..., embed=True),
+        user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    date = parse_date(date)
+    paste_date = parse_date(paste_date)
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+
+    meal_doc = diary_collection.find_one({"date": date})
+    meal_ids = meal_doc["meal_info"][meal_type]
+
+    meals = meal_collection.find({"_id": {"$in": meal_ids}}, {"_id": 0})
+    inserted_meals = meal_collection.insert_many(meals)
+
+    for meal_id in inserted_meals.inserted_ids:
+        diary_collection.update_one({"date": paste_date}, {"$push": {f"meal_info.{paste_meal_type}": meal_id}}, upsert=True)
     return JSONResponse({"status": "ok"})
 
 

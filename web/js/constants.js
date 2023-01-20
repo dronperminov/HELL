@@ -31,3 +31,9 @@ const BODY_PARAMETERS = [
 const BODY_PARAMETER_UNITS = [
     "кг", "см"
 ]
+
+const MEAL_TYPES = {
+    "Завтрак": "breakfast",
+    "Обед": "lunch",
+    "Ужин": "dinner",
+}

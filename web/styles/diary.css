@@ -42,7 +42,7 @@
     width: 10px;
 }
 
-.meal-add {
+.meal-buttons {
     position: absolute;
     top: 10px;
     right: 5px;
@@ -76,6 +76,39 @@
 
 .meal-energy {
     width: 40%;
+}
+
+.meal-copy {
+    border-top: 1px solid var(--border-color);
+    padding: 5px;
+}
+
+.meal-copy-header {
+    font-size: 0.9rem;
+    color: var(--disabled-color);
+}
+
+.meal-copy-cells {
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.meal-copy-cell {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.meal-copy-date {
+    width: 75px;
+}
+
+.meal-copy-type {
+    padding: 0 5px;
+}
+
+.meal-copy-icon {
+    width: 30px;
 }
 
 .food-item-group {

@@ -95,11 +95,11 @@ function ParseDate(value) {
     let year = today.getFullYear()
     let month = today.getMonth() + 1
 
-    let match = /^(?<day>\d\d?).(?<month>\d\d?).(?<year>\d\d\d\d)$/g.exec(value)
+    let match = /^(?<day>\d\d?)\.(?<month>\d\d?)\.(?<year>\d\d\d\d)$/g.exec(value)
     if (match && ValidateDate(match.groups.day, match.groups.month, match.groups.year))
         return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${match.groups.year}`
 
-    match = /^(?<day>\d\d?).(?<month>\d\d?)$/g.exec(value)
+    match = /^(?<day>\d\d?)\.(?<month>\d\d?)$/g.exec(value)
     if (match && ValidateDate(match.groups.day, match.groups.month, year))
         return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${year}`
 
