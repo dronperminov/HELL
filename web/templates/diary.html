@@ -106,7 +106,8 @@
     </div>
 
     <div class="add-meal-type">
-        <button onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
+        <button id="add-meal-type-button" onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
+        <button class="no-display" id="cancel-add-meal-type-button" onclick="CancelCreateMealType()"><span class="fa fa-ban"></span> Отменить</button>
     </div>
 
     <div class="diary-statistic">
@@ -122,7 +123,7 @@
         </div>
     </div>
 
-    <script src="/js/constants.js?v=2"></script>
+    <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
     <script src="/js/chart.js"></script>
     <script src="/js/swipe.js"></script>
@@ -288,28 +289,43 @@
             })
         }
 
-        function EnterMealType(e, mealType) {
+        function EnterMealType(e, mealType, error) {
+            error.innerText = ""
+            mealType.classList.remove("error")
+
             if (e.keyCode == 13) {
                 e.preventDefault()
-                mealType.blur()
+                ValidateMealType(mealType)
                 return
             }
         }
 
-        function ValidateMealType(e, mealType) {
+        function ValidateMealType(mealType) {
+            let error = mealType.parentNode.parentNode.getElementsByClassName("error-center")[0]
+            let mealTypeName = mealType.innerText.trim()
+
+            mealType.innerText = mealTypeName
+            error.innerText = ""
+
             for (let mealTypeItem of document.getElementsByClassName("meal-type")) {
-                if (mealTypeItem != mealType && mealTypeItem.innerText.trim() == mealType.innerText) {
-                    e.preventDefault()
-                    alert("Нельзя добавить такой приём пищи, так как он уже существует")
+                if (mealTypeItem != mealType && mealTypeItem.innerText.trim() == mealTypeName) {
+                    error.innerText = "Нельзя добавить такой приём пищи, так как он уже существует"
                     mealType.classList.add('error')
                     return
                 }
             }
 
+            let chars = GetInvalidMealTypeNameChars(mealTypeName)
+            if (chars.length > 0) {
+                error.innerText = `В названии приёма пищи присутствуют недопустимые символы (${chars.join('')})`
+                mealType.classList.add("error")
+                return
+            }
+
             mealType.classList.remove('error')
             mealType.removeAttribute("contenteditable")
 
-            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealType.innerText.trim()}).then((response) => {
+            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealTypeName}).then((response) => {
                 if (response.status != "ok")
                     alert("Не удалось добавить приём пищи")
 
@@ -318,18 +334,37 @@
         }
 
         function CreateMealType() {
+            let addButton = document.getElementById("add-meal-type-button")
+            let cancelButton = document.getElementById("cancel-add-meal-type-button")
+
             let diary = document.getElementById("diary")
-            let mealItem = MakeDiv("meal-item", diary)
+            let mealItem = MakeDiv("meal-item new-meal-item", diary)
             let mealData = MakeDiv("meal-data", mealItem)
             let mealType = MakeDiv("meal-type", mealData)
+            let mealIcon = MakeDiv("meal-buttons", mealData)
+            let error = MakeDiv("error-center", mealItem)
 
+            MakeIcon(mealIcon, "fa fa-check", () => ValidateMealType(mealType))
             mealType.setAttribute("contenteditable", "")
             mealType.innerText = "Введите название"
-            mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType))
-            mealType.addEventListener("blur", (e) => ValidateMealType(e, mealType))
+            mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType, error))
             mealType.focus()
 
+            addButton.classList.add("no-display")
+            cancelButton.classList.remove("no-display")
+
             document.execCommand('selectAll', false)
+        }
+
+        function CancelCreateMealType() {
+            let addButton = document.getElementById("add-meal-type-button")
+            let cancelButton = document.getElementById("cancel-add-meal-type-button")
+            let diary = document.getElementById("diary")
+            let mealItem = document.getElementsByClassName("new-meal-item")[0]
+
+            diary.removeChild(mealItem)
+            addButton.classList.remove("no-display")
+            cancelButton.classList.add("no-display")
         }
 
         function RemoveMealType(mealType) {
@@ -462,6 +497,13 @@
 
             if (!IsNotEmptyValue(pasteMealType)) {
                 errorDiv.innerText = "Приём пищи не указан"
+                mealInput.focus()
+                return
+            }
+
+            let chars = GetInvalidMealTypeNameChars(pasteMealType)
+            if (chars.length > 0) {
+                errorDiv.innerText = `В названии приёма пищи присутствуют недопустимые символы (${chars.join('')})`
                 mealInput.focus()
                 return
             }

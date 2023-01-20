@@ -35,6 +35,12 @@ function IsPositiveReal(value) {
     return value.match(/^\d+(.\d{0,2})?$/g) && +value > 0
 }
 
+function GetInvalidMealTypeNameChars(name) {
+    let chars = [...name.matchAll(/[.,!?<>{}\[\]"'&#]/g)].map((c) => c[0])
+    chars = [...new Set(chars)]
+    return chars
+}
+
 function MakeDiv(className, parent=null) {
     let div = document.createElement("div")
     div.className = className
