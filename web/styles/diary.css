@@ -80,6 +80,7 @@
 
 .meal-copy {
     border-top: 1px solid var(--border-color);
+    background: var(--select-background-color);
     padding: 5px;
 }
 

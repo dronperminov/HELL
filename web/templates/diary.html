@@ -44,9 +44,11 @@
                         <div class="meal-info-cell meal-fats"><span id="{{meal_type}}-meal-fats">{{meal_statistic[meal_type]["fats"]}}</span> г<br><sub>жиры</sub></div>
                         <div class="meal-info-cell meal-carbohydrates"><span id="{{meal_type}}-meal-carbohydrates">{{meal_statistic[meal_type]["carbohydrates"]}}</span> г<br><sub>углеводы</sub></div>
                     </div>
-                {% endif %}
                     <div class="meal-buttons">
                         <button onclick="ToggleCopyMealType('{{meal_type}}')"><span class="fa fa-clone" id="{{meal_type}}-copy-icon"></span></button>
+                {% else %}
+                    <div class="meal-buttons">
+                {% endif %}
                         <button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'"><span class="fa fa-plus"></span></button>
                     </div>
                 </div>
@@ -485,7 +487,13 @@
         }
 
         for (let mealItem of document.getElementsByClassName("meal-data")) {
-            mealItem.addEventListener('click', () => ToggleMeal(mealItem))
+            mealItem.addEventListener('click', (e) => {
+                for (let item of e.composedPath())
+                    if (item.tagName == "BUTTON")
+                        return
+
+                ToggleMeal(mealItem)
+            })
 
             if (mealItem.classList.contains("meal-data-removable"))
                 RemoveMealOnSwipe(mealItem)
