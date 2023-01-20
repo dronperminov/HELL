@@ -277,14 +277,16 @@ def food_collection_get(food_query: str = Query(None)):
 
 
 @app.get("/add-food")
-def add_food_get(food_query: str = Query(None)):
+def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None)):
     template = templates.get_template('food_form.html')
     html = template.render(
         title="Добавление нового продукта",
         add_text="Добавить продукт",
         add_url="/add-food",
         page="/add-food",
-        query=food_query)
+        query=food_query,
+        date=date,
+        meal_type=meal_type)
     return HTMLResponse(content=html)
 
 
