@@ -58,6 +58,10 @@
     --plot-divider-color: #1e1e1e;
 }
 
+html {
+    font-size: 16px;
+}
+
 body {
     padding: 10px 10px 0 10px;
     margin: 0;

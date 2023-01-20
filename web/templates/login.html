@@ -40,10 +40,12 @@
                     throw new Error(response.statusText)
 
                 response = await response.json()
+                localStorage.removeItem("token")
 
                 if (response.status != "ok")
                     throw new Error(response.message)
 
+                localStorage.setItem("token", response.token)
                 window.location.href = '/'
             } catch (error) {
                 let errorMessage = document.getElementById("error-message");

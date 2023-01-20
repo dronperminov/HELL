@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -16,7 +17,7 @@ from pymongo import MongoClient
 from pymongo.errors import OperationFailure
 
 import constants
-from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME
+from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from fatsecret_parser import FatSecretParser
@@ -53,6 +54,9 @@ async def token_to_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="/
 
 async def get_current_user(request: Request) -> Optional[str]:
     token = request.cookies.get(COOKIE_NAME)
+    if token is None:
+        token = request.cookies.get(LOCAL_STORAGE_COOKIE_NAME)
+
     return await token_to_user_id(token)
 
 
@@ -83,7 +87,7 @@ def login(username: str = Form(...), password: str = Form(...)):
         return JSONResponse({"status": "fail", "message": "Имя пользователя или пароль введены неверно"})
 
     access_token = create_access_token(user["username"])
-    response = JSONResponse(content={"status": "ok"})
+    response = JSONResponse(content={"status": "ok", "token": access_token})
     response.set_cookie(key="Authorization", value=access_token, httponly=True)
     return response
 
@@ -217,7 +221,8 @@ def get_food_by_query(query: Optional[str]) -> list:
 
     try:
         food_collection = database[constants.MONGO_FOOD_COLLECTION]
-        return list(food_collection.find({"name": {"$regex": query, "$options": "i"}}))
+        food_items = list(food_collection.find({"name": {"$regex": re.escape(query), "$options": "i"}}))
+        return food_items
     except OperationFailure:
         return []
 

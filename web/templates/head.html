@@ -19,3 +19,8 @@
 
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">
+    <script>
+        let token = localStorage.getItem("token")
+        if (token !== null)
+            document.cookie = `token=${token}`
+    </script>

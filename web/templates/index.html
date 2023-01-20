@@ -14,7 +14,7 @@
 <body>
     {% include "menu.html" %}
     {% if user %}
-    <button class="logout" onclick="location.href='/logout'"><span class="fa fa-sign-out"></span></button>
+    <button class="logout" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
     <p class="center"><span class="success">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</span></p>
 
     <div class="date">
@@ -48,6 +48,12 @@
             {% for data in body_parameters.get(parameter.name, []) %}{"date": "{{data["date"]}}", "value": {{data["value"]}}}, {% endfor %}
         ]
         {% endfor %}
+
+        function Logout() {
+            localStorage.removeItem("token")
+            document.cookie = "token=; Max-Age=-99999999;"
+            location.href='/logout'
+        }
 
         function HaveParameterName(name) {
             for (let nameSpan of document.getElementsByClassName("parameter-name"))
