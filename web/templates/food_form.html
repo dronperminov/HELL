@@ -372,11 +372,21 @@
         let saveButton = document.getElementById("save-button")
         let backButton = document.getElementById("back-button")
         let conversionButton = document.getElementById("conversion-button")
+        let urlBox = document.getElementById("url-box")
+        let error = document.getElementById("fatsecret-error")
 
         portionBox.addEventListener('change', () => InitConversions())
         conversionButton.addEventListener('click', () => AddConversion())
         saveButton.addEventListener('click', () => SaveFood())
         backButton.addEventListener('click', () => history.back())
+        urlBox.addEventListener('keydown', (e) => {
+            error.innerText = ""
+
+            if (e.keyCode == 13) {
+                e.preventDefault()
+                ParseFatsecret()
+            }
+        })
 
         {% if food %}
             let removeButton = document.getElementById("remove-button")
