@@ -161,7 +161,6 @@ function SearchFood(portionClick, portionAdd) {
             return
         }
 
-        console.log(response)
         resultsDiv.innerHTML = ""
         for (let foodItem of response)
             MakeFoodItem(foodItem, resultsDiv, portionClick, portionAdd)

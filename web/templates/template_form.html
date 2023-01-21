@@ -183,6 +183,7 @@
 
             if (!IsNotEmptyValue(name)) {
                 nameError.innerText = "Название шаблона не заполнено"
+                nameInput.classList.add("error")
                 nameInput.focus()
                 nameInput.select()
                 return
@@ -218,10 +219,30 @@
             })
         }
 
-        let searchButton = document.getElementById("search-button")
-        searchButton.addEventListener("click", () => {
-            SearchFood((id) => TogglePortionEdit(id), (data, portion) => AddFoodToTemplate(data, portion))
+        function Search() {
+            SearchFood(
+                (id) => TogglePortionEdit(id),
+                (data, portion) => AddFoodToTemplate(data, portion)
+            )
+        }
+
+        let nameInput = document.getElementById("name")
+        nameInput.addEventListener('input', () => {
+            nameInput.classList.remove("error")
+            let error = document.getElementById("name-error")
+            error.innerText = ""
         })
+
+        let searchInput = document.getElementById("food-query")
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.keyCode == 13) {
+                e.preventDefault()
+                Search()
+            }
+        })
+
+        let searchButton = document.getElementById("search-button")
+        searchButton.addEventListener("click", () => Search())
 
         let saveButton = document.getElementById("save-button")
         saveButton.addEventListener('click', () => SaveTemplate())

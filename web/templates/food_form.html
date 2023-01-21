@@ -220,6 +220,7 @@
 
                     if (!field.func(value)) {
                         error.innerText = field.message
+                        fieldBox.classList.add("error")
                         fieldBox.focus()
                         haveErrors = true
                     }
@@ -371,6 +372,15 @@
         for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
             let input = document.getElementById(key)
             input.addEventListener("focus", () => input.select())
+        }
+
+        for (let key of ["name", "energy", "proteins", "fats", "carbohydrates"]) {
+            let input = document.getElementById(key)
+            input.addEventListener("input", () => {
+                let error = document.getElementById(`${key}-error`)
+                input.classList.remove("error")
+                error.innerText = ""
+            })
         }
 
         let portionBox = document.getElementById("portion")
