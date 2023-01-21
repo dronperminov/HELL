@@ -155,6 +155,7 @@
         function ToggleMeal(mealItem, opened = null) {
             EndEditPortions()
             let foods = mealItem.parentNode.getElementsByClassName('foods')[0]
+            let caret = mealItem.getElementsByClassName('meal-caret')
 
             if (opened === null)
                 foods.classList.toggle('no-display')
@@ -163,10 +164,20 @@
             else
                 foods.classList.add('no-display')
 
-            let caret = mealItem.getElementsByClassName('meal-caret')
-            if (caret.length == 1) {
+            if (caret.length != 1)
+                return
+
+            if (opened === null) {
                 caret[0].classList.toggle('fa-caret-right')
                 caret[0].classList.toggle('fa-caret-down')
+            }
+            else if (opened) {
+                caret[0].classList.remove('fa-caret-right')
+                caret[0].classList.add('fa-caret-down')
+            }
+            else {
+                caret[0].classList.add('fa-caret-right')
+                caret[0].classList.remove('fa-caret-down')
             }
         }
 
