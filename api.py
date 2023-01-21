@@ -560,7 +560,7 @@ def add_meal(
         return JSONResponse({"status": "fail", "message": "Не удалось добавить продукт, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
-    meal = meal_collection.insert_one({"food_id": ObjectId(food_id), "portion_size": portion_size, "portion_unit": portion_unit})
+    meal = meal_collection.insert_one({"food_id": ObjectId(food_id), "portion_size": Decimal128(portion_size), "portion_unit": portion_unit})
 
     if not meal:
         return JSONResponse({"status": "fail", "message": "Не удалось добавить продукт, так как его больше не существует"})
@@ -577,6 +577,7 @@ def add_meal_template(
         date: str = Body(..., embed=True),
         meal_type: str = Body(..., embed=True),
         template_id: str = Body(..., embed=True),
+        portion_size: str = Body(..., embed=True),
         user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Не удалось добавить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
@@ -595,17 +596,16 @@ def add_meal_template(
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
     for meal_item in meal_items:
+        meal_portion_size = Decimal(str(meal_item["portion_size"])) * Decimal(portion_size)
         meal = meal_collection.insert_one({
             "food_id": meal_item["food_id"],
-            "portion_size": meal_item["portion_size"],
+            "portion_size": Decimal128(str(meal_portion_size)),
             "portion_unit": meal_item["portion_unit"],
             "group_name": template["name"],
             "group_id": group_id
         })
 
-        print(meal.inserted_id)
         diary_collection.update_one({"date": date}, {"$push": {f"meal_info.{meal_type}": meal.inserted_id}}, upsert=True)
-        print("update diary")
 
     return JSONResponse({"status": "ok"})
 

@@ -41,7 +41,7 @@
             {% endif %}
         {% else %}
 
-            {% for food_item in food_items %}{% if "meal_items" in food_item %}{% include "template_item.html" %}{% else %}{% include "food_item.html" %}{% endif %}{% endfor %}
+            {% for food_item in food_items %}{% include "food_item.html" %}{% endfor %}
         {% endif %}
         </div>
 
@@ -104,20 +104,16 @@
 
         function ClickTemplateItem(templateId) {
         {% if date and meal_type %}
-            let data = {
-                date: "{{date}}",
-                meal_type: "{{meal_type}}",
-                template_id: templateId
-            }
+            let foodItem = document.getElementById(templateId)
+            let portionEdit = foodItem.getElementsByClassName('food-portion-edit')[0]
+            EndEditPortions(portionEdit)
+            portionEdit.classList.toggle('no-display')
+            foodItem.classList.toggle('food-item-colored')
 
-            SendRequest("/add-meal-template", data).then((response) => {
-                if (response.status != "ok") {
-                    alert(response.message)
-                    return
-                }
-
-                location.href = `/diary?date={{date}}`
-            })
+            let portionSize = document.getElementById(`${templateId}-portion-size`)
+            portionSize.value = portionEdit.getAttribute("data-default-value")
+            portionSize.focus()
+            portionSize.select()
         {% else %}
             location.href = `/edit-template/${templateId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
@@ -145,6 +141,34 @@
             }
 
             SendRequest("/add-meal", data).then((response) => {
+                if (response.status != "ok") {
+                    alert(response.message)
+                    return
+                }
+
+                location.href = `/diary?date={{date}}`
+            })
+        }
+
+        function AddMealTemplate(date, mealType, templateId) {
+            let portionSize = document.getElementById(`${templateId}-portion-size`)
+            let portionError = document.getElementById(`${templateId}-portion-error`)
+
+            if (!IsPositiveReal(portionSize.value)) {
+                portionSize.focus()
+                portionSize.select()
+                portionError.innerText = "Размер порции введён некорректно"
+                return
+            }
+
+            let data = {
+                date: date,
+                meal_type: mealType,
+                template_id: templateId,
+                portion_size: portionSize.value,
+            }
+
+            SendRequest("/add-meal-template", data).then((response) => {
                 if (response.status != "ok") {
                     alert(response.message)
                     return

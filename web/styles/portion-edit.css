@@ -20,10 +20,12 @@
 
 .food-portion-size {
     padding-right: 5px;
+    width: 100%;
 }
 
 .food-portion-unit {
     min-width: 100px;
+    padding-right: 5px;
 }
 
 .food-portion-change {
