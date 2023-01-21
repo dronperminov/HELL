@@ -1,7 +1,7 @@
 <div class="food-item" id="{{food_item._id}}">
     {% if "meal_items" in food_item %}
     <div class="food-data" onclick="ClickTemplateItem('{{food_item._id}}')">
-        <div class="food-name"><img src="/images/bread.svg"> {{food_item.name}}</div>
+        <div class="food-name"><span class="food-name-icon"></span> {{food_item.name}}</div>
     {% else %}
     <div class="food-data" onclick="ClickFoodItem('{{food_item._id}}')">
         <div class="food-name">{{food_item.name}}</div>

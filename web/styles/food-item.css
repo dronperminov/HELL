@@ -10,6 +10,17 @@
     position: relative;
 }
 
+.food-name-icon {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background: url("/images/bread.svg");
+}
+
+[data-theme="dark"] .food-name-icon {
+    background: url("/images/bread_dark.svg");
+}
+
 .food-name {
     font-weight: bold;
     padding-bottom: 5px;

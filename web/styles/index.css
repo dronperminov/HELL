@@ -150,3 +150,29 @@
 .parameter-new-cell input.error:focus + .parameter-new-label {
     color: var(--error-color);
 }
+
+.settings {
+    margin-top: 10px;
+}
+
+.settings-header {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.setting-row {
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.setting-cell {
+    display: table-cell;
+    vertical-align: bottom;
+    white-space: nowrap
+}
+
+.setting-value {
+    padding-left: 5px;
+    width: 100%;
+}

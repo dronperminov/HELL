@@ -24,7 +24,6 @@
     </div>
     <div class="error-center" id="date-error"></div>
 
-
     <div class="parameters">
         <div class="parameters-header">Мои текущие параметры</div>
         <div class="no-parameters {% if user.body_parameters %}no-display{% endif %}" id="no-parameters">Пока что у вас нет ни одного отслеживаемого параметра</div>
@@ -38,6 +37,20 @@
         <button class="no-display" id="cancel-add-parameter" onclick="CancelAddParameter()"><span class="fa fa-ban"> Отменить</span></button>
     </div>
 
+    <div class="settings">
+        <div class="settings-header">Мои настройки</div>
+        <div class="setting-row">
+            <div class="setting-cell">
+                <label for="theme-select">Тема приложения:</label>
+            </div>
+            <div class="setting-cell setting-value">
+                <select id="theme-select" onchange="UpdateTheme()">
+                    <option value="light">светлая</option>
+                    <option value="dark">тёмная</option>
+                </select>
+            </div>
+        </div>
+    </div>
     <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
     <script src="/js/swipe.js"></script>
@@ -465,6 +478,22 @@
             BuildPlot(name)
         }
 
+        function UpdateTheme() {
+            let theme = document.getElementById('theme-select').value
+            localStorage.setItem("theme", theme)
+            SetTheme()
+        }
+
+        function InitTheme() {
+            let theme = localStorage.getItem("theme")
+
+            if (theme === null)
+                return
+
+            let themeInput = document.getElementById('theme-select')
+            themeInput.value = theme
+        }
+
         for (let parameterItem of document.getElementsByClassName("parameter-data")) {
             let parameterName = parameterItem.getElementsByClassName("parameter-name")[0].innerText
             let parameterInput = document.getElementById(`parameter-${parameterName}-value`)
@@ -495,6 +524,7 @@
         }
 
         InitDateEvents("/")
+        InitTheme()
     </script>
     {% else %}
     <button class="sign" onclick="Login()"><span class="fa fa-sign-in"></span></button>

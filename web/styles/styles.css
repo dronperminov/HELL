@@ -17,6 +17,9 @@
     --block-background-color: #e8e8e88f;
     --background-image: url("/images/food_texture.jpg");
 
+    --selection-background: #3390ff;
+    --selection-color: #e5f5ff;
+
     --menu-background: #e5e5e5;
     --menu-text-color: #6f6f6f;
     --menu-hover-background: #1f3028;
@@ -49,6 +52,9 @@
     --block-background-color: #1e1e1e8f;
     --background-image: url("/images/food_texture_dark.jpg");
 
+    --selection-background: #525252;
+    --selection-color: #d9d9d9;
+
     --menu-background: #161618;
     --menu-text-color: #787a7e;
     --menu-hover-background: #1f3028;
@@ -56,6 +62,16 @@
     --menu-border-color: #787a7e;
 
     --plot-divider-color: #1e1e1e;
+}
+
+::selection {
+    background: var(--selection-background);
+    color: var(--selection-color);
+}
+
+::-moz-selection[data-theme="dark"] {
+    background: var(--selection-background);
+    color: var(--selection-color);
 }
 
 html {
