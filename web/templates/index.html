@@ -116,6 +116,12 @@
             let unitInput = MakeInput("text", unitDiv, {"list": "body-parameter-units"})
             let iconAdd = MakeIcon(iconsDiv, "fa fa-check", () => SaveParameter(date, nameInput, valueInput, unitInput, divError))
 
+            for (let input of [nameInput, valueInput, unitInput])
+                input.addEventListener('input', () => {
+                    input.classList.remove("error")
+                    divError.innerHTML = ""
+                })
+
             let nameLabel = MakeDiv("parameter-new-label", nameDiv)
             nameLabel.innerText = "название"
 
@@ -137,44 +143,43 @@
             let name = nameInput.value.trim()
             let value = valueInput.value
             let unit = unitInput.value.trim()
+            let errors = []
 
             nameInput.value = name
             unitInput.value = unit
 
             if (!IsNotEmptyValue(name)) {
-                errorDiv.innerText = "Название параметра не заполнено"
+                errors.push("Название параметра не заполнено")
+                nameInput.classList.add("error")
                 nameInput.focus()
-                return false
             }
-
-            if (HaveParameterName(name)) {
-                errorDiv.innerText = "Параметр с таким именем уже существует"
+            else if (HaveParameterName(name)) {
+                errors.push("Параметр с таким именем уже существует")
+                nameInput.classList.add("error")
                 nameInput.focus()
-                return false
             }
 
             if (!IsNotEmptyValue(unit)) {
-                errorDiv.innerText = `Единица измерения параметра "${name}" не заполнено`
+                errors.push(`Единица измерения параметра "${name}" не заполнена`)
+                unitInput.classList.add("error")
                 unitInput.focus()
-                return false
             }
 
             if (!IsRealValue(value) ) {
-                errorDiv.innerText = `Значение параметра "${name}" введено некорректно`
+                errors.push(`Значение параметра "${name}" введено некорректно`)
+                valueInput.classList.add("error")
                 valueInput.focus()
                 valueInput.select()
-                return false
             }
-
-            if (+value <= 0) {
-                errorDiv.innerText = `Значение параметра "${name}" должно быть положительным`
+            else if (+value <= 0) {
+                errors.push(`Значение параметра "${name}" должно быть положительным`)
+                valueInput.classList.add("error")
                 valueInput.focus()
                 valueInput.select()
-                return false
             }
 
-            errorDiv.innerText = ''
-            return true
+            errorDiv.innerHTML = errors.join("<br>")
+            return errors.length == 0
         }
 
         function SaveParameter(date, nameInput, valueInput, unitInput, errorDiv) {
@@ -323,6 +328,7 @@
             if (!IsPositiveReal(value)) {
                 errorDiv.innerText = `Значение параметра "${name}" введено некорректно`
                 valueInput.focus()
+                valueInput.classList.add("error")
                 return
             }
 
@@ -459,6 +465,21 @@
 
         for (let parameterItem of document.getElementsByClassName("parameter-data")) {
             let parameterName = parameterItem.getElementsByClassName("parameter-name")[0].innerText
+            let parameterInput = document.getElementById(`parameter-${parameterName}-value`)
+            let parameterIcon = document.getElementById(`parameter-${parameterName}-save`)
+            let errorDiv = document.getElementById(`parameter-${parameterName}-error`)
+
+            parameterInput.addEventListener('keydown', (e) => {
+                if (e.keyCode == 13) {
+                    e.preventDefault()
+                    parameterIcon.click()
+                }
+            })
+
+            parameterInput.addEventListener("input", () => {
+                parameterInput.classList.remove("error")
+                errorDiv.innerText = ""
+            })
 
             parameterItem.addEventListener('click', (e) => {
                 for (let item of e.composedPath())

@@ -143,3 +143,8 @@
 .parameter-new-cell input:focus + .parameter-new-label {
     color: var(--success-color);
 }
+
+.error + .parameter-new-label,
+.parameter-new-cell input.error:focus + .parameter-new-label {
+    color: var(--error-color);
+}

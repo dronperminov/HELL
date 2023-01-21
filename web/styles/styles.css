@@ -104,7 +104,7 @@ p {
 }
 
 .error {
-    color: var(--error-color);
+    color: var(--error-color) !important;
     border-color: var(--error-color) !important;
 }
 
