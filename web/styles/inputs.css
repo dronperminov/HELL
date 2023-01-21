@@ -85,3 +85,24 @@ select.auto {
 div[contenteditable] {
     outline: none;
 }
+
+.auto-grow {
+    display: grid;
+}
+.auto-grow::after {
+    content: attr(data-replicated-value) " ";
+    white-space: pre-wrap;
+    visibility: hidden;
+}
+
+.auto-grow > textarea {
+    resize: none;
+    overflow: hidden;
+}
+
+.auto-grow > textarea,
+.auto-grow::after {
+    padding: 2px;
+    font-family: inherit;
+    grid-area: 1 / 1 / 2 / 2;
+}

@@ -21,7 +21,9 @@
 
         <div class="form-row">
             <label>Описание шаблона:
-                <textarea type="text" id="description" rows="3">{% if template %}{{template.description}}{% endif %}</textarea>
+                <div class="auto-grow">
+                    <textarea type="text" id="description" onInput="this.parentNode.dataset.replicatedValue = this.value">{% if template %}{{template.description}}{% endif %}</textarea>
+                </div>
             </label>
             <div class="error-center" id="name-error"></div>
         </div>

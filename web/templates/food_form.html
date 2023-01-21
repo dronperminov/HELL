@@ -56,7 +56,9 @@
 
         <div class="form-row">
             <label>Описание:
-                <textarea type="text" id="description" rows="3">{% if food %}{{food.description}}{% endif %}</textarea>
+                <div class="auto-grow">
+                    <textarea type="text" id="description" onInput="this.parentNode.dataset.replicatedValue = this.value">{% if food %}{{food.description}}{% endif %}</textarea>
+                </div>
             </label>
         </div>
 
@@ -148,6 +150,7 @@
             valueInput.step = 0.01
             valueInput.min = 0.01
             valueInput.value = 100
+            valueInput.addEventListener('focus', () => valueInput.select())
 
             if (target !== null) {
                 unitSelect.value = target.unit
@@ -366,6 +369,11 @@
             else {
                 ParseFatsecretQuery(value)
             }
+        }
+
+        for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
+            let input = document.getElementById(key)
+            input.addEventListener("focus", () => input.select())
         }
 
         let portionBox = document.getElementById("portion")
