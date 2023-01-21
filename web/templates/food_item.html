@@ -17,7 +17,7 @@
 
     {% if date and meal_type %}
     {% if "meal_items" in food_item %}
-    <div class="food-portion-edit no-display" data-default-value="1">
+    <div class="food-portion-edit no-display" data-default-value="{{food_item.default_value}}">
     {% else %}
     <div class="food-portion-edit no-display" data-default-unit="{{food_item.default_unit}}" data-default-value="{{food_item.default_value}}">
     {% endif %}

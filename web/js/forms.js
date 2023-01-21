@@ -41,12 +41,28 @@ function GetInvalidMealTypeNameChars(name) {
     return chars
 }
 
-function MakeDiv(className, parent=null) {
-    let div = document.createElement("div")
+function SetAttributes(container, attributes) {
+    if (attributes === null)
+        return
+
+    for (let attribute of Object.keys(attributes)) {
+        if (attribute === "innerHTML")
+            container.innerHTML = attributes[attribute]
+        else if (attribute == "innerText")
+            container.innerText = attributes[attribute]
+        else
+            container.setAttribute(attribute, attributes[attribute])
+    }
+}
+
+function MakeDiv(className, parent=null, attributes = null, tagName = "div") {
+    let div = document.createElement(tagName)
     div.className = className
 
     if (parent !== null)
         parent.appendChild(div)
+
+    SetAttributes(div, attributes)
 
     return div
 }
@@ -55,13 +71,29 @@ function MakeInput(type, parent, attributes = null) {
     let input = document.createElement("input")
     input.type = type
 
-    if (attributes !== null) {
-        for (let attribute of Object.keys(attributes))
-            input.setAttribute(attribute, attributes[attribute])
-    }
-
+    SetAttributes(input, attributes)
     parent.appendChild(input)
     return input
+}
+
+function MakeSelect(parent, options, attributes = null) {
+    let select = document.createElement("select")
+    SetAttributes(select, attributes)
+
+    for (let key of Object.keys(options)) {
+        let option = document.createElement("option")
+        option.value = key
+        option.innerText = key
+        option.setAttribute("data-value", options[key])
+
+        if (attributes !== null && attributes.value == key)
+            option.setAttribute("selected", "")
+        select.appendChild(option)
+    }
+
+    parent.appendChild(select)
+
+    return select
 }
 
 function MakeIcon(parent, className, onclick = null) {

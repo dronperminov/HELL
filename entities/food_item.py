@@ -8,6 +8,7 @@ from entities.portion_unit import BasePortionUnit, PortionUnit
 
 @dataclass
 class FoodItem:
+    food_id: str
     name: str
     description: str
     energy: Decimal
@@ -36,6 +37,7 @@ class FoodItem:
 
     @classmethod
     def from_dict(cls, data: dict) -> "FoodItem":
+        food_id = str(data["_id"])
         name = data["name"]
         description = data["description"]
         energy = Decimal(str(data["energy"]))
@@ -46,7 +48,7 @@ class FoodItem:
         portion = BasePortionUnit(data["portion"])
         conversions = {PortionUnit(unit): Decimal(str(value)) for unit, value in data["conversions"].items()}
 
-        return cls(name, description, energy, fats, proteins, carbohydrates, portion, conversions)
+        return cls(food_id, name, description, energy, fats, proteins, carbohydrates, portion, conversions)
 
     def to_dict(self) -> dict:
         return dict(
@@ -62,6 +64,7 @@ class FoodItem:
 
     def to_json(self) -> dict:
         return {
+            "id": self.food_id,
             "name": self.name,
             "description": self.description,
             "portion": self.portion,

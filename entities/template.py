@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
+from bson import ObjectId
+
 from entities.meal_item import MealItem
 
 
@@ -13,4 +15,13 @@ class Template:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Template":
-        return cls(data["name"], data["description"], data["meal_items"], str(data["creator_id"]))
+        meal_items = [MealItem.from_dict(meal_item) for meal_item in data["meal_items"]]
+        return cls(data["name"], data["description"], meal_items, str(data["creator_id"]))
+
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "description": self.description,
+            "meal_items": [meal_item.to_dict() for meal_item in self.meal_items],
+            "creator_id": ObjectId(self.creator_id)
+        }

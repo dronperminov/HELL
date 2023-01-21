@@ -20,6 +20,7 @@ import constants
 from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
+from entities.template import Template
 from fatsecret_parser import FatSecretParser
 from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 
@@ -292,6 +293,15 @@ def food_collection_get(food_query: str = Query(None), user_id: str = Depends(ge
     return HTMLResponse(content=html)
 
 
+@app.post("/food-collection")
+def food_collection_post(food_query: str = Body(..., embed=True)):
+    food_query = food_query.strip() if food_query else None
+    food_items = get_food_by_query(food_query)
+    food_items = [FoodItem.from_dict(food_item).to_json() for food_item in food_items]
+    food_items = add_default_unit(food_items)
+    return JSONResponse(food_items)
+
+
 @app.get("/add-food")
 def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None)):
     template = templates.get_template('food_form.html')
@@ -371,15 +381,42 @@ def remove_food(food_id: str = Body(..., embed=True)):
 
 
 @app.get("/add-template")
-def add_template_get(food_query: str = Query(None)):
+def add_template_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None)):
     template = templates.get_template('template_form.html')
     html = template.render(
         title="Добавление нового шаблона",
         add_text="Добавить шаблон",
         add_url="/add-template",
         page="/add-template",
-        query=food_query)
+        query=food_query,
+        date=date,
+        meal_type=meal_type)
     return HTMLResponse(content=html)
+
+
+@app.post("/add-template")
+async def add_template_post(request: Request, user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Не удалось добавить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    data = await request.json()
+    data["creator_id"] = ObjectId(user_id)
+    template = Template.from_dict(data)
+
+    template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+    if template_collection.find_one({"name": template.name, "creator_id": ObjectId(user_id)}):
+        return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить, так как продукт с названием \"{template.name}\" уже существует"})
+
+    food_ids = [ObjectId(meal_item.food_id) for meal_item in template.meal_items]
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
+
+    if len(list(food_collection.find({"_id": {"$in": food_ids}}))) != len(food_ids):
+        return JSONResponse({"status": "fail", "message": "Не удалось добавить шаблон, так как некоторых продуктов больше не существует"})
+
+    template_collection.insert_one(template.to_dict())
+
+    href = "food-collection" if "date" not in data else f"add-meal/{data['date']}/{data['meal_type']}"
+    return JSONResponse({"status": "ok", "href": f"/{href}?food_query={template.name[:25]}", "message": "Шаблон успешно добавлен"})
 
 
 def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:

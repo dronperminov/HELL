@@ -190,7 +190,7 @@
 }
 
 .food-portion-change {
-    width: 70px;
+    min-width: 70px;
 }
 
 .diary-statistic {

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include "head.html" %}
+    <title>{{title}} | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-search.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-item.css">
+    <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
+    <link rel="stylesheet" type="text/css" href="/styles/add-template.css">
+</head>
+<body>
+    {% include "menu.html" %}
+    <div class="template">
+        <div class="form-row">
+            <label>Название шаблона:
+                <input type="text" id="name" {% if template %}value="{{template.name}}"{% endif %}>
+            </label>
+            <div class="error-center" id="name-error"></div>
+        </div>
+
+        <div class="form-row">
+            <label>Описание шаблона:
+                <textarea type="text" id="description" rows="3">{% if template %}value="{{template.description}}"{% endif %}</textarea>
+            </label>
+            <div class="error-center" id="name-error"></div>
+        </div>
+
+        <div class="form-row">
+            <label>Используемые продукты:</label>
+            <div class="template-meals-info" id="template-meals-info">Вы ещё не добавили ни одного продукта</div>
+            <div class="template-meals" id="template-meals"></div>
+            <div class="error-center" id="meals-error"></div>
+        </div>
+            
+        <div class="form-row center">
+            <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
+            {% if template %}
+            <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
+            {% endif %}
+            <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
+        </div>
+
+        <div class="form-row">
+            <div class="food-search-header">Поиск продуктов:</div>
+            <div class="food-search">
+                <div class="food-search-clear" id="food-query-clear" onclick="ClearQuery()">
+                    <span class="fa fa-times">
+                </div>
+                <div class="food-search-input">
+                    <input type="text" id="food-query" oninput="UpdateClearQuery()" class="search-input" placeholder="Введите название продукта" value="мол">
+                </div>
+                <div class="food-search-button">
+                    <button id="search-button"><span class="fa fa-search"></span></button>
+                </div>
+            </div>
+
+            <div class="food-search-results" id="food-search-results">
+                
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/js/constants.js"></script>
+    <script src="/js/forms.js"></script>
+    <script src="/js/swipe.js"></script>
+    <script src="/js/food_collection.js"></script>
+    <script>
+        function CheckIncludedFood(id) {
+            if (document.getElementById(`${id}-added`) === null)
+                return false
+
+            let error = document.getElementById(`${id}-portion-error`)
+            error.innerText = `Вы уже добавили этот продукт в шаблон`
+            return true
+        }
+
+        function UpdateFood(data, portion) {
+            let foodItem = document.getElementById(data.id)
+            let portionEdit = foodItem.getElementsByClassName("food-portion-edit")[0]
+            let portionUnit = document.getElementById(`${data.id}-portion-unit`)
+            let conversions = {}
+
+            for (let option of portionUnit.children)
+                conversions[option.getAttribute("value")] = option.getAttribute("data-value")
+
+            for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
+                let span = foodItem.getElementsByClassName(`food-${key}-span`)[0]
+                let value = foodItem.getElementsByClassName(`food-${key}`)[0].getAttribute("data-value")
+                let scale = conversions[portion.unit] * portion.size
+                span.innerText = `${Math.round(value * scale * 100) / 100}`
+            }
+
+            foodItem.getElementsByClassName("food-size-span")[0].innerText = portion.size
+            foodItem.getElementsByClassName("food-unit-span")[0].innerText = portion.unit
+            portionEdit.setAttribute("data-default-value", portion.size)
+            portionEdit.setAttribute("data-default-unit", portion.unit)
+            EndEditPortions()
+        }
+
+        function RemoveFoodFromTemplate(id) {
+            let foodItems = document.getElementById("template-meals")
+            let foodItem = document.getElementById(id)
+            let mealsInfo = document.getElementById("template-meals-info")
+            foodItems.removeChild(foodItem)
+
+            if (foodItems.children.length == 0)
+                mealsInfo.innerHTML = "Вы ещё не добавили ни одного продукта"
+        }
+
+        function AddFoodToTemplate(data, portion) {
+            if (CheckIncludedFood(data.id))
+                return
+
+            let mealsInfo = document.getElementById("template-meals-info")
+            mealsInfo.innerHTML = ""
+
+            let mealsError = document.getElementById("meals-error")
+            mealsError.innerText = ""
+
+            let meals = document.getElementById("template-meals")
+            data = JSON.parse(JSON.stringify(data))
+            data.default_unit = portion.unit
+            data.default_value = portion.size
+            data.unit = portion.unit
+            data.size = portion.size
+            data.id += '-added'
+            EndEditPortions()
+
+            let foodItem = MakeFoodItem(data, meals, (id) => TogglePortionEdit(id), (data, portion) => UpdateFood(data, portion))
+            let foodData = foodItem.getElementsByClassName("food-data")[0]
+            let foodRemove = foodItem.getElementsByClassName("food-item-remove")[0]
+
+            let swipe = new Swipe(foodData, foodRemove)
+            swipe.onStart = () => EndEditPortions()
+            swipe.onSwipe = () => RemoveFoodFromTemplate(data.id)
+        }
+
+        function GetFoodItems() {
+            let meals = document.getElementById("template-meals")
+            let foodItems = []
+
+            for (let item of meals.getElementsByClassName("food-item")) {
+                let id = item.getAttribute("id")
+                foodItems.push({
+                    food_id: id.replace("-added", ""),
+                    portion_size: document.getElementById(`${id}-portion-size`).value,
+                    portion_unit: document.getElementById(`${id}-portion-unit`).value
+                })
+            }
+
+            return foodItems
+        }
+
+        function SaveTemplate() {
+            EndEditPortions()
+            let nameInput = document.getElementById("name")
+            let nameError = document.getElementById("name-error")
+            let name = nameInput.value.trim()
+
+            nameError.innerText = ""
+            nameInput.value = name
+
+            if (!IsNotEmptyValue(name)) {
+                nameError.innerText = "Название шаблона не заполнено"
+                nameInput.focus()
+                nameInput.select()
+                return
+            }
+
+            let foodItems = GetFoodItems()
+            let mealsError = document.getElementById("meals-error")
+            mealsError.innerText = ""
+
+            if (foodItems.length == 0) {
+                mealsError.innerText = "Вы ещё не добавили ни одного продукта. Пожалуйста, добавьте хотя бы один продукт"
+                return
+            }
+
+            let data = {
+                name: name,
+                description: document.getElementById("description").value,
+                meal_items: foodItems
+            }
+            {% if date and meal_type %}
+            data.date = "{{date}}"
+            data.meal_type = "{{meal_type}}"
+            {% endif %}
+
+            SendRequest("/add-template", data).then((response) => {
+                if (response.status != "ok") {
+                    mealsError.innerText = response.message
+                    return
+                }
+
+                alert(response.message)
+                location.href = response.href
+            })
+        }
+
+        let searchButton = document.getElementById("search-button")
+        searchButton.addEventListener("click", () => {
+            SearchFood((id) => TogglePortionEdit(id), (data, portion) => AddFoodToTemplate(data, portion))
+        })
+
+        let saveButton = document.getElementById("save-button")
+        saveButton.addEventListener('click', () => SaveTemplate())
+
+        let backButton = document.getElementById("back-button")
+        backButton.addEventListener('click', () => history.back())
+    </script>
+</body>
+</html>

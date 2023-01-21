@@ -1,0 +1,41 @@
+.food-search {
+    box-sizing: border-box;
+    padding-bottom: 5px;
+    display: table;
+    width: 100%;
+}
+
+.food-search-clear {
+    display: table-cell;
+    vertical-align: bottom;
+    width: 0px;
+    transition: width 0.5s 0s;
+}
+
+.food-search-clear span {
+    display: none;
+}
+
+.food-search-clear:hover {
+    color: var(--success-color);
+}
+
+.food-search-clear-show {
+    width: 15px;
+    transition: none;
+}
+
+.food-search-clear-show span {
+    display: inline;
+}
+
+.food-search-button {
+    display: table-cell;
+    width: 35px;
+    text-align: right;
+}
+
+.food-search-input {
+    display: table-cell;
+    vertical-align: bottom;
+}

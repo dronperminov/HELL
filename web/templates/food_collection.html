@@ -5,8 +5,10 @@
     <title>{% if date and meal_type %}{{date}}. Добавление еды на {{names[meal_type]}}{% else %}Коллекция продуктов{% endif %} | HELL</title>
 
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-search.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-item.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -26,13 +28,11 @@
         </div>
     </form>
 
-    <div class="food-collection">
+    <div class="food-search-results" id="food-search-results">
         {% if food_items == [] %}
             {% if query %}
-                <div class="food-search-results">
-                    <p>По запросу <i>"{{query}}"</i> продуктов не найдено...</p>
-                    <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
-                </div>
+            <p>По запросу <i>"{{query}}"</i> продуктов не найдено...</p>
+            <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
             {% elif frequent_food_items %}
             <div class="frequent-food">
                 {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
@@ -53,50 +53,11 @@
     </div>
 
     <script src="/js/forms.js"></script>
+    <script src="/js/food_collection.js"></script>
     <script>
-        function ClearQuery() {
-            let query = document.getElementById("food-query")
-            let clear = document.getElementById("food-query-clear")
-            query.value = ""
-            clear.classList.remove("food-search-clear-show")
-        }
-
-        function UpdateClearQuery() {
-            let query = document.getElementById("food-query")
-            let clear = document.getElementById("food-query-clear")
-
-            if (query.value.length > 0)
-                clear.classList.add("food-search-clear-show")
-            else
-                clear.classList.remove("food-search-clear-show")
-        }
-
-        function EndEditPortions(ignoreEdit = null) {
-            let foodEdits = document.getElementsByClassName('food-portion-edit')
-
-            for (let foodEdit of foodEdits) {
-                if (foodEdit === ignoreEdit)
-                    continue
-
-                foodEdit.classList.add('no-display')
-                foodEdit.parentNode.classList.remove('food-item-colored')
-            }
-        }
-
         function ClickFoodItem(foodId) {
         {% if date and meal_type %}
-            let foodItem = document.getElementById(foodId)
-            let portionEdit = foodItem.getElementsByClassName('food-portion-edit')[0]
-            EndEditPortions(portionEdit)
-            portionEdit.classList.toggle('no-display')
-            foodItem.classList.toggle('food-item-colored')
-
-            let portionSize = document.getElementById(`${foodId}-portion-size`)
-            let portionUnit = document.getElementById(`${foodId}-portion-unit`)
-            portionSize.value = portionEdit.getAttribute("data-default-value")
-            portionUnit.value = portionEdit.getAttribute("data-default-unit")
-            portionSize.focus()
-            portionSize.select()
+            TogglePortionEdit(foodId)
         {% else %}
             location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
@@ -104,16 +65,7 @@
 
         function ClickTemplateItem(templateId) {
         {% if date and meal_type %}
-            let foodItem = document.getElementById(templateId)
-            let portionEdit = foodItem.getElementsByClassName('food-portion-edit')[0]
-            EndEditPortions(portionEdit)
-            portionEdit.classList.toggle('no-display')
-            foodItem.classList.toggle('food-item-colored')
-
-            let portionSize = document.getElementById(`${templateId}-portion-size`)
-            portionSize.value = portionEdit.getAttribute("data-default-value")
-            portionSize.focus()
-            portionSize.select()
+            TogglePortionEdit(templateId)
         {% else %}
             location.href = `/edit-template/${templateId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}

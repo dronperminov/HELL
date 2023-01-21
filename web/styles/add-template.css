@@ -1,0 +1,13 @@
+.template-add-meal {
+    padding-top: 5px
+}
+
+.template-meals-info {
+    color: var(--disabled-color);
+}
+
+.food-search-header {
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--success-color);
+}
