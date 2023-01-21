@@ -14,7 +14,7 @@
 <body>
     {% include "menu.html" %}
     {% if user %}
-    <button class="logout" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
     <p class="center"><span class="success">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</span></p>
 
     <div class="date">
@@ -48,12 +48,6 @@
             {% for data in body_parameters.get(parameter.name, []) %}{"date": "{{data["date"]}}", "value": {{data["value"]}}}, {% endfor %}
         ]
         {% endfor %}
-
-        function Logout() {
-            localStorage.removeItem("token")
-            document.cookie = "token=; Max-Age=-99999999;"
-            location.href='/logout'
-        }
 
         function HaveParameterName(name) {
             for (let nameSpan of document.getElementsByClassName("parameter-name"))
@@ -478,14 +472,17 @@
         }
     </script>
     {% else %}
+    <button class="sign" onclick="Login()"><span class="fa fa-sign-in"></span></button>
     <p class="center">Добро пожаловать в <b>HELL</b>!</p>
     <p>
-        Пожалуйста, <button onclick="location.href='/login'"><span class="fa fa-sign-in"></span> войдите</button>, чтобы получить доступ ко всем функциям нашего приложения.
+        Пожалуйста, <button onclick="Login()"><span class="fa fa-sign-in"></span> войдите</button>, чтобы получить доступ ко всем функциям нашего приложения.
     </p>
     <p>
         Но если не хотите, то можете посмотреть наш <button onclick="location.href='/food-collection'"><span class="fa fa-shopping-basket"></span> список продуктов</button>
         или <button onclick="location.href='/add-food';"><span class="fa fa-plus"></span> добавить продукт</button>.
     </p>
     {% endif %}
+
+    {% include "footer.html" %}
 </body>
 </html>

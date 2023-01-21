@@ -10,6 +10,7 @@
 </head>
 <body>
     {% include "menu.html" %}
+    {% if user_id %}<button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
     <div class="diary" id="diary">
         <div class="diary-date">
             <a href="/diary?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
@@ -557,5 +558,6 @@
 
         UpdateChart()
     </script>
+    {% include "footer.html" %}
 </body>
 </html>

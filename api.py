@@ -94,8 +94,8 @@ def login(username: str = Form(...), password: str = Form(...)):
 
 
 @app.get("/logout")
-def logout():
-    response = RedirectResponse("/", status_code=302)
+def logout(return_page: str = Query("/")):
+    response = RedirectResponse(return_page, status_code=302)
     response.delete_cookie(COOKIE_NAME)
     return response
 
@@ -289,7 +289,7 @@ def food_collection_get(food_query: str = Query(None), user_id: str = Depends(ge
     food_query = food_query.strip() if food_query else None
     food_items = get_food_by_query(food_query, user_id)
     template = templates.get_template('food_collection.html')
-    html = template.render(food_items=food_items, query=food_query, page="/food-collection")
+    html = template.render(user_id=user_id, food_items=food_items, query=food_query, page="/food-collection")
     return HTMLResponse(content=html)
 
 
@@ -303,9 +303,10 @@ def food_collection_post(food_query: str = Body(..., embed=True)):
 
 
 @app.get("/add-food")
-def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None)):
+def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None), user_id: str = Depends(get_current_user)):
     template = templates.get_template('food_form.html')
     html = template.render(
+        user_id=user_id,
         title="Добавление нового продукта",
         add_text="Добавить продукт",
         add_url="/add-food",
@@ -331,11 +332,19 @@ async def add_food_post(request: Request):
 
 
 @app.get("/edit-food/{food_id}")
-def edit_food(food_id: str, food_query: str = Query(None)):
+def edit_food(food_id: str, food_query: str = Query(None), user_id: str = Depends(get_current_user)):
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
     food = food_collection.find_one({"_id": ObjectId(food_id)})
     template = templates.get_template('food_form.html')
-    html = template.render(title="Редактирование продукта", add_text="Обновить продукт", add_url=f"/edit-food/{food_id}", food=food, page="/edit-food", query=food_query)
+    html = template.render(
+        user_id=user_id,
+        title="Редактирование продукта",
+        add_text="Обновить продукт",
+        add_url=f"/edit-food/{food_id}",
+        food=food,
+        page="/edit-food",
+        query=food_query
+    )
     return HTMLResponse(content=html)
 
 
@@ -375,9 +384,13 @@ def remove_food(food_id: str = Body(..., embed=True)):
 
 
 @app.get("/add-template")
-def add_template_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None)):
+def add_template_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
     template = templates.get_template('template_form.html')
     html = template.render(
+        user_id=user_id,
         title="Добавление нового шаблона",
         add_text="Добавить шаблон",
         add_url="/add-template",
@@ -449,6 +462,7 @@ def edit_template(template_id: str, food_query: str = Query(None), user_id: str 
 
     template = templates.get_template('template_form.html')
     html = template.render(
+        user_id=user_id,
         title="Редактирование шаблона",
         add_text="Обновить шаблон",
         add_url=f"/edit-template/{template_id}",
@@ -623,6 +637,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
 
     template = templates.get_template('diary.html')
     content = template.render(
+        user_id=user_id,
         date=format_date(date),
         prev_date=format_date(date + timedelta(days=-1)),
         next_date=format_date(date + timedelta(days=1)),
@@ -647,6 +662,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
 
     template = templates.get_template('food_collection.html')
     html = template.render(
+        user_id=user_id,
         food_items=add_default_unit(food_items),
         frequent_food_items=add_default_unit(frequent_food_items),
         query=food_query,
@@ -886,6 +902,7 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
 
     template = templates.get_template("statistic.html")
     content = template.render(
+        user_id=user_id,
         start_date=format_date(start_date),
         end_date=format_date(end_date),
         period=period,

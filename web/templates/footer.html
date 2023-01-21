@@ -1,0 +1,23 @@
+<script>
+    {%if user or user_id %}
+    function Logout() {
+        localStorage.removeItem("token")
+        document.cookie = "token=; Max-Age=-99999999;"
+
+        location.href='/logout{% if page == "/food-collection" %}?return_page={{page}}{% endif %}'
+    }
+    {% else %}
+    function Login() {
+        location.href='/login'
+    }
+    {% endif %}
+
+    function UpdateCookieToken() {
+        let token = localStorage.getItem("token")
+        if (token !== null)
+            document.cookie = `token=${token}`
+    }
+
+    window.addEventListener("beforeunload", UpdateCookieToken)
+    window.addEventListener("unload", UpdateCookieToken)
+</script>

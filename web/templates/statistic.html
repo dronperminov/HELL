@@ -9,6 +9,7 @@
 </head>
 <body>
     {% include "menu.html" %}
+    {% if user_id %}<button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
     <h1>Статистика</h1>
 
     <div class="statistic-parameters">
@@ -220,7 +221,7 @@
         PlotStatistic(CALORIES_DATA, "total")
         {% for meal_type in meal_types %}PlotStatistic(CALORIES_MEAL_TYPE_DATA["{{meal_type}}"], "{{meal_type}}")
         {% endfor %}
-
     </script>
+    {% include "footer.html" %}
 </body>
 </html>

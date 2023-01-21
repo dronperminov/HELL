@@ -11,6 +11,11 @@
 </head>
 <body>
     {% include "menu.html" %}
+    {% if user_id %}
+    <button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    {% else %}
+    <button class="sign" onclick="Login()"><span class="fa fa-sign-in"></span></button>
+    {% endif %}
     <h1>{% if date and meal_type %}{% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %} {{date}}{% else %}Продукты{% endif %}</h1>
 
     <form class="food-search" method="get" action="{% if date and meal_type %}/add-meal/{{date}}/{{meal_type}}{% else %}/food-collection{% endif %}">
@@ -130,5 +135,6 @@
         }
         {% endif %}
     </script>
+    {% include "footer.html" %}
 </body>
 </html>

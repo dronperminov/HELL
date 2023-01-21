@@ -200,6 +200,12 @@ p {
     color: var(--menu-hover-text-color);
 }
 
+.sign {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
 @media (min-width: 1200px) {
     body {
         width: 380px;
@@ -212,5 +218,9 @@ p {
     .menu {
         width: 400px;
         margin: 0 auto;
+    }
+
+    .sign {
+        right: calc((100vw - 380px) / 2);
     }
 }

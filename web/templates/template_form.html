@@ -11,6 +11,7 @@
 </head>
 <body>
     {% include "menu.html" %}
+    {% if user_id %}<button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
     <div class="template">
         <div class="form-row">
             <label>Название шаблона:
@@ -258,5 +259,6 @@
         {% endfor %}
         {% endif %}
     </script>
+    {% include "footer.html" %}
 </body>
 </html>

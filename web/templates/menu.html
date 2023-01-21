@@ -1,16 +1,23 @@
 <div class="menu">
     <div class="menu-item">
         <a {% if page == "/" %}class="current"{% endif %} href="/">
+            {% if user or user_id %}
             <span class="fa fa-user"></span><br>
             <sub>Я</sub>
+            {% else %}
+            <span class="fa fa-home"></span><br>
+            <sub>Главная</sub>
+            {% endif %}
         </a>
     </div>
+    {% if user or user_id %}
     <div class="menu-item">
         <a {% if page == "/diary" %}class="current"{% endif %} href="/diary">
             <span class="fa fa-cutlery"></span><br>
             <sub>Дневник</sub>
         </a>
     </div>
+    {% endif %}
     <div class="menu-item">
         <a {% if page == "/food-collection" %}class="current"{% endif %} href="/food-collection">
             <span class="fa fa-shopping-basket"></span><br>
@@ -18,10 +25,12 @@
         </a>
     </div>
 
+    {% if user or user_id %}
     <div class="menu-item">
         <a {% if page == "/statistic" %}class="current"{% endif %} href="/statistic">
             <span class="fa fa-bar-chart"></span><br>
             <sub>Статистика</sub>
         </a>
     </div>
+    {% endif %}
 </div>
