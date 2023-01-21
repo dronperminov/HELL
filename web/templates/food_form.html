@@ -261,7 +261,7 @@
             error.innerText = ""
 
             SendRequest("{{add_url}}", food).then((response) => {
-                if (response.status != "OK") {
+                if (response.status != "ok") {
                     error.innerText = response.message
                     window.scrollTo({top: error.offsetTop, behavior: 'smooth'})
                 }

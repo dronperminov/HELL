@@ -66,8 +66,9 @@ function ValidatePortion(id) {
 
 function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen = false) {
     let foodItem = MakeDiv("food-item", resultsDiv, {"id": data.id})
+    let withPortion = "unit" in data && "size" in data
 
-    if ("unit" in data && "size" in data) {
+    if (withPortion) {
         let foodRemove = MakeDiv("food-item-remove", foodItem, {"style": "opacity: 0"})
         let foodRemoveCell = MakeDiv("food-item-remove-cell", foodRemove, {"innerHTML": '<span class="fa fa-trash"></span>'})
     }
@@ -82,9 +83,9 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
     let energyText = ""
     let scale = 1
 
-    if ("unit" in data && "size" in data) {
+    if (withPortion) {
         scale = data.size * data.conversions[data.unit]
-        energyText = `<span class="food-energy-span">${data.energy * scale}</span> ккал (<span class="food-size-span">${data.size}</span> <span class="food-unit-span">${data.unit}</span>)`
+        energyText = `<span class="food-energy-span">${Math.round(data.energy * scale * 100) / 100}</span> ккал (<span class="food-size-span">${data.size}</span> <span class="food-unit-span">${data.unit}</span>)`
     }
     else {
         energyText = `<span class="food-energy-span">${data.energy}</span> ккал / ${data.portion}`
@@ -124,7 +125,7 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
     })
 
     let portionChange = MakeDiv("food-portion-change", portionControl)
-    let icon = MakeIcon(portionChange, "fa fa-plus", () => {
+    let icon = MakeIcon(portionChange, withPortion ? "fa fa-check" : "fa fa-plus", () => {
         let size = ValidatePortion(data.id)
         let unit = portionUnitInput.value
 

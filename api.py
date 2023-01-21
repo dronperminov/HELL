@@ -328,7 +328,7 @@ async def add_food_post(request: Request):
 
         food_collection.insert_one(food.to_dict())
         href = "food-collection" if "date" not in data else f"add-meal/{data['date']}/{data['meal_type']}"
-        return JSONResponse({"status": "OK", "href": f"/{href}?food_query={food.name[:25]}", "message": "Продукт успешно добавлен"})
+        return JSONResponse({"status": "ok", "href": f"/{href}?food_query={food.name[:25]}", "message": "Продукт успешно добавлен"})
     except Exception as e:
         return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить продукт из-за ошибки: {e}"})
 
@@ -344,20 +344,18 @@ def edit_food(food_id: str, food_query: str = Query(None)):
 
 @app.post("/edit-food/{food_id}")
 async def edit_food_post(food_id: str, request: Request):
-    try:
-        food_collection = database[constants.MONGO_FOOD_COLLECTION]
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
 
-        data = await request.json()
-        original_food = food_collection.find_one({"_id": ObjectId(food_id)})
-        edited_food = FoodItem.from_dict(data)
+    data = await request.json()
+    data["_id"] = food_id
+    original_food = food_collection.find_one({"_id": ObjectId(food_id)})
+    edited_food = FoodItem.from_dict(data)
 
-        if original_food["name"] != edited_food.name and list(food_collection.find({"name": edited_food.name})):
-            return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как продукт с названием \"{edited_food.name}\" уже существует"})
+    if original_food["name"] != edited_food.name and list(food_collection.find({"name": edited_food.name})):
+        return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как продукт с названием \"{edited_food.name}\" уже существует"})
 
-        food_collection.update_one({"_id": ObjectId(food_id)}, {"$set": edited_food.to_dict()})
-        return JSONResponse({"status": "OK", "href": f"/food-collection?food_query={edited_food.name[:25]}", "message": "Продукт успешно обновлён"})
-    except Exception as e:
-        return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить продукт из-за ошибки: {e}"})
+    food_collection.update_one({"_id": ObjectId(food_id)}, {"$set": edited_food.to_dict()})
+    return JSONResponse({"status": "ok", "href": f"/food-collection?food_query={edited_food.name[:25]}", "message": "Продукт успешно обновлён"})
 
 
 @app.post("/remove-food")
