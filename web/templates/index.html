@@ -19,9 +19,11 @@
 
     <div class="date">
         <a href="/?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
-        <span class="current-date">{{date}}</span>
+        <span class="input current-date" role="textbox" contenteditable inputmode="decimal" id="date-input">{{date}}</span>
         <a href="/?date={{next_date}}"><span class="fa fa-chevron-right"></span></a>
     </div>
+    <div class="error-center" id="date-error"></div>
+
 
     <div class="parameters">
         <div class="parameters-header">Мои текущие параметры</div>
@@ -491,6 +493,8 @@
 
             SwipeParameter(parameterItem)
         }
+
+        InitDateEvents("/")
     </script>
     {% else %}
     <button class="sign" onclick="Login()"><span class="fa fa-sign-in"></span></button>

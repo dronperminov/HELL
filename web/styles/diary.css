@@ -17,6 +17,8 @@
 
 .diary-current-date {
     padding: 0 10px;
+    font-size: 1rem;
+    min-width: 100px;
 }
 
 .meal-item {
