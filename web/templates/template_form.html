@@ -21,7 +21,7 @@
 
         <div class="form-row">
             <label>Описание шаблона:
-                <textarea type="text" id="description" rows="3">{% if template %}value="{{template.description}}"{% endif %}</textarea>
+                <textarea type="text" id="description" rows="3">{% if template %}{{template.description}}{% endif %}</textarea>
             </label>
             <div class="error-center" id="name-error"></div>
         </div>
@@ -153,6 +153,26 @@
             return foodItems
         }
 
+        {% if template %}
+        function RemoveTemplate() {
+            let name = document.getElementById("name").value
+            let error = document.getElementById("meals-error")
+            error.innerText = ""
+
+            if (!confirm(`Вы уверены, что хотите удалить шаблон "${name}"?`))
+                return
+
+            SendRequest("/remove-template/", {"template_id": "{{template.id}}"}).then((response) => {
+                if (response.status != "ok") {
+                    error.innerText = response.message
+                    window.scrollTo({top: error.offsetTop, behavior: 'smooth'})
+                    return
+                }
+
+                location.href = `/food-collection{% if query %}?food_query={{query}}{% endif %}`
+            })
+        }
+        {% endif %}
         function SaveTemplate() {
             EndEditPortions()
             let nameInput = document.getElementById("name")
@@ -188,7 +208,7 @@
             data.meal_type = "{{meal_type}}"
             {% endif %}
 
-            SendRequest("/add-template", data).then((response) => {
+            SendRequest("{{add_url}}", data).then((response) => {
                 if (response.status != "ok") {
                     mealsError.innerText = response.message
                     return
@@ -207,8 +227,16 @@
         let saveButton = document.getElementById("save-button")
         saveButton.addEventListener('click', () => SaveTemplate())
 
+        {% if template %}
+        let removeButton = document.getElementById("remove-button")
+        removeButton.addEventListener('click', () => RemoveTemplate())
+        {% endif %}
         let backButton = document.getElementById("back-button")
         backButton.addEventListener('click', () => history.back())
+        {% if template %}
+        {% for food_item in template.meal_items %}AddFoodToTemplate({{food_item}}, {size: {{food_item.portion_size}},  unit: "{{food_item.portion_unit}}" })
+        {% endfor %}
+        {% endif %}
     </script>
 </body>
 </html>

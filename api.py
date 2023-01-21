@@ -419,6 +419,85 @@ async def add_template_post(request: Request, user_id: str = Depends(get_current
     return JSONResponse({"status": "ok", "href": f"/{href}?food_query={template.name[:25]}", "message": "Шаблон успешно добавлен"})
 
 
+@app.get("/edit-template/{template_id}")
+def edit_template(template_id: str, food_query: str = Query(None), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
+    template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+    template = Template.from_dict(template_collection.find_one({"_id": ObjectId(template_id)}))
+
+    food_ids = template.get_food_ids()
+    food_id_positions = {food_id: i for i, food_id in enumerate(food_ids)}
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
+    food_items = list(food_collection.find({"_id": {"$in": food_ids}}))
+    food_items = sorted(food_items, key=lambda food_item: food_id_positions[food_item["_id"]])
+    meal_info = template.get_meal_info()
+    meal_items = []
+
+    for food_item in food_items:
+        meal_items.append({
+            "portion_size": d2s(meal_info[food_item["_id"]].portion_size, 100),
+            "portion_unit": f'{meal_info[food_item["_id"]].portion_unit}',
+            "name": food_item["name"],
+            "description": food_item["description"],
+            "id": str(food_item["_id"]),
+            "conversions": {f'{unit}': d2s(value, 100) for unit, value in food_item["conversions"].items()},
+            **{key: d2s(value, 100) for key, value in food_item.items() if key in constants.STATISTIC_KEYS}
+        })
+
+    template_data = {
+        "id": template_id,
+        "name": template.name,
+        "description": template.description,
+        "meal_items": meal_items
+    }
+
+    template = templates.get_template('template_form.html')
+    html = template.render(
+        title="Редактирование шаблона",
+        add_text="Обновить шаблон",
+        add_url=f"/edit-template/{template_id}",
+        template=template_data,
+        page="/edit-template",
+        query=food_query
+    )
+    return HTMLResponse(content=html)
+
+
+@app.post("/edit-template/{template_id}")
+async def edit_template_post(template_id: str, request: Request, user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Не удалось обновить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    try:
+        template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+
+        data = await request.json()
+        data["creator_id"] = user_id
+        original_template = template_collection.find_one({"_id": ObjectId(template_id)})
+        edited_template = Template.from_dict(data)
+
+        if original_template["name"] != edited_template.name and list(template_collection.find({"name": edited_template.name})):
+            return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как шаблон с названием \"{edited_template.name}\" уже существует"})
+
+        template_collection.update_one({"_id": ObjectId(template_id)}, {"$set": edited_template.to_dict()})
+        return JSONResponse({"status": "ok", "href": f"/food-collection?food_query={edited_template.name[:25]}", "message": "Шаблон успешно обновлён"})
+    except ConnectionError as e:
+        return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить шаблон из-за ошибки: {e}"})
+
+
+@app.post("/remove-template")
+def remove_template(template_id: str = Body(..., embed=True)):
+    template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+    result = template_collection.delete_one({"_id": ObjectId(template_id)})
+
+    if result.deleted_count != 1:
+        return JSONResponse({"status": "fail", "message": "Не удалось удалить шаблон, так как он уже удалён"})
+
+    return JSONResponse({"status": "ok"})
+
+
 def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
     meal_info = OrderedDict()
 

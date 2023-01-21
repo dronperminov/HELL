@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
 
 from bson import ObjectId
 
@@ -25,3 +25,9 @@ class Template:
             "meal_items": [meal_item.to_dict() for meal_item in self.meal_items],
             "creator_id": ObjectId(self.creator_id)
         }
+
+    def get_food_ids(self) -> List[ObjectId]:
+        return [ObjectId(meal_item.food_id) for meal_item in self.meal_items]
+
+    def get_meal_info(self) -> Dict[ObjectId, MealItem]:
+        return {ObjectId(meal_item.food_id): meal_item for meal_item in self.meal_items}
