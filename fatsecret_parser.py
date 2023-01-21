@@ -26,7 +26,6 @@ class FatSecretParser:
             return None
 
         texts = self.__get_div_texts(div)
-
         try:
             title = soup.find("title")
             name = title.text.replace(" Калории и Пищевая Ценность", "")
@@ -36,7 +35,7 @@ class FatSecretParser:
             carbohydrates = self.__round(Decimal(texts[-3][:-1].replace(',', '.')) * scale)
             proteins = self.__round(Decimal(texts[-1][:-1].replace(',', '.')) * scale)
 
-            food = FoodItem(name, "", energy, fats, proteins, carbohydrates, portion, conversions)
+            food = FoodItem("", name, "", energy, fats, proteins, carbohydrates, portion, conversions)
             return food
         except ValueError:
             return None
