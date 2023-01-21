@@ -318,19 +318,16 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
 
 @app.post("/add-food")
 async def add_food_post(request: Request):
-    try:
-        data = await request.json()
-        food = FoodItem.from_dict(data)
-        food_collection = database[constants.MONGO_FOOD_COLLECTION]
+    data = await request.json()
+    food = FoodItem.from_dict(data)
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
 
-        if food_collection.find_one({"name": food.name}):
-            return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить, так как продукт с названием \"{food.name}\" уже существует"})
+    if food_collection.find_one({"name": food.name}):
+        return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить, так как продукт с названием \"{food.name}\" уже существует"})
 
-        food_collection.insert_one(food.to_dict())
-        href = "food-collection" if "date" not in data else f"add-meal/{data['date']}/{data['meal_type']}"
-        return JSONResponse({"status": "ok", "href": f"/{href}?food_query={food.name[:25]}", "message": "Продукт успешно добавлен"})
-    except Exception as e:
-        return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить продукт из-за ошибки: {e}"})
+    food_collection.insert_one(food.to_dict())
+    href = "food-collection" if "date" not in data else f"add-meal/{data['date']}/{data['meal_type']}"
+    return JSONResponse({"status": "ok", "href": f"/{href}?food_query={food.name[:25]}", "message": "Продукт успешно добавлен"})
 
 
 @app.get("/edit-food/{food_id}")
@@ -347,7 +344,6 @@ async def edit_food_post(food_id: str, request: Request):
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
 
     data = await request.json()
-    data["_id"] = food_id
     original_food = food_collection.find_one({"_id": ObjectId(food_id)})
     edited_food = FoodItem.from_dict(data)
 

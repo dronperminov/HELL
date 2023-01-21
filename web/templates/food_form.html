@@ -55,11 +55,8 @@
         </div>
 
         <div class="form-row">
-            <label>Описание:
-                <div class="auto-grow">
-                    <textarea type="text" id="description" onInput="this.parentNode.dataset.replicatedValue = this.value">{% if food %}{{food.description}}{% endif %}</textarea>
-                </div>
-            </label>
+            <label>Описание:</label>
+            <div class="contenteditable" contenteditable id="description">{% if food %}{{food.description}}{% endif %}</div>
         </div>
 
         <div class="form-row center">
@@ -240,7 +237,6 @@
         function SaveFood() {
             let fields = [
                 {name: "name", func: IsNotEmptyValue, message: "Название продукта не заполнено"},
-                {name: "description", func: null},
                 {name: "portion", func: null},
                 {name: "energy", func: (value) => IsRealValue(value) && +value > 0, message: "Энергетическая ценность введена некорректно"},
                 {name: "fats", func: IsRealValue, message: "Жиры введены некорректно"},
@@ -254,6 +250,7 @@
             if (food === null || conversions === null)
                 return
 
+            food.description = document.getElementById("description").innerText
             food.conversions = conversions
             {% if date and meal_type %}
             food.date = "{{date}}"

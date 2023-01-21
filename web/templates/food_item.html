@@ -6,7 +6,7 @@
     <div class="food-data" onclick="ClickFoodItem('{{food_item._id}}')">
         <div class="food-name">{{food_item.name}}</div>
     {% endif %}
-        <div class="food-description">{{food_item.description}}</div>
+        <div class="food-description">{{food_item.description.replace("<", "&lt;").replace(">", "&gt;")}}</div>
         <div class="food-info">
             <div class="food-info-cell food-energy">{{food_item.energy}} ккал{% if "meal_items" not in food_item %} / {{food_item.portion}}{% endif %}</div>
             <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>

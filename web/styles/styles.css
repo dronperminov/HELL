@@ -105,6 +105,7 @@ p {
 
 .error {
     color: var(--error-color);
+    border-color: var(--error-color) !important;
 }
 
 .error-center {

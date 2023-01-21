@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/food-search.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-item.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
-    <link rel="stylesheet" type="text/css" href="/styles/add-template.css">
+    <link rel="stylesheet" type="text/css" href="/styles/add-template.css?v=">
 </head>
 <body>
     {% include "menu.html" %}
@@ -20,11 +20,8 @@
         </div>
 
         <div class="form-row">
-            <label>Описание шаблона:
-                <div class="auto-grow">
-                    <textarea type="text" id="description" onInput="this.parentNode.dataset.replicatedValue = this.value">{% if template %}{{template.description}}{% endif %}</textarea>
-                </div>
-            </label>
+            <label>Описание шаблона:</label>
+            <div class="contenteditable" contenteditable id="description">{% if template %}{{template.description.replace("<", "&lt;").replace(">", "&gt;")}}{% endif %}</div>
             <div class="error-center" id="name-error"></div>
         </div>
 
@@ -202,7 +199,7 @@
 
             let data = {
                 name: name,
-                description: document.getElementById("description").value,
+                description: document.getElementById("description").innerText,
                 meal_items: foodItems
             }
             {% if date and meal_type %}

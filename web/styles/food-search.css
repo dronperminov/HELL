@@ -39,3 +39,7 @@
     display: table-cell;
     vertical-align: bottom;
 }
+
+.food-search-results {
+    margin-bottom: 5px
+}

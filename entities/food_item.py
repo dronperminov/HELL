@@ -37,7 +37,7 @@ class FoodItem:
 
     @classmethod
     def from_dict(cls, data: dict) -> "FoodItem":
-        food_id = str(data["_id"])
+        food_id = str(data.get("_id", ""))
         name = data["name"]
         description = data["description"]
         energy = Decimal(str(data["energy"]))

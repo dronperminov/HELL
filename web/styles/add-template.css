@@ -4,6 +4,7 @@
 
 .template-meals-info {
     color: var(--disabled-color);
+    font-size: 0.9rem
 }
 
 .food-search-header {

@@ -82,27 +82,14 @@ select.auto {
     width: auto;
 }
 
-div[contenteditable] {
+.contenteditable {
     outline: none;
-}
-
-.auto-grow {
-    display: grid;
-}
-.auto-grow::after {
-    content: attr(data-replicated-value) " ";
     white-space: pre-wrap;
-    visibility: hidden;
+    border: 1px solid var(--border-color);
+    min-height: 2em;
 }
 
-.auto-grow > textarea {
-    resize: none;
-    overflow: hidden;
-}
-
-.auto-grow > textarea,
-.auto-grow::after {
-    padding: 2px;
-    font-family: inherit;
-    grid-area: 1 / 1 / 2 / 2;
+.contenteditable:focus, .contenteditable:hover {
+    outline: none;
+    border: 1px solid var(--active-color);
 }

@@ -8,7 +8,6 @@
     <link rel="stylesheet" type="text/css" href="/styles/food-search.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-item.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
-    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -45,7 +44,7 @@
         {% endif %}
         </div>
 
-        <div class="add-food">
+        <div class="center">
             <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить продукт</button>
 
             <button onclick="location.href='/add-template?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить шаблон</button>
