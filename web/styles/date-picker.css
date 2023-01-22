@@ -11,7 +11,7 @@
 .date-picker-reset-icon {
     position: absolute;
     right: 10px;
-    top: -27px;
+    top: 12px;
 }
 
 .date-picker-reset-icon:hover {
@@ -82,6 +82,17 @@
 
 .date-picker-calendar {
     display: none;
+}
+
+.date-picker-calendar-table {
+    display: table;
+    table-layout: fixed;
+    width: 300%;
+    transform: translateX(-33.33%);
+}
+
+.date-picker-calendar-cell {
+    display: table-cell;
 }
 
 .date-picker-month {
@@ -173,6 +184,7 @@
 .date-picker-opened .date-picker-calendar {
     display: block;
     position: absolute;
+    overflow-x: hidden;
     background: var(--background-image);
     background-position: -12px -48px;
     border-left: var(--border);
