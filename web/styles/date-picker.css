@@ -118,6 +118,7 @@
     display: table-cell;
     text-align: center;
     padding: 5px 0;
+    position: relative;
 }
 
 .date-picker-calendar-day span:hover {
@@ -135,6 +136,18 @@
 
 .date-picker-calendar-day-today {
     font-weight: bold;
+}
+
+.date-picker-calendar-day-used::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    margin-left: -1.5px;
+    width: 3px;
+    height: 3px;
+    border-radius: 100%;
+    background: var(--warning-color);
 }
 
 .date-picker-opened {

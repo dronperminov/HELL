@@ -1,5 +1,6 @@
-function DatePicker(date, nodeId, onSelect) {
+function DatePicker(date, nodeId, onSelect, usedDates = null) {
     this.onSelect = onSelect
+    this.usedDates = usedDates === null ? new Set() : new Set(usedDates)
 
     this.weekDays = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
     this.months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
@@ -125,6 +126,11 @@ DatePicker.prototype.IsToday = function(day) {
     return today.getFullYear() == date.getFullYear() && today.getMonth() == date.getMonth() && today.getDate() == day
 }
 
+DatePicker.prototype.IsUsed = function(day) {
+    let date = this.FormatDate(this.dates.start, day + '')
+    return this.usedDates.has(date)
+}
+
 DatePicker.prototype.Reset = function() {
     let date = this.FormatDate(this.initDate)
     this.dates = this.GetCalendarDates(date)
@@ -226,6 +232,8 @@ DatePicker.prototype.UpdateCalendar = function() {
             dayDiv.classList.add("date-picker-calendar-day-current")
         if (this.IsToday(day))
             dayDiv.classList.add("date-picker-calendar-day-today")
+        if (this.IsUsed(day))
+            dayDiv.classList.add("date-picker-calendar-day-used")
 
         day++
     }

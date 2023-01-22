@@ -624,6 +624,15 @@ def prepare_meal_statistic(dates_range: List[datetime], date2meal_info_ids: Dict
     return statistic, statistic_meal_type
 
 
+def get_used_dates(user_id: str):
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    dates = diary_collection.aggregate([
+        {"$group": {"_id": "$date"}}
+    ])
+    dates = [format_date(date["_id"]) for date in dates]
+    return dates
+
+
 @app.get("/diary")
 def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
@@ -639,8 +648,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     content = template.render(
         user_id=user_id,
         date=format_date(date),
-        prev_date=format_date(date + timedelta(days=-1)),
-        next_date=format_date(date + timedelta(days=1)),
+        used_dates=get_used_dates(user_id),
         copy_date=format_date(copy_date),
         meal_info=meal_info,
         names=constants.MEAL_TYPE_NAMES,

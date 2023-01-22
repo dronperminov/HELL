@@ -128,7 +128,7 @@
     <script src="/js/date_picker.js"></script>
 
     <script>
-        let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/diary?date=${date}`)
+        let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/diary?date=${date}`, [{% for date in used_dates %}"{{date}}", {% endfor %}])
 
         function StatEditPortion(foodItem, mealId) {
             let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
