@@ -27,3 +27,5 @@ FREQUENT_MEAL_MIN_COUNT = 3
 FREQUENT_MEAL_CLIP_COUNT = 15
 
 STATISTIC_KEYS = ["proteins", "fats", "carbohydrates", "energy"]
+
+PIECE_NAMES = ["штука", "бургер", "батончик", "ролл", "мороженое"]

@@ -1,10 +1,11 @@
+import re
+from decimal import Decimal
 from typing import Optional, List, Dict, Tuple
 
 import requests
 from bs4 import BeautifulSoup, Tag
-import re
-from decimal import Decimal
 
+import constants
 from entities.food_item import FoodItem
 from entities.portion_unit import BasePortionUnit, PortionUnit
 
@@ -102,9 +103,12 @@ class FatSecretParser:
         if portion_text in [BasePortionUnit.g100, BasePortionUnit.ml100]:
             return BasePortionUnit(portion_text), conversions, Decimal("1")
 
-        match = re.match(r"^1 +(?P<unit>порция|штука|шт|бургер|батончик|ломтик|ролл) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
+        if portion_text in ["100g (100 г)"]:
+            return BasePortionUnit.g100, conversions, Decimal("1")
+
+        match = re.match(rf"^1 +(?P<unit>порция|шт|ломтик|{'|'.join(constants.PIECE_NAMES)}) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
         if match:
-            unit, value = re.sub(r'штука|бургер|батончик|ролл', "шт", match.group("unit")), match.group("value")
+            unit, value = re.sub(rf'{"|".join(constants.PIECE_NAMES)}', "шт", match.group("unit")), match.group("value")
             scale = Decimal("100") / Decimal(value)
             conversions[PortionUnit(unit)] = Decimal(value) / Decimal("100")
             return BasePortionUnit.g100, conversions, scale
