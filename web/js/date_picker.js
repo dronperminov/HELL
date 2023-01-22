@@ -60,6 +60,13 @@ DatePicker.prototype.GetCalendarDates = function(date) {
     return {start, curr, end}
 }
 
+DatePicker.prototype.GetIncreasedDay = function(date, days) {
+    let day = date.getDate() + days
+    let month = date.getMonth()
+    let year = date.getFullYear()
+    return new Date(year, month, day).getDate()
+}
+
 DatePicker.prototype.ValidateDate = function(day, month, year) {
     let days = new Date(year, month, 0).getDate()
     return day >= 1 && day <= days && month >= 1 && month <= 12
@@ -118,6 +125,13 @@ DatePicker.prototype.IsToday = function(day) {
     return today.getFullYear() == date.getFullYear() && today.getMonth() == date.getMonth() && today.getDate() == day
 }
 
+DatePicker.prototype.Reset = function() {
+    let date = this.FormatDate(this.initDate)
+    this.dates = this.GetCalendarDates(date)
+    this.resetIcon.style.display = "none"
+    this.UpdateCalendar()
+}
+
 DatePicker.prototype.StepMonth = function(step) {
     let month = this.dates.start.getMonth() + step
     let year = this.dates.start.getFullYear()
@@ -125,7 +139,8 @@ DatePicker.prototype.StepMonth = function(step) {
     this.dates.start = new Date(year, month, 1)
     this.dates.end = new Date(year, month + 1, 0)
     this.dates.curr = this.initDate
-    this.MakeCalendar()
+    this.resetIcon.style.display = null
+    this.UpdateCalendar()
 }
 
 DatePicker.prototype.StepDay = function(step) {
@@ -150,6 +165,7 @@ DatePicker.prototype.ShowCalendar = function() {
 DatePicker.prototype.HideCalendar = function() {
     this.picker.classList.remove("date-picker-opened")
     this.popup.classList.remove("date-picker-popup-show")
+    this.Reset()
 }
 
 DatePicker.prototype.MakeControls = function(dateValue) {
@@ -181,41 +197,53 @@ DatePicker.prototype.MakeControls = function(dateValue) {
     this.nextMonth.addEventListener("click", () => this.StepMonth(1))
 }
 
-DatePicker.prototype.MakeCalendar = function() {
-    this.calendar.innerHTML = ""
+DatePicker.prototype.UpdateCalendar = function() {
+    this.month.innerText = `${this.months[this.dates.start.getMonth()]} ${this.dates.start.getFullYear()}`
+    this.calendarDays.innerHTML = ""
 
-    let month = this.MakeNode("div", "date-picker-month", this.calendar, {
-        "innerText": `${this.months[this.dates.start.getMonth()]} ${this.dates.start.getFullYear()}`
-    })
+    let day = 2 - this.dates.start.getDay()
+    if (day == 2)
+        day = -5
 
-    let weekDays = this.MakeNode("div", "date-picker-week-days", this.calendar)
-
-    for (let name of this.weekDays)
-        this.MakeNode("div", "date-picker-week-day", weekDays, {"innerText": name})
-
-    let calendarDays = this.MakeNode("div", "date-picker-calendar-days", this.calendar)
-    let offset = (this.dates.start.getDay() + 5) % 7
-    let day = 0
+    let endDay = this.dates.end.getDate()
     let weekRow = null
 
-    for (let index = 0; day <= this.dates.end.getDate(); index++) {
+    for (let index = 0; day <= endDay || index % 7 != 0; index++) {
         if (index % 7 == 0)
-            weekRow = this.MakeNode("div", "date-picker-calendar-row", calendarDays)
+            weekRow = this.MakeNode("div", "date-picker-calendar-row", this.calendarDays)
 
         let dayDiv = this.MakeNode("div", "date-picker-calendar-day", weekRow)
-        let daySpan = this.MakeNode("span", "date-picker-calendar-day-span", dayDiv, {"innerText": day > 0 ? day : ""})
+        let daySpan = this.MakeNode("span", "date-picker-calendar-day-span", dayDiv, {"innerText": day > 0 && day <= endDay ? day : this.GetIncreasedDay(this.dates.start, day - 1)})
 
         if (day > 0 && !this.IsCurrent(day)) {
             let date = this.FormatDate(this.dates.start, day.toString())
             daySpan.addEventListener("click", () => this.onSelect(date))
         }
 
+        if (day <= 0 || day > endDay)
+            dayDiv.classList.add("date-picker-calendar-day-prev")
         if (this.IsCurrent(day))
             dayDiv.classList.add("date-picker-calendar-day-current")
         if (this.IsToday(day))
             dayDiv.classList.add("date-picker-calendar-day-today")
 
-        if (--offset < 0)
-            day++
+        day++
     }
+}
+
+DatePicker.prototype.MakeCalendar = function() {
+    this.calendar.innerHTML = ""
+    this.resetIcon = this.MakeNode("span", "date-picker-reset-icon fa fa-repeat", this.calendar)
+    this.resetIcon.style.display = "none"
+    this.resetIcon.addEventListener("click", () => this.Reset())
+
+    this.month = this.MakeNode("div", "date-picker-month", this.calendar)
+
+    let weekDays = this.MakeNode("div", "date-picker-week-days", this.calendar)
+
+    for (let name of this.weekDays)
+        this.MakeNode("div", "date-picker-week-day", weekDays, {"innerText": name})
+
+    this.calendarDays = this.MakeNode("div", "date-picker-calendar-days", this.calendar)
+    this.UpdateCalendar()
 }

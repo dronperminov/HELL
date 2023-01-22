@@ -8,6 +8,16 @@
     --border: 2px solid var(--border-color);
 }
 
+.date-picker-reset-icon {
+    position: absolute;
+    right: 10px;
+    top: -27px;
+}
+
+.date-picker-reset-icon:hover {
+    color: var(--success-color);
+}
+
 .date-picker-popup {
     display: none;
     position: absolute;
@@ -112,6 +122,10 @@
 
 .date-picker-calendar-day span:hover {
     color: var(--success-color);
+}
+
+.date-picker-calendar-day-prev {
+    color: var(--disabled-color);
 }
 
 .date-picker-calendar-day-current {
