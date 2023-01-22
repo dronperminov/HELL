@@ -5,6 +5,7 @@
     <title>Дневник питания | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
+    <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
     <link rel="stylesheet" type="text/css" href="/styles/diary.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
 </head>
@@ -12,12 +13,7 @@
     {% include "menu.html" %}
     {% if user_id %}<button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
     <div class="diary" id="diary">
-        <div class="diary-date">
-            <a href="/diary?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
-            <span class="input diary-current-date" role="textbox" contenteditable inputmode="decimal" id="date-input">{{date}}</span>
-            <a href="/diary?date={{next_date}}"><span class="fa fa-chevron-right"></span></a>
-        </div>
-        <div class="error-center" id="date-error"></div>
+        <div class="diary-date" id="date-picker"></div>
 
         {% for meal_type, meals in meal_info.items() %}
             <div class="meal-item" data-meal-type="{{meal_type}}">
@@ -129,8 +125,11 @@
     <script src="/js/forms.js"></script>
     <script src="/js/chart.js"></script>
     <script src="/js/swipe.js"></script>
+    <script src="/js/date_picker.js"></script>
 
     <script>
+        let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/diary?date=${date}`)
+
         function StatEditPortion(foodItem, mealId) {
             let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
             EndEditPortions(portionEdit)
@@ -568,7 +567,6 @@
         for (let item of document.getElementsByClassName("food-item-data"))
             RemoveFoodItemOnSwipe(item)
 
-        InitDateEvents("/diary")
         UpdateChart()
     </script>
     {% include "footer.html" %}

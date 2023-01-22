@@ -1,0 +1,155 @@
+.date-picker {
+    max-width: 360px;
+    margin: 0 auto;
+    width: fit-content;
+    box-sizing: border-box;
+    position: relative;
+    margin: 0 auto;
+    --border: 2px solid var(--border-color);
+}
+
+.date-picker-popup {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000000b0;
+}
+
+.date-picker-popup-show {
+    display: block;
+}
+
+.date-picker-controls {
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px 0;
+    height: 40px;
+}
+
+.date-picker-controls-cell {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.date-picker-controls-cell-date {
+    width: 90px;
+    padding: 0 3px;
+}
+
+.date-picker-controls-cell-date input {
+    text-align: center;
+    font-size: 1rem;
+}
+
+.date-picker-controls-cell-left {
+    text-align: right;
+}
+
+.date-picker-controls-cell-right {
+    text-align: left;
+}
+
+.date-picker-control-icon {
+    display: inline-block;
+    text-align: center;
+    font-size: 25px;
+    margin: 0 10px;
+    color: var(--text-color);
+}
+
+.date-picker-control-icon:hover {
+    color: var(--success-color);
+}
+
+.date-picker-calendar-icon {
+    display: none;
+}
+
+.date-picker-calendar {
+    display: none;
+}
+
+.date-picker-month {
+    text-align: center;
+    padding-top: 5px;
+}
+
+.date-picker-week-days {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    box-sizing: border-box;
+}
+
+.date-picker-week-day {
+    display: table-cell;
+    text-align: center;
+    padding: 5px 0;
+    font-weight: bold;
+}
+
+.date-picker-calendar-days {
+    width: 100%;
+    box-sizing: border-box;
+    table-layout: fixed;
+    display: table;
+}
+
+.date-picker-calendar-row {
+    display: table-row;
+}
+
+.date-picker-calendar-day {
+    display: table-cell;
+    text-align: center;
+    padding: 5px 0;
+}
+
+.date-picker-calendar-day span:hover {
+    color: var(--success-color);
+}
+
+.date-picker-calendar-day-current {
+    font-weight: bold;
+    color: var(--success-color);
+}
+
+.date-picker-calendar-day-today {
+    font-weight: bold;
+}
+
+.date-picker-opened {
+    background: var(--background-image);
+    background-position: -10px -8px;
+    z-index: 1;
+    border-radius: 5px 5px 0 0;
+    width: 100%;
+    margin: 0;
+}
+
+.date-picker-opened .date-picker-controls {
+    border-left: var(--border);
+    border-right: var(--border);
+    border-top: var(--border);
+    border-radius: 5px 5px 0 0;
+}
+
+.date-picker-opened .date-picker-calendar-icon {
+    display: inline-block;
+}
+
+.date-picker-opened .date-picker-calendar {
+    display: block;
+    position: absolute;
+    background: var(--background-image);
+    background-position: -12px -48px;
+    border-left: var(--border);
+    border-right: var(--border);
+    border-bottom: var(--border);
+    border-radius: 0 0 5px 5px;
+}
