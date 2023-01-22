@@ -8,6 +8,7 @@
     <title>Главная страница | HELL</title>
     {% endif %}
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
     <link rel="stylesheet" type="text/css" href="/styles/index.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
 </head>
@@ -15,14 +16,8 @@
     {% include "menu.html" %}
     {% if user %}
     <button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
-    <p class="center"><span class="success">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</span></p>
-
-    <div class="date">
-        <a href="/?date={{prev_date}}"><span class="fa fa-chevron-left"></span></a>
-        <span class="input current-date" role="textbox" contenteditable inputmode="decimal" id="date-input">{{date}}</span>
-        <a href="/?date={{next_date}}"><span class="fa fa-chevron-right"></span></a>
-    </div>
-    <div class="error-center" id="date-error"></div>
+    <div class="username">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</div>
+    <div class="date" id="date-picker"></div>
 
     <div class="parameters">
         <div class="parameters-header">Мои текущие параметры</div>
@@ -55,8 +50,11 @@
     <script src="/js/forms.js"></script>
     <script src="/js/swipe.js"></script>
     <script src="/js/plot.js"></script>
+    <script src="/js/date_picker.js"></script>
 
     <script type="text/javascript">
+        let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/?date=${date}`)
+
         const parametersData = {}
         {% for parameter in user.body_parameters %}
         parametersData["{{parameter.name}}"] = [
@@ -523,7 +521,6 @@
             SwipeParameter(parameterItem)
         }
 
-        InitDateEvents("/")
         InitTheme()
     </script>
     {% else %}

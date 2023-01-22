@@ -1,20 +1,10 @@
-.date {
-    padding: 5px;
+.username {
     text-align: center;
-}
-
-.date a {
-    color: var(--text-color);
-}
-
-.date a:hover {
     color: var(--success-color);
 }
 
-.current-date {
-    padding: 0 10px;
-    font-size: 1rem;
-    min-width: 100px;
+.date {
+    height: 40px;
 }
 
 .parameters {
