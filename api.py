@@ -627,9 +627,10 @@ def prepare_meal_statistic(dates_range: List[datetime], date2meal_info_ids: Dict
 def get_used_dates(user_id: str):
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     dates = diary_collection.aggregate([
-        {"$group": {"_id": "$date"}}
+        {"$match": {"$expr": {"$gt": [{"$size": {"$filter": {"input": {"$objectToArray": "$meal_info"}, "as": "pair", "cond": {"$ne": ["$$pair.v", []]}}}}, 0]}}},
+        {"$project": {"date": 1, "_id": 0}}
     ])
-    dates = [format_date(date["_id"]) for date in dates]
+    dates = [format_date(date["date"]) for date in dates]
     return dates
 
 
