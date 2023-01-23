@@ -149,11 +149,11 @@
     display: inline-block;
     width: 15px !important;
     height: 15px;
-    background: url("/images/bread.svg");
+    background: var(--template-image);
 }
 
-[data-theme="dark"] .food-name-group-icon {
-    background: url("/images/bread_dark.svg");
+button:hover .food-name-group-icon {
+    background: var(--template-image-hover);
 }
 
 .group-foods {

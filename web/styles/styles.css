@@ -16,6 +16,8 @@
 
     --block-background-color: #e8e8e88f;
     --background-image: url("/images/food_texture.jpg");
+    --template-image: url("/images/bread.svg");
+    --template-image-hover: url("/images/bread_dark.svg");
 
     --selection-background: #3390ff;
     --selection-color: #e5f5ff;
@@ -51,6 +53,8 @@
 
     --block-background-color: #1e1e1e8f;
     --background-image: url("/images/food_texture_dark.jpg");
+    --template-image: url("/images/bread_dark.svg");
+    --template-image-hover: url("/images/bread.svg");
 
     --selection-background: #525252;
     --selection-color: #d9d9d9;
