@@ -921,7 +921,7 @@ async def parse_fatsecret(request: Request):
     parser = FatSecretParser()
 
     if "query" in data:
-        return JSONResponse(parser.parse_search(data["query"]))
+        return JSONResponse(parser.parse_search(data["query"], data.get("page", 0)))
 
     food = parser.parse(data["url"].replace("https://", "http://"))
 

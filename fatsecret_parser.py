@@ -41,9 +41,9 @@ class FatSecretParser:
         except ValueError:
             return None
 
-    def parse_search(self, query: str) -> List[dict]:
+    def parse_search(self, query: str, page: int = 0) -> List[dict]:
         try:
-            response = requests.get(f'http://fatsecret.ru/калории-питание/search?q={query}')
+            response = requests.get(f'http://fatsecret.ru/калории-питание/search?q={query}&pg={page}')
         except requests.exceptions.ConnectionError:
             return []
 

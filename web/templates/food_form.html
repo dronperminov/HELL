@@ -75,6 +75,10 @@
         <div class="add-from-url-header">Загрузить из FatSecret:</div>
 
         <div class="add-from-url-search">
+            <div class="add-from-url-clear{% if query %} add-from-url-clear-show{% endif %}" id="url-clear">
+                <span class="fa fa-times"></span>
+            </div>
+
             <div class="add-from-url-search-input">
                 <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
             </div>
@@ -86,12 +90,18 @@
 
         <div class="error-center" id="fatsecret-error"></div>
         <div id="fatsecret-search-result"></div>
+        <div class="fatsecret-next-search no-display" id="fatsecret-next-search-btn">
+            <button onclick="ParseFatsecretQuery(fatsecretQuery, true)">Показать ещё</button>
+        </div>
     </div>
     {% endif %}
 
     <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
     <script>
+        var fatsecretPage = 0
+        var fatsecretQuery = null
+
         function InitConversions() {
             let portion = document.getElementById("portion").value
 
@@ -322,12 +332,21 @@
             })
         }
 
-        function ParseFatsecretQuery(query) {
-            SendRequest("/parse-fatsecret", {"query": query}).then((response) => {
-                let resultsDiv = document.getElementById("fatsecret-search-result")
+        function ParseFatsecretQuery(query, next = false) {
+            if (!next) {
+                fatsecretQuery = query
+                fatsecretPage = 0
+            }
 
-                if (response.length == 0)
+            SendRequest("/parse-fatsecret", {"query": query, "page": fatsecretPage++}).then((response) => {
+                let resultsDiv = document.getElementById("fatsecret-search-result")
+                let nextBtn = document.getElementById("fatsecret-next-search-btn")
+
+                if (response.length == 0) {
                     resultsDiv.innerText = `К сожалению, по запросу "${query}" ничего не нашлось`
+                    nextBtn.classList.add("no-display")
+                    return
+                }
 
                 for (let result of response) {
                     let resultDiv = document.createElement("div")
@@ -346,12 +365,16 @@
                     resultDiv.appendChild(info)
                     resultsDiv.appendChild(resultDiv)
                 }
+
+                nextBtn.classList.remove("no-display")
             })
         }
 
         function ParseFatsecret() {
-            let value = document.getElementById("url-box").value
+            let urlBox = document.getElementById("url-box")
             let error = document.getElementById("fatsecret-error")
+            let value = urlBox.value.trim()
+            urlBox.value = value
             error.innerText = ""
 
             if (!IsNotEmptyValue(value)) {
@@ -409,6 +432,8 @@
         InitConversions()
 
         let urlBox = document.getElementById("url-box")
+        let urlClear = document.getElementById("url-clear")
+
         urlBox.addEventListener('keydown', (e) => {
             error.innerText = ""
 
@@ -416,6 +441,19 @@
                 e.preventDefault()
                 ParseFatsecret()
             }
+        })
+
+        urlBox.addEventListener('input', () => {
+            if (urlBox.value.trim().length > 0)
+                urlClear.classList.add("add-from-url-clear-show")
+            else
+                urlClear.classList.remove("add-from-url-clear-show")
+        })
+
+        urlClear.addEventListener('click', () => {
+            urlBox.value = ""
+            document.getElementById("fatsecret-search-result").innerHTML = ''
+            urlClear.classList.remove("add-from-url-clear-show")
         })
         {% endif %}
 

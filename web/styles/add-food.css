@@ -13,6 +13,26 @@
     width: 100%;
 }
 
+.add-from-url-clear {
+    display: table-cell;
+    vertical-align: bottom;
+    width: 0px;
+    transition: width 0.5s 0s;
+}
+
+.add-from-url-clear span {
+    display: none;
+}
+
+.add-from-url-clear-show {
+    width: 20px;
+    transition: none;
+}
+
+.add-from-url-clear-show span {
+    display: inline;
+}
+
 .add-from-url-search-input {
     display: table-cell;
     vertical-align: bottom;
@@ -62,4 +82,9 @@
 .fatsecret-info {
     color: var(--disabled-color);
     font-size: 0.9em;
+}
+
+.fatsecret-next-search {
+    padding: 5px 0;
+    text-align: center;
 }
