@@ -140,6 +140,8 @@ DatePicker.prototype.Reset = function() {
     let date = this.FormatDate(this.initDate)
     this.dates = this.GetCalendarDates(date)
     this.resetIcon.style.display = "none"
+    this.currDateInput.value = date
+    this.currDateInput.classList.remove("error")
     this.UpdateCalendar()
 }
 
@@ -244,22 +246,23 @@ DatePicker.prototype.CalendarTouchMove = function(e) {
     let width = this.calendarTable.clientWidth
     this.deltaX = e.touches[0].clientX - this.startX
     this.calendarTable.style.transform = `translateX(${Math.max(-width / 3, Math.min(width / 3, this.deltaX)) - width / 3}px)`
+    this.currDateInput.blur()
 }
 
 DatePicker.prototype.CalendarTouchEnd = function(e) {
     let width = this.calendarTable.clientWidth
     this.position = Math.max(-1 / 3, Math.min(1 / 3, this.deltaX / width))
 
-    if (this.position < -0.1)
+    if (this.position < -1/21)
         this.position = 1
-    else if (this.position > 0.1)
+    else if (this.position > 1/21)
         this.position = -1
     else
         this.position = 0
 
     let delta = (-this.position - 1) * width / 3
 
-    this.calendarTable.style.transition = 'transform 0.5s'
+    this.calendarTable.style.transition = 'transform 0.15s'
     this.calendarTable.style.transform = `translateX(${delta}px)`
 }
 
