@@ -79,7 +79,7 @@
                             </div>
                             <div class="food-item-group-data">
                                 <div class="food-item-group-name">
-                                    <span class="fa fa-caret-right"></span>{{food_item["name"]}}
+                                    <span class="fa food-name-group-icon"></span> {{food_item["name"]}}
                                 </div>
                                 <div class="food-info">
                                     <div class="food-info-cell food-energy"><span id="group-energy-{{food_item.group_id}}">{{food_item["statistic"].energy}}</span> ккал</div>
@@ -192,9 +192,17 @@
                 foods.classList.add('no-display')
 
             let caret = groupItem.getElementsByClassName('fa')
-            if (caret.length == 1) {
-                caret[0].classList.toggle('fa-caret-right')
+            if (opened === null) {
+                caret[0].classList.toggle('food-name-group-icon')
                 caret[0].classList.toggle('fa-caret-down')
+            }
+            else if (opened) {
+                caret[0].classList.remove('food-name-group-icon')
+                caret[0].classList.add('fa-caret-down')
+            }
+            else {
+                caret[0].classList.add('food-name-group-icon')
+                caret[0].classList.remove('fa-caret-down')
             }
         }
 
