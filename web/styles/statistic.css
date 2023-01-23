@@ -23,6 +23,16 @@
     font-weight: bold;
 }
 
+.statistic-name .fa {
+    width: 10px;
+}
+
+.statistic-block-name {
+    padding-bottom: 5px;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
 .statistic-header {
     font-weight: bold;
     margin-bottom: 5px;

@@ -5,7 +5,7 @@
     <title>Статистика с {{start_date}} по {{end_date}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
-    <link rel="stylesheet" type="text/css" href="/styles/statistic.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/styles/statistic.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -60,22 +60,27 @@
         </div>
     </div>
 
-    {% for meal_type, meal_name in meal_types.items() %}
     <div class="statistic">
-        <div class="statistic-name">{{meal_name}}</div>
-        <div class="h-scrollable">
-            <svg id="statistic-{{meal_type}}-chart"></svg>
-        </div>
+        <div class="statistic-name statistic-block-name" onclick="ToggleStatistic(this)"><span class="fa fa-caret-down"></span> Статистика по приёмам пищи</div>
+        <div class="statistic-block">
+            {% for meal_type, meal_name in meal_types.items() %}
+            <div class="statistic">
+                <div class="statistic-block-name">{{meal_name}}</div>
+                <div class="h-scrollable">
+                    <svg id="statistic-{{meal_type}}-chart"></svg>
+                </div>
 
-        <div class="statistic-info">
-            <div class="statistic-header">Усреднённые результаты</div>
-            <div class="statistic-row"><span class="plot-circle bar-color1"></span> Белки: <span id="{{meal_type}}-proteins"></span></div>
-            <div class="statistic-row"><span class="plot-circle bar-color2"></span> Жиры: <span id="{{meal_type}}-fats"></span></div>
-            <div class="statistic-row"><span class="plot-circle bar-color3"></span> Углеводы: <span id="{{meal_type}}-carbohydrates"></span></div>
-            <div class="statistic-row">Калории: <span id="{{meal_type}}-energy"></span></div>
+                <div class="statistic-info">
+                    <div class="statistic-header">Усреднённые результаты</div>
+                    <div class="statistic-row"><span class="plot-circle bar-color1"></span> Белки: <span id="{{meal_type}}-proteins"></span></div>
+                    <div class="statistic-row"><span class="plot-circle bar-color2"></span> Жиры: <span id="{{meal_type}}-fats"></span></div>
+                    <div class="statistic-row"><span class="plot-circle bar-color3"></span> Углеводы: <span id="{{meal_type}}-carbohydrates"></span></div>
+                    <div class="statistic-row">Калории: <span id="{{meal_type}}-energy"></span></div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
-    {% endfor %}
 
     <script src="/js/chart.js"></script>
     <script src="/js/bar_chart.js"></script>
@@ -91,6 +96,14 @@
             {% for date in dates_range %}    { {% for key in statistic_meal_type[date][meal_type] %}"{{key}}": {{statistic_meal_type[date][meal_type][key]}}, {% endfor %}"date": "{{date}}"},
             {% endfor %}],
             {% endfor %}
+        }
+
+        function ToggleStatistic(statisticItem) {
+            let statisticBlockData = statisticItem.parentNode.getElementsByClassName("statistic-block")[0]
+            let caret = statisticItem.getElementsByClassName("fa")[0]
+            statisticBlockData.classList.toggle("no-display")
+            caret.classList.toggle("fa-caret-right")
+            caret.classList.toggle("fa-caret-down")
         }
 
         function GetTotalStatistic(caloriesData, keys) {
@@ -221,6 +234,9 @@
         PlotStatistic(CALORIES_DATA, "total")
         {% for meal_type in meal_types %}PlotStatistic(CALORIES_MEAL_TYPE_DATA["{{meal_type}}"], "{{meal_type}}")
         {% endfor %}
+
+        for (let statisticBlockNameItem of document.getElementsByClassName("statistic-block-name"))
+            ToggleStatistic(statisticBlockNameItem)
     </script>
     {% include "footer.html" %}
 </body>
