@@ -21,7 +21,18 @@
 
     <span class="error-left" id="error-message"></span>
 
+    {% include "footer.html" %}
     <script>
+        function TryAutoAuth() {
+            let token = localStorage.getItem("token")
+
+            if (token === null)
+                return
+
+            document.cookie = `token=${token}`
+            location.reload()
+        }
+
         async function SubmitForm(e) {
             e.preventDefault()
             let username = form.elements.username.value
@@ -54,6 +65,7 @@
             }
         }
 
+        TryAutoAuth()
         let form = document.getElementById("login-form")
         form.addEventListener("submit", (e) => SubmitForm(e))
     </script>
