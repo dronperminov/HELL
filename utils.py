@@ -8,12 +8,14 @@ import constants
 from entities.portion_unit import BasePortionUnit, PortionUnit
 
 
-def d2s(value: Union[Decimal, Decimal128], scale: int = 2) -> str:
+def d2s(value: Union[Decimal, Decimal128], scale: int = 100) -> str:
     if isinstance(value, Decimal128):
         value = Decimal(str(value))
 
     if value < Decimal("10"):
         scale = 100
+    elif value < Decimal("100"):
+        scale = 10
 
     return f'{round(value * scale) / scale:g}'
 

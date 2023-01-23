@@ -476,7 +476,7 @@
                 document.getElementById(`chart-${keys[i]}`).innerText = text
             }
 
-            document.getElementById(`diary-statistic-energy`).innerText = energy
+            document.getElementById(`diary-statistic-energy`).innerText = Math.round(energy * 100) / 100
 
             let svg = document.getElementById("diary-chart")
             svg.innerHTML = ''
