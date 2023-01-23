@@ -81,6 +81,19 @@
     border-top: 1px solid var(--border-color);
 }
 
+.meal-action {
+    margin: 2px 0;
+}
+
+.meal-action-name {
+    color: var(--disabled-color);
+    font-size: 0.9rem;
+}
+
+.meal-action button span {
+    width: 15px;
+}
+
 .meal-copy {
     border-top: 1px solid var(--border-color);
     background: var(--select-background-color);

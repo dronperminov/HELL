@@ -35,7 +35,7 @@
             
         <div class="form-row center">
             <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
-            {% if template %}
+            {% if template and template.id %}
             <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
             {% endif %}
             <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
@@ -153,7 +153,7 @@
             return foodItems
         }
 
-        {% if template %}
+        {% if template and template.id %}
         function RemoveTemplate() {
             let name = document.getElementById("name").value
             let error = document.getElementById("meals-error")
@@ -248,7 +248,7 @@
         let saveButton = document.getElementById("save-button")
         saveButton.addEventListener('click', () => SaveTemplate())
 
-        {% if template %}
+        {% if template and template.id %}
         let removeButton = document.getElementById("remove-button")
         removeButton.addEventListener('click', () => RemoveTemplate())
         {% endif %}

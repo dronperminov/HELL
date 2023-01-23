@@ -67,6 +67,11 @@ def unauthorized_access(url: str) -> Response:
     return RedirectResponse("/login", status_code=302)
 
 
+def error_page(error_text) -> Response:
+    template = templates.get_template('error.html')
+    return HTMLResponse(template.render(error_text=error_text))
+
+
 @app.get("/login")
 def login_get(user_id: Optional[str] = Depends(get_current_user)):
     if user_id:
@@ -385,6 +390,36 @@ def remove_food(food_id: str = Body(..., embed=True)):
     return JSONResponse({"status": "ok"})
 
 
+def get_editable_template(template: Template, template_id = ""):
+    food_ids = template.get_food_ids()
+    food_id_positions = {food_id: i for i, food_id in enumerate(food_ids)}
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
+    food_items = list(food_collection.find({"_id": {"$in": food_ids}}))
+    food_items = sorted(food_items, key=lambda food_item: food_id_positions[food_item["_id"]])
+    meal_info = template.get_meal_info()
+    meal_items = []
+
+    for food_item in food_items:
+        meal_items.append({
+            "portion_size": d2s(meal_info[food_item["_id"]].portion_size, 100),
+            "portion_unit": f'{meal_info[food_item["_id"]].portion_unit}',
+            "name": food_item["name"],
+            "description": food_item["description"],
+            "id": str(food_item["_id"]),
+            "conversions": {f'{unit}': d2s(value, 100) for unit, value in food_item["conversions"].items()},
+            **{key: d2s(value, 100) for key, value in food_item.items() if key in constants.STATISTIC_KEYS}
+        })
+
+    template_data = {
+        "id": template_id,
+        "name": template.name,
+        "description": template.description,
+        "meal_items": meal_items
+    }
+
+    return template_data
+
+
 @app.get("/add-template")
 def add_template_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None), user_id: str = Depends(get_current_user)):
     if not user_id:
@@ -400,6 +435,41 @@ def add_template_get(food_query: str = Query(None), date: str = Query(None), mea
         query=food_query,
         date=date,
         meal_type=meal_type)
+    return HTMLResponse(content=html)
+
+
+@app.get("/create-template")
+def create_template(date: str = Query(None), meal_type: str = Query(None), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    diary_doc = diary_collection.find_one({"date": parse_date(date)})
+
+    if not diary_doc:
+        return error_page(f"Не удалось создать шаблон, так как в дневнике нет записей за {date}")
+
+    meal_ids = diary_doc["meal_info"].get(meal_type, [])
+
+    if len(meal_ids) == 0:
+        return error_page(f"Не удалось создать шаблон, так как в дневнике за {date} нет записей на этот приём пищи")
+
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    meals = [MealItem.from_dict(meal_item) for meal_item in meal_collection.find({"_id": {"$in": meal_ids}})]
+
+    template = Template("", "", meals, str(user_id))
+    template_data = get_editable_template(template)
+
+    template = templates.get_template('template_form.html')
+    html = template.render(
+        user_id=user_id,
+        title="Добавление нового шаблона",
+        add_text="Добавить шаблон",
+        add_url="/add-template",
+        page="/add-template",
+        query="",
+        template=template_data
+    )
     return HTMLResponse(content=html)
 
 
@@ -435,32 +505,7 @@ def edit_template(template_id: str, food_query: str = Query(None), user_id: str 
 
     template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
     template = Template.from_dict(template_collection.find_one({"_id": ObjectId(template_id)}))
-
-    food_ids = template.get_food_ids()
-    food_id_positions = {food_id: i for i, food_id in enumerate(food_ids)}
-    food_collection = database[constants.MONGO_FOOD_COLLECTION]
-    food_items = list(food_collection.find({"_id": {"$in": food_ids}}))
-    food_items = sorted(food_items, key=lambda food_item: food_id_positions[food_item["_id"]])
-    meal_info = template.get_meal_info()
-    meal_items = []
-
-    for food_item in food_items:
-        meal_items.append({
-            "portion_size": d2s(meal_info[food_item["_id"]].portion_size, 100),
-            "portion_unit": f'{meal_info[food_item["_id"]].portion_unit}',
-            "name": food_item["name"],
-            "description": food_item["description"],
-            "id": str(food_item["_id"]),
-            "conversions": {f'{unit}': d2s(value, 100) for unit, value in food_item["conversions"].items()},
-            **{key: d2s(value, 100) for key, value in food_item.items() if key in constants.STATISTIC_KEYS}
-        })
-
-    template_data = {
-        "id": template_id,
-        "name": template.name,
-        "description": template.description,
-        "meal_items": meal_items
-    }
+    template_data = get_editable_template(template, template_id)
 
     template = templates.get_template('template_form.html')
     html = template.render(
