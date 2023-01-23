@@ -53,7 +53,7 @@
     <script src="/js/date_picker.js"></script>
 
     <script type="text/javascript">
-        let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/?date=${date}`)
+        let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/?date=${date}`, [{% for date in body_used_dates %}"{{date}}", {% endfor %}])
 
         const parametersData = {}
         {% for parameter in user.body_parameters %}

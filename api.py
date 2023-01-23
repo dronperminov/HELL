@@ -105,20 +105,21 @@ def have_body_parameter(user_id: str, name: str) -> bool:
     return user_collection.find_one({"_id": ObjectId(user_id), "body_parameters.name": name}) is not None
 
 
-def get_body_parameters(user_id: str, date: datetime):
+def get_body_parameters(user_id: str, date: datetime) -> Tuple[List[datetime], List[dict]]:
     parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
     parameter_docs = parameters_collection.aggregate([
         {"$match": {"date": {"$lte": date}}},
         {"$group": {"_id": "$name", "values": {"$addToSet": {"value": "$value", "date": "$date"}}}}
     ])
 
+    used_dates = [used_date["_id"] for used_date in parameters_collection.aggregate([{"$group": {"_id": "$date"}}])]
     parameters = {}
 
     for parameter_doc in parameter_docs:
         values = [{"date": format_date(parameter["date"]), "value": d2s(Decimal(str(parameter["value"])), 100)} for parameter in parameter_doc["values"]]
         parameters[parameter_doc["_id"]] = sorted(values, key=lambda value_item: parse_date(value_item["date"]))
 
-    return parameters
+    return used_dates, parameters
 
 
 @app.get("/")
@@ -131,7 +132,7 @@ async def index(date: Optional[str] = Query(None), user_id: Optional[str] = Depe
 
     user_collection = database[constants.MONGO_USER_COLLECTION]
     user = user_collection.find_one({"_id": ObjectId(user_id)})
-    body_parameters = get_body_parameters(user_id, date)
+    body_used_dates, body_parameters = get_body_parameters(user_id, date)
 
     template = templates.get_template('index.html')
     content = template.render(
@@ -139,6 +140,7 @@ async def index(date: Optional[str] = Query(None), user_id: Optional[str] = Depe
         date=format_date(date),
         prev_date=format_date(date + timedelta(days=-1)),
         next_date=format_date(date + timedelta(days=1)),
+        body_used_dates=[format_date(used_date) for used_date in body_used_dates],
         body_parameters=body_parameters,
         page="/"
     )
@@ -624,16 +626,6 @@ def prepare_meal_statistic(dates_range: List[datetime], date2meal_info_ids: Dict
     return statistic, statistic_meal_type
 
 
-def get_used_dates(user_id: str):
-    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
-    dates = diary_collection.aggregate([
-        {"$match": {"$expr": {"$gt": [{"$size": {"$filter": {"input": {"$objectToArray": "$meal_info"}, "as": "pair", "cond": {"$ne": ["$$pair.v", []]}}}}, 0]}}},
-        {"$project": {"date": 1, "_id": 0}}
-    ])
-    dates = [format_date(date["date"]) for date in dates]
-    return dates
-
-
 @app.get("/diary")
 def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
@@ -645,11 +637,17 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     meal_info = get_meal_info(date, user_id)
     meal_statistic = {meal_type: get_meals_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    used_dates = diary_collection.aggregate([
+        {"$match": {"$expr": {"$gt": [{"$size": {"$filter": {"input": {"$objectToArray": "$meal_info"}, "as": "pair", "cond": {"$ne": ["$$pair.v", []]}}}}, 0]}}},
+        {"$project": {"date": 1, "_id": 0}}
+    ])
+
     template = templates.get_template('diary.html')
     content = template.render(
         user_id=user_id,
         date=format_date(date),
-        used_dates=get_used_dates(user_id),
+        used_dates=[format_date(date["date"]) for date in used_dates],
         copy_date=format_date(copy_date),
         meal_info=meal_info,
         names=constants.MEAL_TYPE_NAMES,
