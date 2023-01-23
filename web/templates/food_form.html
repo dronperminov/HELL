@@ -418,18 +418,22 @@
         saveButton.addEventListener('click', () => SaveFood())
         backButton.addEventListener('click', () => history.back())
 
-        {% if food and not back_url %}
-        let removeButton = document.getElementById("remove-button")
-        removeButton.addEventListener('click', () => RemoveFood())
-
+        {% if food %}
         {% for unit, value in food.conversions.items() %}
         AddConversion({unit: "{{unit}}", value: "{{value}}"})
         {% endfor %}
-        {% else %}
-        let urlButton = document.getElementById("url-button")
-        urlButton.addEventListener('click', () => ParseFatsecret())
+        {% endif %}
 
         InitConversions()
+
+        {% if food and not back_url %}
+        let removeButton = document.getElementById("remove-button")
+        removeButton.addEventListener('click', () => RemoveFood())
+        {% endif %}
+
+        {% if not food %}
+        let urlButton = document.getElementById("url-button")
+        urlButton.addEventListener('click', () => ParseFatsecret())
 
         let urlBox = document.getElementById("url-box")
         let urlClear = document.getElementById("url-clear")
