@@ -62,7 +62,7 @@
 
         <div class="form-row center">
             <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
-            {% if food %}
+            {% if food and not back_url %}
             <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
             {% endif %}
             <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
@@ -272,7 +272,7 @@
             let error = document.getElementById("save-error")
             error.innerText = ""
 
-            SendRequest("{{add_url}}", food).then((response) => {
+            SendRequest(`{{add_url}}{% if back_url %}?back_url=${encodeURIComponent("{{back_url}}")}{% endif %}`, food).then((response) => {
                 if (response.status != "ok") {
                     error.innerText = response.message
                     window.scrollTo({top: error.offsetTop, behavior: 'smooth'})
@@ -284,7 +284,7 @@
             })
         }
 
-        {% if food %}
+        {% if food and not back_url %}
         function RemoveFood() {
             let name = document.getElementById("name").value
             let error = document.getElementById("save-error")
@@ -418,7 +418,7 @@
         saveButton.addEventListener('click', () => SaveFood())
         backButton.addEventListener('click', () => history.back())
 
-        {% if food %}
+        {% if food and not back_url %}
         let removeButton = document.getElementById("remove-button")
         removeButton.addEventListener('click', () => RemoveFood())
 

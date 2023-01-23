@@ -339,7 +339,7 @@ async def add_food_post(request: Request):
 
 
 @app.get("/edit-food/{food_id}")
-def edit_food(food_id: str, food_query: str = Query(None), user_id: str = Depends(get_current_user)):
+def edit_food(food_id: str, food_query: str = Query(None), back_url: str = Query(None), user_id: str = Depends(get_current_user)):
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
     food = food_collection.find_one({"_id": ObjectId(food_id)})
     template = templates.get_template('food_form.html')
@@ -350,13 +350,14 @@ def edit_food(food_id: str, food_query: str = Query(None), user_id: str = Depend
         add_url=f"/edit-food/{food_id}",
         food=food,
         page="/edit-food",
-        query=food_query
+        query=food_query,
+        back_url=back_url
     )
     return HTMLResponse(content=html)
 
 
 @app.post("/edit-food/{food_id}")
-async def edit_food_post(food_id: str, request: Request):
+async def edit_food_post(food_id: str, request: Request, back_url: str = Query(None)):
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
 
     data = await request.json()
@@ -367,7 +368,8 @@ async def edit_food_post(food_id: str, request: Request):
         return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как продукт с названием \"{edited_food.name}\" уже существует"})
 
     food_collection.update_one({"_id": ObjectId(food_id)}, {"$set": edited_food.to_dict()})
-    return JSONResponse({"status": "ok", "href": f"/food-collection?food_query={edited_food.name[:25]}", "message": "Продукт успешно обновлён"})
+    href = back_url if back_url else f"/food-collection?food_query={edited_food.name[:25]}"
+    return JSONResponse({"status": "ok", "href": href, "message": "Продукт успешно обновлён"})
 
 
 @app.post("/remove-food")

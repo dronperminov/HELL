@@ -165,6 +165,7 @@ button:hover .food-name-group-icon {
     border-top: 1px solid var(--border-color);
     overflow: hidden;
     position: relative;
+    user-select: none;
 }
 
 .food-item-remove {
