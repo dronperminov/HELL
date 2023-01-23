@@ -42,13 +42,14 @@
                         <div class="meal-info-cell meal-fats"><span id="{{meal_type}}-meal-fats">{{meal_statistic[meal_type]["fats"]}}</span> г<br><sub>жиры</sub></div>
                         <div class="meal-info-cell meal-carbohydrates"><span id="{{meal_type}}-meal-carbohydrates">{{meal_statistic[meal_type]["carbohydrates"]}}</span> г<br><sub>углеводы</sub></div>
                     </div>
-                    <div class="meal-buttons">
-                        <button onclick="ToggleCopyMealType('{{meal_type}}')"><span class="fa fa-clone" id="{{meal_type}}-copy-icon"></span></button>
-                {% else %}
-                    <div class="meal-buttons">
                 {% endif %}
+                    <div class="meal-buttons">
                         <button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'"><span class="fa fa-plus"></span></button>
                     </div>
+                </div>
+
+                <div class="meal-actions no-display" id="{{meal_type}}-actions">
+                    {% if meal_statistic[meal_type]["foods"] %}<button onclick="ToggleCopyMealType('{{meal_type}}')"><span class="fa fa-clone" id="{{meal_type}}-copy-icon"></span></button>{% endif %}
                 </div>
 
                 <div class="meal-copy no-display" id="{{meal_type}}-copy">
@@ -151,8 +152,21 @@
                     foodEdit.classList.add('no-display')
         }
 
+        function EndActions() {
+            for (let mealItem of document.getElementsByClassName("meal-item")) {
+                let mealType = mealItem.getAttribute("data-meal-type")
+                ToggleCopyMealType(mealType, false)
+                ToggleMealActions(mealType, false)
+            }
+        }
+
         function ToggleMeal(mealItem, opened = null) {
             EndEditPortions()
+            EndActions()
+
+            let actions = mealItem.parentNode.getElementsByClassName('meal-actions')[0]
+            actions.classList.add("no-display")
+
             let foods = mealItem.parentNode.getElementsByClassName('foods')[0]
             let caret = mealItem.getElementsByClassName('meal-caret')
 
@@ -487,21 +501,55 @@
             swipe.onSwipe = () => RemoveMealGroup('{{date}}', mealType, groupId, false)
         }
 
-        function RemoveMealOnSwipe(mealItem) {
-            let mealType = mealItem.parentNode.getAttribute("data-meal-type")
-            let remove = mealItem.parentNode.getElementsByClassName("food-item-remove")[0]
+        function RemoveMealOnSwipe(mealData) {
+            let mealItem = mealData.parentNode
+            let mealType = mealItem.getAttribute("data-meal-type")
+            let remove = mealItem.getElementsByClassName("food-item-remove")[0]
 
-            let swipe = new Swipe(mealItem, remove)
-            swipe.onStart = () => ToggleMeal(mealItem, false)
+            let swipe = new Swipe(mealData, remove, mealData.classList.contains("meal-data-removable"))
+            swipe.onStart = () => ToggleMeal(mealData, false)
             swipe.onSwipe = () => RemoveMealType(mealType)
+            swipe.onPress = () => {
+                ToggleMeal(mealData, false)
+                ToggleMealActions(mealType)
+            }
         }
 
-        function ToggleCopyMealType(mealType) {
-            let icon = document.getElementById(`${mealType}-copy-icon`)
+        function ToggleMealActions(mealType, opened = null) {
+            let mealActions = document.getElementById(`${mealType}-actions`)
+            if (mealActions.children.length == 0)
+                return
+
+            if (opened === null)
+                mealActions.classList.toggle("no-display")
+            else if (opened)
+                mealActions.classList.remove("no-display")
+            else
+                mealActions.classList.add("no-display")
+        }
+
+        function ToggleCopyMealType(mealType, opened = null) {
             let copy = document.getElementById(`${mealType}-copy`)
-            copy.classList.toggle("no-display")
-            icon.classList.toggle("fa-clone")
-            icon.classList.toggle("fa-ban")
+            let icon = document.getElementById(`${mealType}-copy-icon`)
+
+            if (icon === null)
+                return
+
+            if (opened === null) {
+                copy.classList.toggle("no-display")
+                icon.classList.toggle("fa-clone")
+                icon.classList.toggle("fa-ban")
+            }
+            else if (opened) {
+                copy.classList.remove("no-display")
+                icon.classList.remove("fa-clone")
+                icon.classList.add("fa-ban")
+            }
+            else {
+                copy.classList.add("no-display")
+                icon.classList.add("fa-clone")
+                icon.classList.remove("fa-ban")
+            }
         }
 
         function CopyMealType(mealType, date) {
@@ -563,8 +611,7 @@
                 ToggleMeal(mealItem)
             })
 
-            if (mealItem.classList.contains("meal-data-removable"))
-                RemoveMealOnSwipe(mealItem)
+            RemoveMealOnSwipe(mealItem)
         }
 
         for (let groupItem of document.getElementsByClassName("food-item-group-data")) {
@@ -574,6 +621,14 @@
 
         for (let item of document.getElementsByClassName("food-item-data"))
             RemoveFoodItemOnSwipe(item)
+
+        document.addEventListener('click', (e) => {
+            let diary = document.getElementById("diary")
+            if (!diary.contains(e.target)) {
+                EndEditPortions()
+                EndActions()
+            }
+        })
 
         UpdateChart()
     </script>

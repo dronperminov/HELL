@@ -25,6 +25,7 @@
     font-size: 1.3rem;
     outline: none;
     max-width: calc(100% - 65px);
+    user-select: none;
 }
 
 .meal-type[contenteditable] {
@@ -73,6 +74,11 @@
 
 .meal-energy {
     width: 40%;
+}
+
+.meal-actions {
+    padding: 5px;
+    border-top: 1px solid var(--border-color);
 }
 
 .meal-copy {

@@ -1,6 +1,7 @@
-function Swipe(element, removeBlock, swipePart = 0.6) {
+function Swipe(element, removeBlock, canSwipe = true, swipePart = 0.6) {
     this.element = element
     this.removeBlock = removeBlock
+    this.canSwipe = canSwipe
     this.swipePart = swipePart
     this.isStarted = false
 
@@ -11,6 +12,7 @@ function Swipe(element, removeBlock, swipePart = 0.6) {
 
     this.onStart = () => {}
     this.onSwipe = () => {}
+    this.onPress = () => {}
 }
 
 Swipe.prototype.Swipe = function() {
@@ -24,6 +26,9 @@ Swipe.prototype.TouchStart = function(e) {
     this.startX = e.touches[0].clientX
     this.startY = e.touches[0].clientY
     this.element.classList.remove('swipe-animated')
+    this.pressTimeout = setTimeout(() => {
+        this.onPress()
+    }, 500)
 }
 
 Swipe.prototype.TouchMove = function(e) {
@@ -33,7 +38,11 @@ Swipe.prototype.TouchMove = function(e) {
     if (Math.abs(this.deltaX) < Math.abs(this.deltaY) && !this.isStarted)
         return
 
+    clearTimeout(this.pressTimeout)
     e.preventDefault()
+
+    if (!this.canSwipe)
+        return
 
     if (!this.isStarted) {
         this.onStart()
@@ -61,7 +70,9 @@ Swipe.prototype.CancelSwipe = function() {
 }
 
 Swipe.prototype.TouchEnd = function(e) {
-    if (!this.isStarted)
+    clearTimeout(this.pressTimeout)
+
+    if (!this.isStarted || !this.canSwipe)
         return
 
     this.isStarted = false
