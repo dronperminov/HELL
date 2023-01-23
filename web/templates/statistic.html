@@ -61,7 +61,7 @@
     </div>
 
     <div class="statistic">
-        <div class="statistic-name statistic-block-name" onclick="ToggleStatistic(this)"><span class="fa fa-caret-down"></span> Статистика по приёмам пищи</div>
+        <div class="statistic-name" onclick="ToggleStatistic(this)"><span class="fa fa-caret-down"></span> Статистика по приёмам пищи</div>
         <div class="statistic-block">
             {% for meal_type, meal_name in meal_types.items() %}
             <div class="statistic">
@@ -235,8 +235,8 @@
         {% for meal_type in meal_types %}PlotStatistic(CALORIES_MEAL_TYPE_DATA["{{meal_type}}"], "{{meal_type}}")
         {% endfor %}
 
-        for (let statisticBlockNameItem of document.getElementsByClassName("statistic-block-name"))
-            ToggleStatistic(statisticBlockNameItem)
+        for (let statisticBlockItem of document.getElementsByClassName("statistic-block"))
+            ToggleStatistic(statisticBlockItem.parentNode.children[0])
     </script>
     {% include "footer.html" %}
 </body>
