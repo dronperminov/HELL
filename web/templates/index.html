@@ -20,7 +20,7 @@
     <div class="date" id="date-picker"></div>
 
     <div class="parameters">
-        <div class="parameters-header">Мои текущие параметры</div>
+        <div class="parameters-header">Текущие параметры</div>
         <div class="no-parameters {% if user.body_parameters %}no-display{% endif %}" id="no-parameters">Пока что у вас нет ни одного отслеживаемого параметра</div>
         <div class="parameters-items" id="parameters-items">
         {% for parameter in user.body_parameters %}{% include "body_parameter.html" %}{% endfor %}
@@ -33,7 +33,7 @@
     </div>
 
     <div class="settings">
-        <div class="settings-header">Мои настройки</div>
+        <div class="settings-header">Настройки и действия</div>
         <div class="setting-row">
             <div class="setting-cell">
                 <label for="theme-select">Тема приложения:</label>
@@ -44,6 +44,9 @@
                     <option value="dark">тёмная</option>
                 </select>
             </div>
+        </div>
+        <div class="setting-row">
+            <button onclick="location.href='/update-password'"><span class="fa fa-key"></span> Сменить пароль</button>
         </div>
     </div>
     <script src="/js/constants.js"></script>

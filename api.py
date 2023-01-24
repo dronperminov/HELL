@@ -17,7 +17,7 @@ from pymongo import MongoClient
 from pymongo.errors import OperationFailure
 
 import constants
-from auth_utils import validate_password, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
+from auth_utils import validate_password, get_password_hash, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from entities.template import Template
@@ -92,6 +92,46 @@ def login(username: str = Form(...), password: str = Form(...)):
     if not validate_password(password, user['password_hash']):
         return JSONResponse({"status": "fail", "message": "Имя пользователя или пароль введены неверно"})
 
+    access_token = create_access_token(user["username"])
+    response = JSONResponse(content={"status": "ok", "token": access_token})
+    response.set_cookie(key="Authorization", value=access_token, httponly=True)
+    return response
+
+
+@app.get("/update-password")
+def update_password_get(user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return RedirectResponse(url="/", status_code=302)
+
+    template = templates.get_template('update_password.html')
+    return HTMLResponse(content=template.render(user_id=user_id))
+
+
+@app.post("/update-password")
+def update_password(
+        old_password: str = Body(..., embed=True),
+        password: str = Body(..., embed=True),
+        password_confirm: str = Body(..., embed=True),
+        user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь"})
+
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    user = user_collection.find_one({"_id": ObjectId(user_id)})
+
+    if not validate_password(old_password, user['password_hash']):
+        return JSONResponse({"status": "fail", "message": "Старый пароль введён неверно"})
+
+    if old_password == password:
+        return JSONResponse({"status": "fail", "message": "Новый пароль совпадает со старым"})
+
+    if password != password_confirm:
+        return JSONResponse({"status": "fail", "message": "Подтверждение пароля не совпадает"})
+
+    if len(password) < 8:
+        return JSONResponse({"status": "fail", "message": "Пароль должен состоять как мимимум из 8 символов"})
+
+    user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"password_hash": get_password_hash(password)}})
     access_token = create_access_token(user["username"])
     response = JSONResponse(content={"status": "ok", "token": access_token})
     response.set_cookie(key="Authorization", value=access_token, httponly=True)

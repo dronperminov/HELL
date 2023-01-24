@@ -154,6 +154,7 @@
     display: table;
     width: 100%;
     box-sizing: border-box;
+    margin-bottom: 10px;
 }
 
 .setting-cell {
@@ -165,4 +166,8 @@
 .setting-value {
     padding-left: 5px;
     width: 100%;
+}
+
+.setting-row a button {
+    color: unset;
 }
