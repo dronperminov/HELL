@@ -29,3 +29,4 @@ FREQUENT_MEAL_CLIP_COUNT = 15
 STATISTIC_KEYS = ["proteins", "fats", "carbohydrates", "energy"]
 
 PIECE_NAMES = ["штука", "бургер", "батончик", "ролл", "мороженое"]
+PORTION_NAMES = ["мерных скупа"]
