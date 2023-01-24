@@ -1,6 +1,7 @@
-function DatePicker(date, nodeId, onSelect, usedDates = null) {
+function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = true) {
     this.onSelect = onSelect
     this.usedDates = usedDates === null ? new Set() : new Set(usedDates)
+    this.needPrevNext = needPrevNext
 
     this.weekDays = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
     this.months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
@@ -14,13 +15,15 @@ function DatePicker(date, nodeId, onSelect, usedDates = null) {
     this.popup = this.MakeNode("div", "date-picker-popup", document.getElementsByTagName("body")[0])
 
     window.addEventListener('click', (e) => {   
-        if (!this.picker.contains(e.target))
+        if (!this.picker.contains(e.target)) {
             this.HideCalendar()
+            e.stopPropagation()
+        }
     })
 
     this.MakeControls(date)
     this.MakeCalendar()
-    this.MakeResetIcon()
+    this.MakeIcons()
     this.UpdateCalendar()
 }
 
@@ -162,20 +165,21 @@ DatePicker.prototype.StepDay = function(step) {
     this.onSelect(this.FormatDate(date, day))
 }
 
-DatePicker.prototype.ToggleCalendar = function() {
-    this.picker.classList.toggle("date-picker-opened")
-    this.popup.classList.toggle("date-picker-popup-show")
-}
-
 DatePicker.prototype.ShowCalendar = function() {
     this.picker.classList.add("date-picker-opened")
     this.popup.classList.add("date-picker-popup-show")
+    this.closeIcon.style.display = null
 }
 
 DatePicker.prototype.HideCalendar = function() {
     this.picker.classList.remove("date-picker-opened")
     this.popup.classList.remove("date-picker-popup-show")
+    this.closeIcon.style.display = "none"
     this.Reset()
+}
+
+DatePicker.prototype.IsOpened = function() {
+    return this.picker.classList.contains("date-picker-opened")
 }
 
 DatePicker.prototype.MakeControls = function(dateValue) {
@@ -186,12 +190,22 @@ DatePicker.prototype.MakeControls = function(dateValue) {
     this.prevMonth = this.MakeNode("span", "date-picker-control-icon date-picker-calendar-icon", controlLeft, {"innerHTML": "<span class='fa fa-angle-double-left'></span>"})
     this.prevMonth.addEventListener("click", () => this.StepMonth(-1))
 
-    this.prevDay = this.MakeNode("span", "date-picker-control-icon", controlLeft, {"innerHTML": "<span class='fa fa-angle-left'></span>"})
-    this.prevDay.addEventListener("click", () => this.StepDay(-1))
+    if (this.needPrevNext) {
+        let prevDay = this.MakeNode("span", "date-picker-control-icon", controlLeft, {"innerHTML": "<span class='fa fa-angle-left'></span>"})
+        prevDay.addEventListener("click", () => this.StepDay(-1))
+    }
 
     this.currDateInput = this.MakeNode("input", "", controlCenter, {"type": "text", "value": dateValue, "inputmode": "decimal"})
-    this.currDateInput.addEventListener("focus", () => this.ShowCalendar())
-    this.currDateInput.addEventListener("input", () => {this.currDateInput.classList.remove("error")})
+    this.currDateInput.addEventListener("focus", () => {
+        if (!this.IsOpened()) {
+            this.currDateInput.blur()
+            this.ShowCalendar()
+        }
+    })
+
+    this.currDateInput.addEventListener("input", () => {
+        this.currDateInput.classList.remove("error")
+    })
 
     this.currDateInput.addEventListener("keydown", (e) => {
         if (e.keyCode == 13) {
@@ -200,17 +214,23 @@ DatePicker.prototype.MakeControls = function(dateValue) {
         }
     })
 
-    this.nextDay = this.MakeNode("span", "date-picker-control-icon", controlRight, {"innerHTML": "<span class='fa fa-angle-right'></span>"})
-    this.nextDay.addEventListener("click", () => this.StepDay(1))
+    if (this.needPrevNext) {
+        let nextDay = this.MakeNode("span", "date-picker-control-icon", controlRight, {"innerHTML": "<span class='fa fa-angle-right'></span>"})
+        nextDay.addEventListener("click", () => this.StepDay(1))
+    }
 
     this.nextMonth = this.MakeNode("span", "date-picker-control-icon date-picker-calendar-icon", controlRight, {"innerHTML": "<span class='fa fa-angle-double-right'></span>"})
     this.nextMonth.addEventListener("click", () => this.StepMonth(1))
 }
 
-DatePicker.prototype.MakeResetIcon = function() {
+DatePicker.prototype.MakeIcons = function() {
     this.resetIcon = this.MakeNode("span", "date-picker-reset-icon fa fa-repeat", this.picker)
     this.resetIcon.style.display = "none"
     this.resetIcon.addEventListener("click", () => this.Reset())
+
+    this.closeIcon = this.MakeNode("span", "date-picker-close-icon fa fa-times", this.picker)
+    this.closeIcon.style.display = "none"
+    this.closeIcon.addEventListener("click", () => this.HideCalendar())
 }
 
 DatePicker.prototype.MakeCalendarCell = function() {
@@ -301,7 +321,10 @@ DatePicker.prototype.UpdateCalendarDays = function(calendarCell, dates) {
 
         if (!this.IsCurrent(dates, day)) {
             let date = this.FormatDate(dates.start, day)
-            daySpan.addEventListener("click", () => this.onSelect(date))
+            daySpan.addEventListener("click", (e) => {
+                this.onSelect(date)
+                e.stopPropagation()
+            })
         }
 
         if (day <= 0 || day > endDay)
@@ -333,4 +356,13 @@ DatePicker.prototype.UpdateCalendar = function() {
     this.nextDates = this.GetCalendarDates(`1.${month + 1}.${year}`)
     this.nextDates.curr = this.dates.curr
     this.UpdateCalendarDays(this.calendarCellNext, this.nextDates)
+}
+
+DatePicker.prototype.SetDate = function(date) {
+    this.initDate = this.GetCalendarDates(date).curr
+    this.HideCalendar()
+}
+
+DatePicker.prototype.GetDate = function() {
+    return this.currDateInput.value
 }

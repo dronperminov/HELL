@@ -3,8 +3,13 @@
     color: var(--success-color);
 }
 
-.date {
+.date .date-picker-controls {
+    padding: 5px 0;
     height: 40px;
+}
+
+.date .date-picker-controls-cell-date {
+    width: 100px;
 }
 
 .parameters {

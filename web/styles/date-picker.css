@@ -4,7 +4,6 @@
     width: fit-content;
     box-sizing: border-box;
     position: relative;
-    margin: 0 auto;
     --border: 2px solid var(--border-color);
 }
 
@@ -18,14 +17,24 @@
     color: var(--success-color);
 }
 
+.date-picker-close-icon {
+    position: absolute;
+    left: 10px;
+    top: 12px;
+}
+
+.date-picker-close-icon:hover {
+    color: var(--success-color);
+}
+
 .date-picker-popup {
     display: none;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: #000000b0;
+    background: #000000d0;
 }
 
 .date-picker-popup-show {
@@ -36,8 +45,6 @@
     display: table;
     width: 100%;
     box-sizing: border-box;
-    padding: 5px 0;
-    height: 40px;
 }
 
 .date-picker-controls-cell {
@@ -47,13 +54,13 @@
 }
 
 .date-picker-controls-cell-date {
-    width: 90px;
+    min-width: 90px;
     padding: 0 3px;
 }
 
 .date-picker-controls-cell-date input {
     text-align: center;
-    font-size: 1rem;
+    font-size: 1em;
 }
 
 .date-picker-controls-cell-left {
@@ -171,11 +178,28 @@
     margin: 0;
 }
 
+.date-picker-fixed .date-picker-opened {
+    min-width: 300px;
+    min-height: 260px;
+}
+
 .date-picker-opened .date-picker-controls {
+    padding: 5px 0;
+    height: 40px;
+
     border-left: var(--border);
     border-right: var(--border);
     border-top: var(--border);
     border-radius: 5px 5px 0 0;
+}
+
+.date-picker-opened .date-picker-controls-cell-date input {
+    text-align: center;
+    font-size: 1rem;
+}
+
+.date-picker-opened .date-picker-controls-cell-date {
+    width: 100px;
 }
 
 .date-picker-opened .date-picker-calendar-icon {

@@ -2,8 +2,12 @@
     
 }
 
-.diary-date {
+.diary-date .date-picker-controls {
     height: 40px;
+}
+
+.diary-date .date-picker-controls-cell-date {
+    width: 100px;
 }
 
 .meal-item {
@@ -79,6 +83,7 @@
 .meal-actions {
     padding: 5px;
     border-top: 1px solid var(--border-color);
+    background: var(--select-background-color);
 }
 
 .meal-action {
@@ -118,6 +123,7 @@
 
 .meal-copy-date {
     width: 75px;
+    font-size: 0.9em;
 }
 
 .meal-copy-type {

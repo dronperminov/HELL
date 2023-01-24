@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
     <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=3">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
 </head>
 <body>
@@ -64,7 +64,7 @@
                 <div class="meal-copy no-display" id="{{meal_type}}-copy">
                     <div class="meal-copy-header">Выберите дату и приём пищи для вставки:</div>
                     <div class="meal-copy-cells">
-                        <div class="meal-copy-cell meal-copy-date"><input type="text" id="{{meal_type}}-copy-date" value="{{copy_date}}"></div>
+                        <div class="meal-copy-cell meal-copy-date"><div class="date-picker-fixed" id="{{meal_type}}-copy-date"></div></div>
                         <div class="meal-copy-cell meal-copy-type">
                             <input type="text" list="{{meal_type}}-meal-types" id="{{meal_type}}-copy-meal" {% if meal_type in names %}value="{{names[meal_type]}}"{% endif %}>
                             <datalist id="{{meal_type}}-meal-types">
@@ -72,7 +72,7 @@
                             </datalist>
                         </div>
                         <div class="meal-copy-cell meal-copy-icon">
-                            <button onclick="CopyMealType('{{meal_type}}', '{{date}}')"><span class="fa fa-check"></span></button>
+                            <button onclick="CopyMealType('{{meal_type}}', '{{date}}', mealDatePicker{{loop.index}})"><span class="fa fa-check"></span></button>
                         </div>
                     </div>
                     <div class="error-center" id="{{meal_type}}-copy-error"></div>
@@ -139,6 +139,10 @@
 
     <script>
         let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/diary?date=${date}`, [{% for date in used_dates %}"{{date}}", {% endfor %}])
+
+        {% for meal_type in meal_info %}
+        let mealDatePicker{{loop.index}} = new DatePicker("{{copy_date}}", "{{meal_type}}-copy-date", (date) => mealDatePicker{{loop.index}}.SetDate(date), null, false)
+        {% endfor %}
 
         function StatEditPortion(foodItem, mealId) {
             let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
@@ -497,7 +501,7 @@
             let mealId = foodItem.parentNode.id.replace("food-item-", "")
             let remove = foodItem.parentNode.getElementsByClassName("food-item-remove")[0]
 
-            let swipe = new Swipe(foodItem, remove)
+            let swipe = new Swipe(foodItem, remove, true, 0.6, 1000)
             swipe.onStart = () => EndEditPortions()
             swipe.onSwipe = () => RemoveMeal('{{date}}', mealType, mealId, false)
             swipe.onPress = () => location.href = `/edit-food/${foodId}?back_url=${encodeURIComponent(location.href)}`
@@ -546,9 +550,12 @@
         function ToggleCopyMealType(mealType, opened = null) {
             let copy = document.getElementById(`${mealType}-copy`)
             let icon = document.getElementById(`${mealType}-copy-icon`)
+            let error = document.getElementById(`${mealType}-copy-error`)
 
             if (icon === null)
                 return
+
+            error.innerText = ""
 
             if (opened === null) {
                 copy.classList.toggle("no-display")
@@ -567,12 +574,11 @@
             }
         }
 
-        function CopyMealType(mealType, date) {
-            let dateInput = document.getElementById(`${mealType}-copy-date`)
+        function CopyMealType(mealType, date, mealDatePicker) {
             let mealInput = document.getElementById(`${mealType}-copy-meal`)
             let errorDiv = document.getElementById(`${mealType}-copy-error`)
 
-            let pasteDate = ParseDate(dateInput.value)
+            let pasteDate = ParseDate(mealDatePicker.GetDate())
             let pasteMealType = mealInput.value.trim()
             mealInput.value = pasteMealType
 
@@ -580,7 +586,6 @@
 
             if (pasteDate === null) {
                 errorDiv.innerText = "Неверно введена дата"
-                dateInput.focus()
                 return
             }
 

@@ -1,8 +1,9 @@
-function Swipe(element, removeBlock, canSwipe = true, swipePart = 0.6) {
+function Swipe(element, removeBlock, canSwipe = true, swipePart = 0.6, pressTime = 750) {
     this.element = element
     this.removeBlock = removeBlock
     this.canSwipe = canSwipe
     this.swipePart = swipePart
+    this.pressTime = pressTime
     this.isStarted = false
 
     this.element.addEventListener('touchstart', (e) => this.TouchStart(e))
@@ -28,17 +29,19 @@ Swipe.prototype.TouchStart = function(e) {
     this.element.classList.remove('swipe-animated')
     this.pressTimeout = setTimeout(() => {
         this.onPress()
-    }, 500)
+    }, this.pressTime)
 }
 
 Swipe.prototype.TouchMove = function(e) {
     this.deltaX = e.touches[0].clientX - this.startX
     this.deltaY = e.touches[0].clientY - this.startY
 
+    if (Math.abs(this.deltaX) > 5 || Math.abs(this.deltaY) > 5)
+        clearTimeout(this.pressTimeout)
+
     if (Math.abs(this.deltaX) < Math.abs(this.deltaY) && !this.isStarted)
         return
 
-    clearTimeout(this.pressTimeout)
     e.preventDefault()
 
     if (!this.canSwipe)
