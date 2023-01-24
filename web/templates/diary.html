@@ -173,11 +173,15 @@
             EndEditPortions()
             EndActions()
 
+
             let actions = mealItem.parentNode.getElementsByClassName('meal-actions')[0]
             actions.classList.add("no-display")
 
             let foods = mealItem.parentNode.getElementsByClassName('foods')[0]
             let caret = mealItem.getElementsByClassName('meal-caret')
+
+            for (let groupItem of foods.getElementsByClassName("food-item-group-data"))
+                ToggleMealGroup(groupItem, false)
 
             if (opened === null)
                 foods.classList.toggle('no-display')
