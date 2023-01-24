@@ -121,7 +121,7 @@ def get_body_parameters(user_id: str, date: datetime) -> Tuple[List[datetime], L
     parameters = {}
 
     for parameter_doc in parameter_docs:
-        values = [{"date": format_date(parameter["date"]), "value": d2s(Decimal(str(parameter["value"])), 100)} for parameter in parameter_doc["values"]]
+        values = [{"date": format_date(parameter["date"]), "value": d2s(Decimal(str(parameter["value"])))} for parameter in parameter_doc["values"]]
         parameters[parameter_doc["_id"]] = sorted(values, key=lambda value_item: parse_date(value_item["date"]))
 
     return used_dates, parameters
@@ -285,7 +285,7 @@ def get_frequent_foods(meal_type: str, user_id: str) -> list:
         {"$sort": {"order": 1}}
     ])
 
-    return list(food_items)
+    return [normalize_statistic(food_item) for food_item in food_items]
 
 
 @app.get("/food-collection")
@@ -348,7 +348,7 @@ def edit_food(food_id: str, food_query: str = Query(None), back_url: str = Query
         title="Редактирование продукта",
         add_text="Обновить продукт",
         add_url=f"/edit-food/{food_id}",
-        food=food,
+        food=normalize_statistic(food),
         page="/edit-food",
         query=food_query,
         back_url=back_url
@@ -403,13 +403,13 @@ def get_editable_template(template: Template, template_id = ""):
 
     for food_item in food_items:
         meal_items.append({
-            "portion_size": d2s(meal_info[food_item["_id"]].portion_size, 100),
+            "portion_size": d2s(meal_info[food_item["_id"]].portion_size),
             "portion_unit": f'{meal_info[food_item["_id"]].portion_unit}',
             "name": food_item["name"],
             "description": food_item["description"],
             "id": str(food_item["_id"]),
             "conversions": {f'{unit}': d2s(value, 100) for unit, value in food_item["conversions"].items()},
-            **{key: d2s(value, 100) for key, value in food_item.items() if key in constants.STATISTIC_KEYS}
+            **{key: d2s(value) for key, value in food_item.items() if key in constants.STATISTIC_KEYS}
         })
 
     template_data = {
