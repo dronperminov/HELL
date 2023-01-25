@@ -1,7 +1,5 @@
 {% set data = body_parameters.get(parameter.name, [{"value": ""}]) %}
 {% if data[-1]["date"] == date %}{% set value = data[-1]["value"] %}{% else %}{% set value = "" %}{% endif %}
-{% set start_date = data[0]["date"] %}
-{% set end_date = data[-1]["date"] %}
 
 <div class="parameter" id="parameter-{{parameter.name}}">
     <div class="remove" style="opacity: 0">
@@ -31,19 +29,13 @@
                     <option value="period">период</option>
                 </select>
 
-                <div class="parameter-period-input no-display" id="parameter-{{parameter.name}}-dates">
-                    <div class="parameter-period-input-cell">с</div>
-                    <div class="parameter-period-input-cell"><input type="text" value="{{start_date}}" id="parameter-{{parameter.name}}-start-date"></div>
-                    <div class="parameter-period-input-cell">по</div>
-                    <div class="parameter-period-input-cell"><input type="text" value="{{end_date}}" id="parameter-{{parameter.name}}-end-date"></div>
-                </div>
-
                 <div class="error-center" id="parameter-{{parameter.name}}-period-error"></div>
             </div>
             <div class="parameter-button">
                 <button onclick="ChangeParameterPeriod('{{parameter.name}}')">Показать</button>
             </div>
         </div>
+        <div class="parameter-period-input no-display" id="parameter-{{parameter.name}}-dates"></div>
         <div class="parameter-plot-info" id="parameter-{{parameter.name}}-plot-info"></div>
         <div class="parameter-plot-svg">
             <svg id="parameter-{{parameter.name}}-svg"></svg>

@@ -147,14 +147,18 @@ DatePicker.prototype.Reset = function() {
         this.startDateInput.value = startDate
         this.endDateInput.value = endDate
         this.range = {start: startDate, end: endDate}
+
         this.startDateInput.classList.remove("error")
+        this.startDateInput.blur()
         this.endDateInput.classList.remove("error")
+        this.endDateInput.blur()
     }
     else {
         let date = this.FormatDate(this.initDate)
         this.dates = this.GetCalendarDates(date)
         this.currDateInput.value = date
         this.currDateInput.classList.remove("error")
+        this.currDateInput.blur()
     }
 
     this.resetIcon.style.display = "none"
@@ -475,7 +479,7 @@ DatePicker.prototype.UpdateCalendarDays = function(calendarCell, dates) {
                 dayDiv.classList.add("date-picker-calendar-day-selected")
             }
 
-            if (date == this.range.start && this.range.end == null)
+            if (date == this.range.start && (this.range.end == null || this.range.start == this.range.end))
                 dayDiv.classList.add("date-picker-calendar-day-selected-start-end")
             else {
                 if (date == this.range.start)

@@ -65,6 +65,18 @@
         ]
         {% endfor %}
 
+        let parameterDatePickers = {
+        {% for parameter in user.body_parameters %}
+        {% set data = body_parameters.get(parameter.name, [{"value": ""}]) %}
+        {% set start_date = data[0]["date"] %}
+        {% set end_date = data[-1]["date"] %}
+        "{{parameter.name}}": new DatePicker("{{start_date}}-{{end_date}}", "parameter-{{parameter.name}}-dates", (date) => {
+            parameterDatePickers["{{parameter.name}}"].SetDate(date)
+            parameterDatePickers["{{parameter.name}}"].UpdateCalendar()
+        }, parametersData["{{parameter.name}}"].map((item) => item.date), false),
+        {% endfor %}
+        }
+
         function HaveParameterName(name) {
             for (let nameSpan of document.getElementsByClassName("parameter-name"))
                 if (nameSpan.innerText.trim().toLowerCase() == name.trim().toLowerCase())
@@ -385,8 +397,6 @@
 
         function GetPlotPeriod(name) {
             let period = document.getElementById(`parameter-${name}-period`).value
-            let startDateInput = document.getElementById(`parameter-${name}-start-date`)
-            let endDateInput = document.getElementById(`parameter-${name}-end-date`)
 
             let today = new Date()
             let year = today.getFullYear()
@@ -401,8 +411,9 @@
                 endDate = parametersData[name][parametersData[name].length - 1]["date"]
             }
             else if (period == "period") {
-                startDate = ParseDate(startDateInput.value)
-                endDate = ParseDate(endDateInput.value)
+                [startDate, endDate] = parameterDatePickers[name].GetDate().split('-')
+                startDate =ParseDate(startDate)
+                endDate = ParseDate(endDate)
             }
             else if (period == "month") {
                 startDate = FormatDate(1, month, year)
@@ -418,47 +429,12 @@
                 endDate = FormatDate(day, month, year)
             }
 
-            if (startDate !== null)
-                startDateInput.value = startDate
-
-            if (endDate !== null)
-                endDateInput.value = endDate
-
             return {startDate, endDate}
         }
 
         function ChangeParameterPeriod(name) {
-            let startDateInput = document.getElementById(`parameter-${name}-start-date`)
-            let endDateInput = document.getElementById(`parameter-${name}-end-date`)
-            let periodError = document.getElementById(`parameter-${name}-period-error`)
             let period = document.getElementById(`parameter-${name}-period`).value
             let {startDate, endDate} = this.GetPlotPeriod(name)
-
-            periodError.innerText = ''
-
-            if (period == "period") {
-                if (startDate == null) {
-                    periodError.innerText = "Начальная дата введена некорректно"
-                    startDateInput.focus()
-                    startDateInput.select()
-                    return
-                }
-
-                if (endDate == null) {
-                    periodError.innerText = "Конечная дата введена некорректно"
-                    endDateInput.focus()
-                    endDateInput.select()
-                    return
-                }
-
-                if (!ValidateInterval(startDate, endDate)) {
-                    periodError.innerText = "Введён некорректный интервал: дата начала должна быть не больше конечной"
-                    startDateInput.focus()
-                    startDateInput.select()
-                    return
-                }
-            }
-
             BuildPlot(name)
         }
 
