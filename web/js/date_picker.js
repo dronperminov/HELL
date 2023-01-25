@@ -299,7 +299,7 @@ DatePicker.prototype.ClickOnDay = function(date) {
 
 DatePicker.prototype.MakeControls = function(dateValue) {
     let controlLeft = this.MakeNode("div", "date-picker-controls-cell date-picker-controls-cell-left", this.controls)
-    let controlCenter = this.MakeNode("div", "date-picker-controls-cell date-picker-controls-cell-date", this.controls)
+    let controlCenter = this.MakeNode("div", `date-picker-controls-cell date-picker-controls-cell-date${this.isRange ? " date-picker-controls-cell-range-date" : ""}`, this.controls)
     let controlRight = this.MakeNode("div", "date-picker-controls-cell date-picker-controls-cell-right", this.controls)
 
     this.prevMonth = this.MakeNode("span", "date-picker-control-icon date-picker-calendar-icon", controlLeft, {"innerHTML": "<span class='fa fa-angle-double-left'></span>"})

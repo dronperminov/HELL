@@ -283,7 +283,7 @@
     border-radius: 0 0 5px 5px;
 }
 
-.date-picker-opened .date-picker-controls-cell-date {
+.date-picker-opened .date-picker-controls-cell-range-date {
     width: 210px !important;
 }
 
