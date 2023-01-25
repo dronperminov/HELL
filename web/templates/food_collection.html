@@ -28,14 +28,14 @@
         </div>
 
         <div class="food-search-button">
-            <button type="submit"><span class="fa fa-search"></span></button>
+            <button type="submit" id="submit"><span class="fa fa-search"></span></button>
         </div>
     </form>
 
     <div class="food-search-results" id="food-search-results">
         {% if food_items == [] %}
             {% if query %}
-            <p>По запросу <i>"{{query}}"</i> продуктов не найдено...</p>
+            <p>По запросу <i>"{{query.replace("<", "&lt;").replace(">", "&gt;")}}"</i> продуктов не найдено...</p>
             <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
             {% elif frequent_food_items %}
             <div class="frequent-food">
@@ -53,6 +53,18 @@
             <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить продукт</button>
 
             <button onclick="location.href='/add-template?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить шаблон</button>
+        </div>
+
+        <div class="food-search-info">
+            <b>Как искать?</b><br>
+            Сейчас поиск использует обычное регулярное выражение из экранированного запроса. Однако есть дополнительные опции:<br>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<F>')">&lt;F&gt;</a></b> — показать все продукты;</div>
+            {% if user_id %}
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<T>')">&lt;T&gt;</a></b> — показать все доступные шаблоны;</div>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<t>')">&lt;t&gt;</a></b> — показать все созданные шаблоны;</div>
+            {% endif %}
+
+            <div class="food-search-info-list">Я постараюсь в ближайшее время сделать поиск более умным и удобным.</div>
         </div>
     </div>
 
@@ -73,6 +85,13 @@
         {% else %}
             location.href = `/edit-template/${templateId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
+        }
+
+        function SetQuery(query) {
+            let queryInput = document.getElementById("food-query")
+            let submit = document.getElementById("submit")
+            queryInput.value = query
+            submit.click()
         }
 
         {% if date and meal_type %}

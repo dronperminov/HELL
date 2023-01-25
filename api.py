@@ -23,6 +23,7 @@ from entities.meal_item import MealItem
 from entities.template import Template, TemplateAvailability
 from fatsecret_parser import FatSecretParser
 from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
+from search import Search
 
 app = FastAPI()
 app.mount("/styles", StaticFiles(directory="web/styles"))
@@ -33,6 +34,7 @@ templates = Environment(loader=FileSystemLoader('web/templates'), cache_size=0)
 
 mongo = MongoClient(constants.MONGO_URL)
 database = mongo[constants.MONGO_DATABASE]
+search = Search(mongo)
 
 
 async def token_to_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT"))) -> Optional[str]:
@@ -263,90 +265,13 @@ def remove_body_parameter_value(date: str = Body(..., embed=True), name: str = B
     return JSONResponse({"status": "ok"})
 
 
-def get_food_by_query(query: Optional[str], user_id: Optional[str] = None) -> list:
-    if not query:
-        return []
-
-    try:
-        query = re.escape(query)
-        food_collection = database[constants.MONGO_FOOD_COLLECTION]
-        food_items = list(food_collection.find({"name": {"$regex": query, "$options": "i"}}))
-        food_items = [normalize_statistic(food_item) for food_item in food_items]
-
-        if not user_id:
-            return food_items
-
-        template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
-        # TODO: add friends
-        templates = list(template_collection.find({
-            "name": {"$regex": query, "$options": "i"},
-            "$or": [
-                {"creator_id": ObjectId(user_id)},
-                {"availability": f"{TemplateAvailability.users}"}
-            ]
-        }))
-
-        user_collection = database[constants.MONGO_USER_COLLECTION]
-        user_ids = list({template["creator_id"] for template in templates})
-        users = user_collection.find({"_id": {"$in": user_ids}}, {"username": 1, "_id": 1})
-        users = {user["_id"]: user["username"] for user in users}
-
-        for template in templates:
-            set_template_statistic(template)
-            template["creator_username"] = users[template["creator_id"]]
-
-        food_items.extend(templates)
-        food_items.sort(key=lambda food_item: food_item["name"])
-
-        return food_items
-    except OperationFailure:
-        return []
-
-
-def get_frequent_foods(meal_type: str, user_id: str) -> list:
-    pipeline = []
-
-    if meal_type in constants.MEAL_TYPES:
-        pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
-        pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "_id": 0}})
-    else:
-        pipeline.append({"$project": {"meal_info": {"$objectToArray": "$meal_info"}}})
-        pipeline.append({"$unwind": "$meal_info"})
-        pipeline.append({"$project": {"meal_id": "$meal_info.v", "_id": 0}})
-
-    pipeline.append({"$unwind": "$meal_id"})
-
-    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
-    documents = diary_collection.aggregate(pipeline)
-
-    meal_ids = [document["meal_id"] for document in documents]
-    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
-    documents = meal_collection.aggregate([
-        {"$match": {"_id": {"$in": meal_ids}}},
-        {"$group": {"_id": "$food_id", "count": {"$sum": 1}}},
-        {"$match": {"count": {"$gte": constants.FREQUENT_MEAL_MIN_COUNT}}},
-        {"$sort": {"count": -1}},
-        {"$limit": constants.FREQUENT_MEAL_CLIP_COUNT}
-    ])
-
-    food_ids = [document["_id"] for document in documents]
-    food_collection = database[constants.MONGO_FOOD_COLLECTION]
-    food_items = food_collection.aggregate([
-        {"$match": {"_id": {"$in": food_ids}}},
-        {"$addFields": {"order": {"$indexOfArray": [food_ids, "$_id"]}}},
-        {"$sort": {"order": 1}}
-    ])
-
-    return [normalize_statistic(food_item) for food_item in food_items]
-
-
 @app.get("/food-collection")
 def food_collection_get(food_query: str = Query(None), user_id: str = Depends(get_current_user)):
     if food_query is not None and not food_query:
         return RedirectResponse(url="/food-collection", status_code=302)
 
     food_query = food_query.strip() if food_query else None
-    food_items = get_food_by_query(food_query, user_id)
+    food_items = search.search(food_query, user_id)
     template = templates.get_template('food_collection.html')
     html = template.render(user_id=user_id, food_items=food_items, query=food_query, page="/food-collection")
     return HTMLResponse(content=html)
@@ -355,7 +280,7 @@ def food_collection_get(food_query: str = Query(None), user_id: str = Depends(ge
 @app.post("/food-collection")
 def food_collection_post(food_query: str = Body(..., embed=True)):
     food_query = food_query.strip() if food_query else None
-    food_items = get_food_by_query(food_query)
+    food_items = search.search(food_query)
     food_items = [FoodItem.from_dict(food_item).to_json() for food_item in food_items]
     food_items = add_default_unit(food_items)
     return JSONResponse(food_items)
@@ -595,13 +520,14 @@ async def edit_template_post(template_id: str, request: Request, user_id: str = 
         if not original_template:
             return JSONResponse({"status": "fail", "message": "Не удалось обновить шаблон, так как его больше не существует"})
 
+        original_template = Template.from_dict(original_template)
         data = await request.json()
         edited_template = Template.from_dict(data)
 
-        if TemplateAvailability(original_template["availability"]) == TemplateAvailability.me and edited_template.creator_id != user_id:
+        if original_template.availability == TemplateAvailability.me and edited_template.creator_id != user_id:
             return JSONResponse({"status": "fail", "message": "Этот шаблон недоступен для редактирования по решению автора"})
 
-        if original_template["name"] != edited_template.name and list(template_collection.find({"name": edited_template.name, "creator_id": edited_template.creator_id})):
+        if original_template.name != edited_template.name and list(template_collection.find({"name": edited_template.name, "creator_id": edited_template.creator_id})):
             return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как шаблон с названием \"{edited_template.name}\" уже существует"})
 
         template_collection.update_one({"_id": ObjectId(template_id)}, {"$set": edited_template.to_dict()})
@@ -696,24 +622,6 @@ def get_meals_statistic(meal_ids: Iterable[ObjectId], with_food: bool = True) ->
     return statistic
 
 
-def set_template_statistic(template: dict) -> dict:
-    food_collection = database[constants.MONGO_FOOD_COLLECTION]
-
-    for key in constants.STATISTIC_KEYS:
-        template[key] = Decimal("0")
-
-    for meal_item in template["meal_items"]:
-        meal = MealItem.from_dict(meal_item)
-        food = food_collection.find_one({"_id": ObjectId(meal.food_id)})
-        food_item = FoodItem.from_dict(food)
-        food_portion = food_item.make_portion(meal.portion_size, meal.portion_unit)
-
-        for key in constants.STATISTIC_KEYS:
-            template[key] += food_portion[key]
-
-    return normalize_statistic(template)
-
-
 def get_meal_statistic(foods: List[dict]) -> dict:
     statistic = {}
 
@@ -788,8 +696,8 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
         return unauthorized_access("/diary")
 
     food_query = food_query.strip() if food_query else None
-    food_items = get_food_by_query(food_query, user_id)
-    frequent_food_items = get_frequent_foods(meal_type, user_id) if not food_query else []
+    food_items = search.search(food_query, user_id)
+    frequent_food_items = search.get_frequent_foods(meal_type, user_id) if not food_query else []
 
     template = templates.get_template('food_collection.html')
     html = template.render(

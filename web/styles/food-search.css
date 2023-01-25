@@ -43,3 +43,13 @@
 .food-search-results {
     margin-bottom: 5px
 }
+
+.food-search-info {
+    margin-top: 10px;
+    color: var(--disabled-color);
+    font-size: 0.9rem;
+}
+
+.food-search-info-list {
+    margin-top: 5px;
+}
