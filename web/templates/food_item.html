@@ -1,5 +1,6 @@
+{% set is_template = "meal_items" in food_item %}
 <div class="food-item" id="{{food_item._id}}">
-    {% if "meal_items" in food_item %}
+    {% if is_template %}
     <div class="food-data" onclick="ClickTemplateItem('{{food_item._id}}')">
         <div class="food-name"><span class="food-name-icon"></span> {{food_item.name}}</div>
     {% else %}
@@ -7,8 +8,12 @@
         <div class="food-name">{{food_item.name}}</div>
     {% endif %}
         <div class="food-description">{{food_item.description.replace("<", "&lt;").replace(">", "&gt;")}}</div>
+    {% if is_template and user_id != food_item.creator_id|string %}
+        <div class="food-creator">Автор: <i>{{food_item.creator_username}}</i></div>
+    {% endif %}
+
         <div class="food-info">
-            <div class="food-info-cell food-energy">{{food_item.energy}} ккал{% if "meal_items" not in food_item %} / {{food_item.portion}}{% endif %}</div>
+            <div class="food-info-cell food-energy">{{food_item.energy}} ккал{% if not is_template %} / {{food_item.portion}}{% endif %}</div>
             <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>
             <div class="food-info-cell food-fats">Ж{{food_item.fats}} г</div>
             <div class="food-info-cell food-carbohydrates">У{{food_item.carbohydrates}} г</div>
@@ -16,7 +21,7 @@
     </div>
 
     {% if date and meal_type %}
-    {% if "meal_items" in food_item %}
+    {% if is_template %}
     <div class="food-portion-edit no-display" data-default-value="{{food_item.default_value}}">
     {% else %}
     <div class="food-portion-edit no-display" data-default-unit="{{food_item.default_unit}}" data-default-value="{{food_item.default_value}}">
@@ -27,7 +32,7 @@
                 <input id="{{food_item._id}}-portion-size" type="number" value="{{food_item.default_value}}">
             </div>
 
-            {% if "meal_items" not in food_item %}
+            {% if not is_template %}
             <div class="food-portion-unit">
                 <select id="{{food_item._id}}-portion-unit">
                     {% for unit in food_item.conversions %}
@@ -38,7 +43,7 @@
             {% endif %}
 
             <div class="food-portion-change">
-                {% if "meal_items" in food_item %}
+                {% if is_template %}
                 <button onclick="AddMealTemplate('{{date}}', '{{meal_type}}', '{{food_item._id}}')">
                 {% else %}
                 <button onclick="AddMeal('{{date}}', '{{meal_type}}', '{{food_item._id}}')">

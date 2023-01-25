@@ -11,19 +11,30 @@
 </head>
 <body>
     {% include "menu.html" %}
+    {% set can_remove = template and template.id and user_id == template.creator_id %}
     {% if user_id %}<button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
     <div class="template">
         <div class="form-row">
-            <label>Название шаблона:
+            <label>Название:
                 <input type="text" id="name" {% if template %}value="{{template.name}}"{% endif %}>
             </label>
             <div class="error-center" id="name-error"></div>
         </div>
 
         <div class="form-row">
-            <label>Описание шаблона:</label>
+            <label>Описание:</label>
             <div class="contenteditable" contenteditable id="description">{% if template %}{{template.description.replace("<", "&lt;").replace(">", "&gt;")}}{% endif %}</div>
             <div class="error-center" id="name-error"></div>
+        </div>
+
+        <div class="form-row{% if template and user_id != template.creator_id %} no-display{% endif %}">
+            <label>Доступность:
+                <select id="availability" {% if template and user_id != template.creator_id %}disabled{% endif %}>
+                    <option value="me"{% if template and template.availability == "me"%}selected{% endif %}>только мне</option>
+                    <!-- <option value="friends"{% if template and template.availability == "friends"%}selected{% endif %}>только друзьям</option> -->
+                    <option value="users"{% if template and template.availability == "users"%}selected{% endif %}>всем пользователям</option>
+                </select>
+            </label>
         </div>
 
         <div class="form-row">
@@ -35,7 +46,7 @@
             
         <div class="form-row center">
             <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
-            {% if template and template.id %}
+            {% if can_remove %}
             <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
             {% endif %}
             <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
@@ -153,7 +164,7 @@
             return foodItems
         }
 
-        {% if template and template.id %}
+        {% if can_remove %}
         function RemoveTemplate() {
             let name = document.getElementById("name").value
             let error = document.getElementById("meals-error")
@@ -202,11 +213,18 @@
             let data = {
                 name: name,
                 description: document.getElementById("description").innerText,
+                availability: document.getElementById("availability").value,
                 meal_items: foodItems
             }
             {% if date and meal_type %}
             data.date = "{{date}}"
             data.meal_type = "{{meal_type}}"
+            {% endif %}
+
+            {% if template %}
+            data.creator_id = "{{template.creator_id}}"
+            {% else %}
+            data.creator_id = "{{user_id}}"
             {% endif %}
 
             SendRequest("{{add_url}}", data).then((response) => {
@@ -248,7 +266,7 @@
         let saveButton = document.getElementById("save-button")
         saveButton.addEventListener('click', () => SaveTemplate())
 
-        {% if template and template.id %}
+        {% if can_remove %}
         let removeButton = document.getElementById("remove-button")
         removeButton.addEventListener('click', () => RemoveTemplate())
         {% endif %}

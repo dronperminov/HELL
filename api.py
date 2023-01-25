@@ -20,7 +20,7 @@ import constants
 from auth_utils import validate_password, get_password_hash, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
-from entities.template import Template
+from entities.template import Template, TemplateAvailability
 from fatsecret_parser import FatSecretParser
 from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 
@@ -67,9 +67,9 @@ def unauthorized_access(url: str) -> Response:
     return RedirectResponse("/login", status_code=302)
 
 
-def error_page(error_text) -> Response:
+def error_page(error_text: str, user_id: str) -> Response:
     template = templates.get_template('error.html')
-    return HTMLResponse(template.render(error_text=error_text))
+    return HTMLResponse(template.render(error_text=error_text, user_id=user_id))
 
 
 @app.get("/login")
@@ -277,11 +277,23 @@ def get_food_by_query(query: Optional[str], user_id: Optional[str] = None) -> li
             return food_items
 
         template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
-        templates = list(template_collection.find({"name": {"$regex": query, "$options": "i"}}))
-        # templates = list(template_collection.find({"name": {"$regex": query, "$options": "i"}, "creator_id": ObjectId(user_id)}))
+        # TODO: add friends
+        templates = list(template_collection.find({
+            "name": {"$regex": query, "$options": "i"},
+            "$or": [
+                {"creator_id": ObjectId(user_id)},
+                {"availability": f"{TemplateAvailability.users}"}
+            ]
+        }))
+
+        user_collection = database[constants.MONGO_USER_COLLECTION]
+        user_ids = list({template["creator_id"] for template in templates})
+        users = user_collection.find({"_id": {"$in": user_ids}}, {"username": 1, "_id": 1})
+        users = {user["_id"]: user["username"] for user in users}
 
         for template in templates:
             set_template_statistic(template)
+            template["creator_username"] = users[template["creator_id"]]
 
         food_items.extend(templates)
         food_items.sort(key=lambda food_item: food_item["name"])
@@ -432,7 +444,7 @@ def remove_food(food_id: str = Body(..., embed=True)):
     return JSONResponse({"status": "ok"})
 
 
-def get_editable_template(template: Template, template_id = ""):
+def get_editable_template(template: Template, template_id: str = ""):
     food_ids = template.get_food_ids()
     food_id_positions = {food_id: i for i, food_id in enumerate(food_ids)}
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
@@ -456,7 +468,9 @@ def get_editable_template(template: Template, template_id = ""):
         "id": template_id,
         "name": template.name,
         "description": template.description,
-        "meal_items": meal_items
+        "availability": f"{template.availability}",
+        "meal_items": meal_items,
+        "creator_id": template.creator_id
     }
 
     return template_data
@@ -489,17 +503,17 @@ def create_template(date: str = Query(None), meal_type: str = Query(None), user_
     diary_doc = diary_collection.find_one({"date": parse_date(date)})
 
     if not diary_doc:
-        return error_page(f"Не удалось создать шаблон, так как в дневнике нет записей за {date}")
+        return error_page(f"Не удалось создать шаблон, так как в дневнике нет записей за {date}", user_id)
 
     meal_ids = diary_doc["meal_info"].get(meal_type, [])
 
     if len(meal_ids) == 0:
-        return error_page(f"Не удалось создать шаблон, так как в дневнике за {date} нет записей на этот приём пищи")
+        return error_page(f"Не удалось создать шаблон, так как в дневнике за {date} нет записей на этот приём пищи", user_id)
 
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meals = [MealItem.from_dict(meal_item) for meal_item in meal_collection.find({"_id": {"$in": meal_ids}})]
 
-    template = Template("", "", meals, str(user_id))
+    template = Template("", "", meals, TemplateAvailability.me, str(user_id))
     template_data = get_editable_template(template)
 
     template = templates.get_template('template_form.html')
@@ -521,12 +535,11 @@ async def add_template_post(request: Request, user_id: str = Depends(get_current
         return JSONResponse({"status": "fail", "message": "Не удалось добавить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
     data = await request.json()
-    data["creator_id"] = ObjectId(user_id)
     template = Template.from_dict(data)
 
     template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
     if template_collection.find_one({"name": template.name, "creator_id": ObjectId(user_id)}):
-        return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить, так как продукт с названием \"{template.name}\" уже существует"})
+        return JSONResponse({"status": "FAIL", "message": f"Не удалось добавить, так как шаблон с названием \"{template.name}\" уже существует"})
 
     food_ids = [ObjectId(meal_item.food_id) for meal_item in template.meal_items]
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
@@ -546,8 +559,16 @@ def edit_template(template_id: str, food_query: str = Query(None), user_id: str 
         return unauthorized_access("/")
 
     template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
-    template = Template.from_dict(template_collection.find_one({"_id": ObjectId(template_id)}))
+    template = template_collection.find_one({"_id": ObjectId(template_id)})
+
+    if not template:
+        return error_page("Этот шаблон больше не существует", user_id)
+
+    template = Template.from_dict(template)
     template_data = get_editable_template(template, template_id)
+
+    if template.availability == TemplateAvailability.me and template.creator_id != user_id:
+        return error_page("Этот шаблон недоступен для редактирования по решению автора", user_id)
 
     template = templates.get_template('template_form.html')
     html = template.render(
@@ -569,13 +590,18 @@ async def edit_template_post(template_id: str, request: Request, user_id: str = 
 
     try:
         template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+        original_template = template_collection.find_one({"_id": ObjectId(template_id)})
+
+        if not original_template:
+            return JSONResponse({"status": "fail", "message": "Не удалось обновить шаблон, так как его больше не существует"})
 
         data = await request.json()
-        data["creator_id"] = user_id
-        original_template = template_collection.find_one({"_id": ObjectId(template_id)})
         edited_template = Template.from_dict(data)
 
-        if original_template["name"] != edited_template.name and list(template_collection.find({"name": edited_template.name})):
+        if TemplateAvailability(original_template["availability"]) == TemplateAvailability.me and edited_template.creator_id != user_id:
+            return JSONResponse({"status": "fail", "message": "Этот шаблон недоступен для редактирования по решению автора"})
+
+        if original_template["name"] != edited_template.name and list(template_collection.find({"name": edited_template.name, "creator_id": edited_template.creator_id})):
             return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как шаблон с названием \"{edited_template.name}\" уже существует"})
 
         template_collection.update_one({"_id": ObjectId(template_id)}, {"$set": edited_template.to_dict()})
@@ -585,8 +611,19 @@ async def edit_template_post(template_id: str, request: Request, user_id: str = 
 
 
 @app.post("/remove-template")
-def remove_template(template_id: str = Body(..., embed=True)):
+def remove_template(template_id: str = Body(..., embed=True), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Не удалось обновить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
     template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
+    template = template_collection.find_one({"_id": ObjectId(template_id)})
+
+    if not template:
+        return JSONResponse({"status": "fail", "message": "Не удалось удалить шаблон, так как его больше не существует"})
+
+    if str(template["creator_id"]) != user_id:
+        return JSONResponse({"status": "fail", "message": "Удалить шаблон может только его создатель"})
+
     result = template_collection.delete_one({"_id": ObjectId(template_id)})
 
     if result.deleted_count != 1:
