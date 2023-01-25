@@ -197,6 +197,8 @@
     padding-right: 50%;
     position: relative;
     border-radius: 10px 0 0 10px;
+    background: none;
+    color: var(--date-picker-selection-color);
 }
 
 .date-picker-calendar-day-selected-end span {
@@ -204,10 +206,33 @@
     margin-left: -50%;
     padding-left: 50%;
     border-radius: 0 10px 10px 0;
+    background: none;
+    color: var(--date-picker-selection-color);
 }
 
 .date-picker-calendar-day-selected-start-end span {
     background: none;
+    color: var(--date-picker-selection-color);
+}
+
+.date-picker-calendar-day-selected-start:before {
+    content: '';
+    position: absolute;
+    width: 50%;
+    height: calc(100% - 2px);
+    z-index: -1;
+    right: 0;
+    background: var(--date-picker-selection-background);
+}
+
+.date-picker-calendar-day-selected-end:before {
+    content: '';
+    position: absolute;
+    width: 50%;
+    height: calc(100% - 2px);
+    z-index: -1;
+    left: 0;
+    background: var(--date-picker-selection-background);
 }
 
 .date-picker-calendar-day-selected-start:after,
@@ -225,7 +250,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 2;
+    z-index: -1;
     margin: 0 auto;
 }
 

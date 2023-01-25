@@ -297,6 +297,14 @@ DatePicker.prototype.ClickOnDay = function(date) {
     this.onSelect(this.GetDate())
 }
 
+DatePicker.prototype.ClickOnMonth = function() {
+    this.range.start = this.FormatDate(this.dates.start)
+    this.range.end = this.FormatDate(this.dates.end)
+    this.startDateInput.value = this.range.start
+    this.endDateInput.value = this.range.end
+    this.onSelect(this.GetDate())
+}
+
 DatePicker.prototype.MakeControls = function(dateValue) {
     let controlLeft = this.MakeNode("div", "date-picker-controls-cell date-picker-controls-cell-left", this.controls)
     let controlCenter = this.MakeNode("div", `date-picker-controls-cell date-picker-controls-cell-date${this.isRange ? " date-picker-controls-cell-range-date" : ""}`, this.controls)
@@ -363,6 +371,10 @@ DatePicker.prototype.MakeIcons = function() {
 DatePicker.prototype.MakeCalendarCell = function() {
     let calendarCell = this.MakeNode("div", "date-picker-calendar-cell", this.calendarTable)
     let month = this.MakeNode("div", "date-picker-month", calendarCell)
+
+    if (this.isRange)
+        month.addEventListener("click", () => this.ClickOnMonth())
+
     let weekDays = this.MakeNode("div", "date-picker-week-days", calendarCell)
 
     for (let name of this.weekDays)

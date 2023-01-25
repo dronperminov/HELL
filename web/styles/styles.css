@@ -21,8 +21,9 @@
 
     --selection-background: #3390ff;
     --selection-color: #e5f5ff;
-    --date-picker-selection-background: #dcdcdc;
-    --date-picker-selection-range: #6f9aff80;
+    --date-picker-selection-background: #cccccc80;
+    --date-picker-selection-color: #e7f5f8;
+    --date-picker-selection-range: #478ce5;
 
     --menu-background: #e5e5e5;
     --menu-text-color: #6f6f6f;
@@ -60,7 +61,8 @@
 
     --selection-background: #525252;
     --selection-color: #d9d9d9;
-    --date-picker-selection-background: #787674;
+    --date-picker-selection-background: #2a2a2a;
+    --date-picker-selection-range: #418df5;
 
     --menu-background: #161618;
     --menu-text-color: #787a7e;
