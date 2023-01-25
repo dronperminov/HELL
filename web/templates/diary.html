@@ -424,7 +424,7 @@
 
             MakeIcon(mealIcon, "fa fa-check", () => ValidateMealType(mealType))
             mealType.setAttribute("list", "names")
-            mealType.value = "Введите название"
+            mealType.setAttribute("placeholder", "Введите название")
             mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType, error))
             mealType.focus()
 
