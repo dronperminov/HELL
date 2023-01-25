@@ -5,6 +5,7 @@
     <title>Статистика с {{start_date}} по {{end_date}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
+    <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
     <link rel="stylesheet" type="text/css" href="/styles/statistic.css">
 </head>
 <body>
@@ -23,18 +24,13 @@
                 <option value="period"{% if period == "period" %} selected{% endif %}>период</option>
             </select>
 
-            <div class="statistic-period-input{% if period != "period" %} no-display{% endif %}" id="dates">
-                <div class="statistic-period-input-cell">с</div>
-                <div class="statistic-period-input-cell"><input type="text" value="{{start_date}}" id="start-date"></div>
-                <div class="statistic-period-input-cell">по</div>
-                <div class="statistic-period-input-cell"><input type="text" value="{{end_date}}" id="end-date"></div>
-            </div>
         </div>
         <div class="statistic-button">
             <button onclick="ChangeStatisticParameters()">Показать</button>
         </div>
     </div>
-    <div class="error-center" id="period-error"></div>
+    <div class="statistic-period-input{% if period != "period" %} no-display{% endif %}" id="dates"></div>
+
     <div class="statistic-showed">
         Показана информация за
         {% if period == "today" %}сегодня ({{start_date}})
@@ -85,7 +81,13 @@
     <script src="/js/chart.js"></script>
     <script src="/js/bar_chart.js"></script>
     <script src="/js/forms.js"></script>
+    <script src="/js/date_picker.js"></script>
     <script>
+        let datePicker = new DatePicker("{{start_date}}-{{end_date}}", "dates", (date) => {
+            datePicker.SetDate(date)
+            datePicker.UpdateCalendar()
+        }, null, false)
+
         const CALORIES_DATA = [
             {% for date in dates_range %}{ {% for key in statistic[date] %}"{{key}}": {{statistic[date][key]}}, {% endfor %}"date": "{{date}}"},
             {% endfor %}
@@ -197,35 +199,9 @@
 
         function ChangeStatisticParameters() {
             let period = document.getElementById("period").value
-            let periodError = document.getElementById("period-error")
-            periodError.innerText = ""
 
             if (period == "period") {
-                let startDateBox = document.getElementById("start-date")
-                let endDateBox = document.getElementById("end-date")
-
-                let startDate = ParseDate(startDateBox.value)
-                let endDate = ParseDate(endDateBox.value)
-
-                if (startDate == null) {
-                    periodError.innerText = "Начальная дата введена некорректно"
-                    startDateBox.focus()
-                    return
-                }
-
-                if (endDate == null) {
-                    periodError.innerText = "Конечная дата введена некорректно"
-                    endDateBox.focus()
-                    return
-                }
-
-                if (!ValidateInterval(startDate, endDate)) {
-                    periodError.innerText = "Введён некорректный интервал: дата начала должна быть не больше конечной"
-                    startDateBox.focus()
-                    return
-                }
-
-                period = `${startDate}-${endDate}`
+                period = datePicker.GetDate()
             }
 
             location.href = `/statistic?period=${period}`

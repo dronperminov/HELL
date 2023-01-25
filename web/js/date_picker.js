@@ -1,4 +1,5 @@
 function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = true) {
+    this.isRange = date.indexOf('-') > 0
     this.onSelect = onSelect
     this.usedDates = usedDates === null ? new Set() : new Set(usedDates)
     this.needPrevNext = needPrevNext
@@ -6,15 +7,12 @@ function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = tru
     this.weekDays = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
     this.months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
 
-    this.dates = this.GetCalendarDates(date)
-    this.initDate = this.dates.curr
-
     this.picker = this.MakeNode("div", "date-picker", document.getElementById(nodeId))
     this.controls = this.MakeNode("div", "date-picker-controls", this.picker)
     this.calendar = this.MakeNode("div", "date-picker-calendar", this.picker)
     this.popup = this.MakeNode("div", "date-picker-popup", document.getElementsByTagName("body")[0])
 
-    window.addEventListener('click', (e) => {   
+    window.addEventListener('click', (e) => {
         if (!this.picker.contains(e.target)) {
             this.HideCalendar()
             e.stopPropagation()
@@ -24,6 +22,7 @@ function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = tru
     this.MakeControls(date)
     this.MakeCalendar()
     this.MakeIcons()
+    this.SetDate(date)
     this.UpdateCalendar()
 }
 
@@ -84,15 +83,15 @@ DatePicker.prototype.ParseDate = function(value) {
     let month = today.getMonth() + 1
 
     let match = /^(?<day>\d\d?)\.(?<month>\d\d?)\.(?<year>\d\d\d\d)$/g.exec(value)
-    if (match && ValidateDate(match.groups.day, match.groups.month, match.groups.year))
+    if (match && this.ValidateDate(match.groups.day, match.groups.month, match.groups.year))
         return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${match.groups.year}`
 
     match = /^(?<day>\d\d?)\.(?<month>\d\d?)$/g.exec(value)
-    if (match && ValidateDate(match.groups.day, match.groups.month, year))
+    if (match && this.ValidateDate(match.groups.day, match.groups.month, year))
         return `${match.groups.day.padStart(2, '0')}.${match.groups.month.padStart(2, '0')}.${year}`
 
     match = /^(?<day>\d\d?)$/g.exec(value)
-    if (match && ValidateDate(match.groups.day, month, year))
+    if (match && this.ValidateDate(match.groups.day, month, year))
         return `${match.groups.day.padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`
 
     return null
@@ -111,20 +110,8 @@ DatePicker.prototype.FormatDate = function(date, day = null) {
     return `${day.padStart(2, '0')}.${month.padStart(2, '0')}.${year.padStart(2, '0')}`
 }
 
-DatePicker.prototype.InputDate = function(dateInput) {
-    let date = this.ParseDate(dateInput.value)
-
-    if (date === null) {
-        dateInput.classList.add("error")
-        dateInput.focus()
-        return
-    }
-
-    this.onSelect(date)
-}
-
 DatePicker.prototype.IsCurrent = function(dates, day) {
-    return dates.start <= dates.curr && dates.curr <= dates.end && dates.curr.getDate() == day
+    return !this.isRange && dates.start <= dates.curr && dates.curr <= dates.end && dates.curr.getDate() == day
 }
 
 DatePicker.prototype.IsToday = function(dates, day) {
@@ -139,12 +126,38 @@ DatePicker.prototype.IsUsed = function(dates, day) {
     return this.usedDates.has(date)
 }
 
+DatePicker.prototype.CompareDates = function(date1, date2) {
+    date1 = date1.split('.').reverse().join('.')
+    date2 = date2.split('.').reverse().join('.')
+    if (date1 < date2)
+        return -1
+
+    if (date1 > date2)
+        return 1
+
+    return 0
+}
+
 DatePicker.prototype.Reset = function() {
-    let date = this.FormatDate(this.initDate)
-    this.dates = this.GetCalendarDates(date)
+    if (this.isRange) {
+        let startDate = this.FormatDate(this.startDate)
+        let endDate = this.FormatDate(this.endDate)
+
+        this.dates = this.GetCalendarDates(startDate)
+        this.startDateInput.value = startDate
+        this.endDateInput.value = endDate
+        this.range = {start: startDate, end: endDate}
+        this.startDateInput.classList.remove("error")
+        this.endDateInput.classList.remove("error")
+    }
+    else {
+        let date = this.FormatDate(this.initDate)
+        this.dates = this.GetCalendarDates(date)
+        this.currDateInput.value = date
+        this.currDateInput.classList.remove("error")
+    }
+
     this.resetIcon.style.display = "none"
-    this.currDateInput.value = date
-    this.currDateInput.classList.remove("error")
     this.UpdateCalendar()
 }
 
@@ -169,17 +182,110 @@ DatePicker.prototype.ShowCalendar = function() {
     this.picker.classList.add("date-picker-opened")
     this.popup.classList.add("date-picker-popup-show")
     this.closeIcon.style.display = null
+    this.applyIcon.style.display = null
 }
 
 DatePicker.prototype.HideCalendar = function() {
     this.picker.classList.remove("date-picker-opened")
     this.popup.classList.remove("date-picker-popup-show")
     this.closeIcon.style.display = "none"
+    this.applyIcon.style.display = "none"
     this.Reset()
 }
 
 DatePicker.prototype.IsOpened = function() {
     return this.picker.classList.contains("date-picker-opened")
+}
+
+DatePicker.prototype.ShowOnFocus = function(input) {
+    if (this.IsOpened())
+        return
+
+    input.blur()
+    this.ShowCalendar()
+}
+
+DatePicker.prototype.RemoveErrorOnInput = function(input) {
+    input.classList.remove("error")
+}
+
+DatePicker.prototype.ValidateInput = function() {
+    let isCorrect = true
+
+    if (this.isRange) {
+        let startDate = this.ParseDate(this.startDateInput.value)
+        let endDate = this.ParseDate(this.endDateInput.value)
+
+        if (endDate === null) {
+            this.endDateInput.classList.add("error")
+            this.endDateInput.focus()
+            isCorrect = false
+        }
+
+        if (this.ParseDate(startDate) === null) {
+            this.startDateInput.classList.add("error")
+            this.startDateInput.focus()
+            isCorrect = false
+        }
+
+        if (isCorrect) {
+            this.startDateInput.value = startDate
+            this.endDateInput.value = endDate
+            this.range = {start: startDate, end: endDate}
+            this.FixRange()
+        }
+    }
+    else {
+        if (this.ParseDate(this.currDateInput.value) === null) {
+            this.currDateInput.classList.add("error")
+            this.currDateInput.focus()
+            isCorrect = false
+        }
+    }
+
+    return isCorrect
+}
+
+DatePicker.prototype.ValidateOnEnter = function(e) {
+    if (e.keyCode != 13)
+        return
+
+    e.preventDefault()
+
+    if (this.ValidateInput()) {
+        this.onSelect(this.GetDate())
+    }
+}
+
+DatePicker.prototype.FixRange = function() {
+    if (this.CompareDates(this.range.start, this.range.end) <= 0)
+        return
+
+    this.endDateInput.value = this.range.start
+    this.startDateInput.value = this.range.end
+    this.range.start = this.startDateInput.value
+    this.range.end = this.endDateInput.value
+}
+
+DatePicker.prototype.ClickOnDay = function(date) {
+    if (this.isRange) {
+        if (this.range.end !== null) {
+            this.startDateInput.value = date
+            this.endDateInput.value = date
+            this.range = {start: date, end: null}
+            return
+        }
+        else {
+            this.range.end = date
+            this.endDateInput.value = date
+            this.FixRange()
+        }
+    }
+    else {
+        this.currDateInput.value = date
+    }
+
+    this.onSelect(this.GetDate())
 }
 
 DatePicker.prototype.MakeControls = function(dateValue) {
@@ -195,24 +301,26 @@ DatePicker.prototype.MakeControls = function(dateValue) {
         prevDay.addEventListener("click", () => this.StepDay(-1))
     }
 
-    this.currDateInput = this.MakeNode("input", "", controlCenter, {"type": "text", "value": dateValue, "inputmode": "decimal"})
-    this.currDateInput.addEventListener("focus", () => {
-        if (!this.IsOpened()) {
-            this.currDateInput.blur()
-            this.ShowCalendar()
-        }
-    })
+    if (this.isRange) {
+        let [startDate, endDate] = dateValue.split('-')
+        this.startDateInput = this.MakeNode("input", "date-picker-date-range", controlCenter, {"type": "text", "value": startDate, "inputmode": "decimal"})
+        this.MakeNode("span", "", controlCenter, {"innerText": "-"})
+        this.endDateInput = this.MakeNode("input", "date-picker-date-range", controlCenter, {"type": "text", "value": endDate, "inputmode": "decimal"})
 
-    this.currDateInput.addEventListener("input", () => {
-        this.currDateInput.classList.remove("error")
-    })
+        this.startDateInput.addEventListener('focus', () => this.ShowOnFocus(this.startDateInput))
+        this.startDateInput.addEventListener("input", () => this.RemoveErrorOnInput(this.startDateInput))
+        this.startDateInput.addEventListener("keydown", (e) => this.ValidateOnEnter(e))
 
-    this.currDateInput.addEventListener("keydown", (e) => {
-        if (e.keyCode == 13) {
-            e.preventDefault()
-            this.InputDate(this.currDateInput)
-        }
-    })
+        this.endDateInput.addEventListener('focus', () => this.ShowOnFocus(this.endDateInput))
+        this.endDateInput.addEventListener("input", () => this.RemoveErrorOnInput(this.endDateInput))
+        this.endDateInput.addEventListener("keydown", (e) => this.ValidateOnEnter(e))
+    }
+    else {
+        this.currDateInput = this.MakeNode("input", "", controlCenter, {"type": "text", "value": dateValue, "inputmode": "decimal"})
+        this.currDateInput.addEventListener('focus', () => this.ShowOnFocus(this.currDateInput))
+        this.currDateInput.addEventListener("input", () => this.RemoveErrorOnInput(this.currDateInput))
+        this.currDateInput.addEventListener("keydown", (e) => this.ValidateOnEnter(e))
+    }
 
     if (this.needPrevNext) {
         let nextDay = this.MakeNode("span", "date-picker-control-icon", controlRight, {"innerHTML": "<span class='fa fa-angle-right'></span>"})
@@ -231,6 +339,19 @@ DatePicker.prototype.MakeIcons = function() {
     this.closeIcon = this.MakeNode("span", "date-picker-close-icon fa fa-times", this.picker)
     this.closeIcon.style.display = "none"
     this.closeIcon.addEventListener("click", () => this.HideCalendar())
+
+    if (!this.isRange)
+        return
+
+    this.applyIcon = this.MakeNode("span", "date-picker-apply-icon fa fa-check", this.picker)
+    this.applyIcon.style.display = "none"
+    this.applyIcon.addEventListener("click", () => {
+        if (!this.ValidateInput())
+            this.Reset()
+
+        this.onSelect(this.GetDate())
+        this.HideCalendar()
+    })
 }
 
 DatePicker.prototype.MakeCalendarCell = function() {
@@ -266,7 +387,14 @@ DatePicker.prototype.CalendarTouchMove = function(e) {
     let width = this.calendarTable.clientWidth
     this.deltaX = e.touches[0].clientX - this.startX
     this.calendarTable.style.transform = `translateX(${Math.max(-width / 3, Math.min(width / 3, this.deltaX)) - width / 3}px)`
-    this.currDateInput.blur()
+
+    if (this.isRange) {
+        this.startDateInput.blur()
+        this.endDateInput.blur()
+    }
+    else {
+        this.currDateInput.blur()
+    }
 }
 
 DatePicker.prototype.CalendarTouchEnd = function(e) {
@@ -318,11 +446,11 @@ DatePicker.prototype.UpdateCalendarDays = function(calendarCell, dates) {
 
         let dayDiv = this.MakeNode("div", "date-picker-calendar-day", weekRow)
         let daySpan = this.MakeNode("span", "date-picker-calendar-day-span", dayDiv, {"innerText": day > 0 && day <= endDay ? day : this.GetIncreasedDay(dates.start, day - 1)})
+        let date = this.FormatDate(dates.start, day)
 
         if (!this.IsCurrent(dates, day)) {
-            let date = this.FormatDate(dates.start, day)
             daySpan.addEventListener("click", (e) => {
-                this.onSelect(date)
+                this.ClickOnDay(date)
                 e.stopPropagation()
             })
         }
@@ -335,6 +463,16 @@ DatePicker.prototype.UpdateCalendarDays = function(calendarCell, dates) {
             dayDiv.classList.add("date-picker-calendar-day-today")
         if (this.IsUsed(dates, day))
             dayDiv.classList.add("date-picker-calendar-day-used")
+
+        if (this.isRange) {
+            if (this.range.end === null) {
+                if (this.range.start == date)
+                    dayDiv.classList.add("date-picker-calendar-day-selected")
+            }
+            else if (this.CompareDates(this.range.start, date) <= 0 && this.CompareDates(date, this.range.end) <= 0) {
+                dayDiv.classList.add("date-picker-calendar-day-selected")
+            }
+        }
 
         day++
     }
@@ -359,10 +497,22 @@ DatePicker.prototype.UpdateCalendar = function() {
 }
 
 DatePicker.prototype.SetDate = function(date) {
-    this.initDate = this.GetCalendarDates(date).curr
-    this.HideCalendar()
+    if (this.isRange) {
+        let [startDate, endDate] = date.split('-')
+        this.dates = this.GetCalendarDates(startDate)
+        this.startDate = this.dates.curr
+        this.endDate = this.GetCalendarDates(endDate).curr
+        this.range = {start: startDate, end: endDate}
+    }
+    else {
+        this.dates = this.GetCalendarDates(date)
+        this.initDate = this.dates.curr
+    }
 }
 
 DatePicker.prototype.GetDate = function() {
-    return this.currDateInput.value
+    if (this.isRange)
+        return `${this.ParseDate(this.startDateInput.value)}-${this.ParseDate(this.endDateInput.value)}`
+
+    return this.ParseDate(this.currDateInput.value)
 }

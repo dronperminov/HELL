@@ -141,7 +141,10 @@
         let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/diary?date=${date}`, [{% for date in used_dates %}"{{date}}", {% endfor %}])
 
         {% for meal_type in meal_info %}
-        let mealDatePicker{{loop.index}} = new DatePicker("{{copy_date}}", "{{meal_type}}-copy-date", (date) => mealDatePicker{{loop.index}}.SetDate(date), null, false)
+        let mealDatePicker{{loop.index}} = new DatePicker("{{copy_date}}", "{{meal_type}}-copy-date", (date) => {
+            mealDatePicker{{loop.index}}.SetDate(date)
+            mealDatePicker{{loop.index}}.HideCalendar()
+        }, null, false)
         {% endfor %}
 
         function StatEditPortion(foodItem, mealId) {
