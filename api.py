@@ -680,6 +680,10 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     meal_statistic = {meal_type: get_meals_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    documents = diary_collection.find({}, {"meal_info": 1})
+    meal2count = get_meal_type_count(documents)
+    meal_names = [meal_type for meal_type, count in meal2count.items() if count >= constants.STATISTIC_MEAL_TYPE_MIN_COUNT and meal_type not in meal_statistic]
+
     used_dates = diary_collection.aggregate([
         {"$match": {"$expr": {"$gt": [{"$size": {"$filter": {"input": {"$objectToArray": "$meal_info"}, "as": "pair", "cond": {"$ne": ["$$pair.v", []]}}}}, 0]}}},
         {"$project": {"date": 1, "_id": 0}}
@@ -694,6 +698,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
         meal_info=meal_info,
         names=constants.MEAL_TYPE_NAMES,
         meal_statistic=meal_statistic,
+        meal_names=meal_names,
         page="/diary"
     )
 

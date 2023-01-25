@@ -180,7 +180,6 @@
             EndEditPortions()
             EndActions()
 
-
             let actions = mealItem.parentNode.getElementsByClassName('meal-actions')[0]
             actions.classList.add("no-display")
 
@@ -364,9 +363,9 @@
 
         function ValidateMealType(mealType) {
             let error = mealType.parentNode.parentNode.getElementsByClassName("error-center")[0]
-            let mealTypeName = mealType.innerText.trim()
+            let mealTypeName = mealType.value.trim()
 
-            mealType.innerText = mealTypeName
+            mealType.value = mealTypeName
             error.innerText = ""
 
             for (let mealTypeItem of document.getElementsByClassName("meal-type")) {
@@ -395,6 +394,21 @@
             })
         }
 
+        function CreateMealTypeDatalist() {
+            let datalist = document.createElement("datalist")
+            datalist.setAttribute("id", "names")
+
+            let options = [{% for name in meal_names %}"{{name}}",{% endfor %}]
+
+            for (let optionName of options) {
+                let option = document.createElement("option")
+                option.value = optionName
+                datalist.appendChild(option)
+            }
+
+            return datalist
+        }
+
         function CreateMealType() {
             let addButton = document.getElementById("add-meal-type-button")
             let cancelButton = document.getElementById("cancel-add-meal-type-button")
@@ -402,13 +416,15 @@
             let diary = document.getElementById("diary")
             let mealItem = MakeDiv("meal-item new-meal-item", diary)
             let mealData = MakeDiv("meal-data", mealItem)
-            let mealType = MakeDiv("meal-type", mealData)
+            let mealType = MakeInput("text", mealData, {"class": "meal-type"})
             let mealIcon = MakeDiv("meal-buttons", mealData)
             let error = MakeDiv("error-center", mealItem)
 
+            mealData.appendChild(this.CreateMealTypeDatalist())
+
             MakeIcon(mealIcon, "fa fa-check", () => ValidateMealType(mealType))
-            mealType.setAttribute("contenteditable", "")
-            mealType.innerText = "Введите название"
+            mealType.setAttribute("list", "names")
+            mealType.value = "Введите название"
             mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType, error))
             mealType.focus()
 
@@ -539,7 +555,7 @@
 
         function ToggleMealActions(mealType, opened = null) {
             let mealActions = document.getElementById(`${mealType}-actions`)
-            if (mealActions.children.length == 0)
+            if (mealActions === null || mealActions.children.length == 0)
                 return
 
             if (opened === null)

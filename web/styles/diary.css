@@ -32,12 +32,12 @@
     user-select: none;
 }
 
-.meal-type[contenteditable] {
+input.meal-type {
     padding: 10px 0 0 0;
     margin: 0 4px 10px 4px;
     border-bottom: 1px solid var(--success-color);
-    display: inline-block;
-    min-width: 20px;
+    font-size: 1.2rem;
+    font-family: inherit;
 }
 
 .meal-type span {
