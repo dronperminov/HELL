@@ -1,5 +1,5 @@
 import re
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal
 from itertools import chain
@@ -641,7 +641,7 @@ def get_meal_statistic(foods: List[dict]) -> dict:
     return statistic
 
 
-def prepare_meal_statistic(dates_range: List[datetime], date2meal_info_ids: Dict[datetime, dict]) -> Tuple[Dict[str, dict], Dict[str, dict]]:
+def prepare_meal_statistic(dates_range: List[datetime], date2meal_info_ids: Dict[datetime, dict], meal_types: Dict[str, str]) -> Tuple[Dict[str, dict], Dict[str, dict]]:
     statistic, statistic_meal_type = {}, {}
 
     for date in dates_range:
@@ -652,10 +652,20 @@ def prepare_meal_statistic(dates_range: List[datetime], date2meal_info_ids: Dict
         statistic[date] = get_meals_statistic(meal_ids, with_food=False)
         statistic_meal_type[date] = {}
 
-        for meal_type in constants.MEAL_TYPE_NAMES:
+        for meal_type in meal_types:
             statistic_meal_type[date][meal_type] = get_meals_statistic(meal_type_ids.get(meal_type, []), with_food=False)
 
     return statistic, statistic_meal_type
+
+
+def get_meal_type_count(documents: List[dict]):
+    meal2count = defaultdict(int)
+
+    for document in documents:
+        for meal_type in document["meal_info"]:
+            meal2count[meal_type] += 1
+
+    return meal2count
 
 
 @app.get("/diary")
@@ -926,18 +936,25 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
     start_date, end_date, period = parse_period(period)
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
-    documents = diary_collection.find({"date": {"$gte": start_date, "$lte": end_date}})
+    documents = list(diary_collection.find({"date": {"$gte": start_date, "$lte": end_date}}))
+    meal2count = get_meal_type_count(documents)
+    meal_types = OrderedDict()
+    for meal_type in constants.MEAL_TYPES:
+        if meal_type in meal2count:
+            meal_types[meal_type] = constants.MEAL_TYPE_NAMES[meal_type]
+
     date2meal_info_ids = {}
 
     for document in documents:
-        date2meal_info_ids[document["date"]] = {meal_type: [] for meal_type in constants.MEAL_TYPE_NAMES}
+        date2meal_info_ids[document["date"]] = defaultdict(list)
 
         for meal_type, meal_ids in document["meal_info"].items():
-            meal_type_key = meal_type if meal_type in constants.MEAL_TYPE_NAMES else constants.OTHER
+            meal_type_key = meal_type if meal2count[meal_type] >= constants.STATISTIC_MEAL_TYPE_MIN_COUNT or meal_type in constants.MEAL_TYPES else constants.OTHER
             date2meal_info_ids[document["date"]][meal_type_key].extend(meal_ids)
+            meal_types[meal_type_key] = constants.MEAL_TYPE_NAMES.get(meal_type_key, meal_type_key)
 
     dates_range = get_dates_range(start_date, end_date)
-    statistic, statistic_meal_type = prepare_meal_statistic(dates_range, date2meal_info_ids)
+    statistic, statistic_meal_type = prepare_meal_statistic(dates_range, date2meal_info_ids, meal_types)
 
     template = templates.get_template("statistic.html")
     content = template.render(
@@ -947,7 +964,7 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
         period=period,
         statistic=statistic,
         statistic_meal_type=statistic_meal_type,
-        meal_types=constants.MEAL_TYPE_NAMES,
+        meal_types=meal_types,
         dates_range=[format_date(date) for date in dates_range],
         page="/statistic"
     )

@@ -25,6 +25,7 @@ MEAL_TYPE_NAMES = {
 
 FREQUENT_MEAL_MIN_COUNT = 3
 FREQUENT_MEAL_CLIP_COUNT = 15
+STATISTIC_MEAL_TYPE_MIN_COUNT = 5
 
 STATISTIC_KEYS = ["proteins", "fats", "carbohydrates", "energy"]
 
