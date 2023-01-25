@@ -182,14 +182,19 @@ DatePicker.prototype.ShowCalendar = function() {
     this.picker.classList.add("date-picker-opened")
     this.popup.classList.add("date-picker-popup-show")
     this.closeIcon.style.display = null
-    this.applyIcon.style.display = null
+
+    if (this.isRange)
+        this.applyIcon.style.display = null
 }
 
 DatePicker.prototype.HideCalendar = function() {
     this.picker.classList.remove("date-picker-opened")
     this.popup.classList.remove("date-picker-popup-show")
     this.closeIcon.style.display = "none"
-    this.applyIcon.style.display = "none"
+
+    if (this.isRange)
+        this.applyIcon.style.display = "none"
+
     this.Reset()
 }
 
@@ -340,9 +345,6 @@ DatePicker.prototype.MakeIcons = function() {
     this.closeIcon.style.display = "none"
     this.closeIcon.addEventListener("click", () => this.HideCalendar())
 
-    if (!this.isRange)
-        return
-
     this.applyIcon = this.MakeNode("span", "date-picker-apply-icon fa fa-check", this.picker)
     this.applyIcon.style.display = "none"
     this.applyIcon.addEventListener("click", () => {
@@ -472,6 +474,16 @@ DatePicker.prototype.UpdateCalendarDays = function(calendarCell, dates) {
             else if (this.CompareDates(this.range.start, date) <= 0 && this.CompareDates(date, this.range.end) <= 0) {
                 dayDiv.classList.add("date-picker-calendar-day-selected")
             }
+
+            if (date == this.range.start && this.range.end == null)
+                dayDiv.classList.add("date-picker-calendar-day-selected-start-end")
+            else {
+                if (date == this.range.start)
+                    dayDiv.classList.add("date-picker-calendar-day-selected-start")
+
+                if (date == this.range.end)
+                    dayDiv.classList.add("date-picker-calendar-day-selected-end")
+            }
         }
 
         day++
@@ -499,10 +511,10 @@ DatePicker.prototype.UpdateCalendar = function() {
 DatePicker.prototype.SetDate = function(date) {
     if (this.isRange) {
         let [startDate, endDate] = date.split('-')
-        this.dates = this.GetCalendarDates(startDate)
-        this.startDate = this.dates.curr
+        this.startDate = this.GetCalendarDates(startDate).curr
         this.endDate = this.GetCalendarDates(endDate).curr
         this.range = {start: startDate, end: endDate}
+        this.dates = this.GetCalendarDates(endDate)
     }
     else {
         this.dates = this.GetCalendarDates(date)
