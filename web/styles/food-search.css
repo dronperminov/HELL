@@ -53,3 +53,7 @@
 .food-search-info-list {
     margin-top: 5px;
 }
+
+.food-search-info a {
+    color: var(--text-color);
+}
