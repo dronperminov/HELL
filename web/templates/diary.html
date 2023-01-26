@@ -32,7 +32,7 @@
                         <span id="meal-caret-{{meal_type}}" class="fa meal-caret fa-caret-right"></span>
                         {% endif %}
 
-                        <span id="{{meal_type}}-name">{% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %}</span>
+                        <span id="{{meal_type}}-name">{{names.get(meal_type, meal_type)}}</span>
                     </div>
                     {% if meal_type not in names %}
                     <input type="text" class="meal-type meal-type-input no-display" id="{{meal_type}}-edit-name" placeholder="Введите название" list="names">
@@ -81,9 +81,9 @@
                     <div class="meal-copy-cells">
                         <div class="meal-copy-cell meal-copy-date"><div class="date-picker-fixed" id="{{meal_type}}-copy-date"></div></div>
                         <div class="meal-copy-cell meal-copy-type">
-                            <input type="text" list="{{meal_type}}-meal-types" id="{{meal_type}}-copy-meal" {% if meal_type in names %}value="{{names[meal_type]}}"{% endif %}>
+                            <input type="text" list="{{meal_type}}-meal-types" id="{{meal_type}}-copy-meal" value="{{names.get(meal_type, meal_type)}}">
                             <datalist id="{{meal_type}}-meal-types">
-                             {% for meal_type, meal_name in names.items() %}{% if meal_type != "other" %}<option value="{{meal_name}}">{{meal_name}}</option>{% endif %}{% endfor %}
+                            {% for copy_meal_type in meal_info %}<option value="{{names.get(copy_meal_type, copy_meal_type)}}"></option>{% endfor %}
                             </datalist>
                         </div>
                         <div class="meal-copy-cell meal-copy-icon">
