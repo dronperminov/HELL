@@ -70,6 +70,9 @@ function UpdatePortionInfo(foodId) {
 
     let portion = document.getElementById(`${foodId}-food-portion-portion`)
 
+    if (portion === null)
+        return
+
     if (scale > 0) {
         portion.innerText = `/ ${size}`
 

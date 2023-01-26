@@ -479,7 +479,7 @@ async def add_template_post(request: Request, user_id: str = Depends(get_current
 
 
 @app.get("/edit-template/{template_id}")
-def edit_template(template_id: str, food_query: str = Query(None), user_id: str = Depends(get_current_user)):
+def edit_template(template_id: str, food_query: str = Query(None), back_url: str = Query(None), user_id: str = Depends(get_current_user)):
     if not user_id:
         return unauthorized_access("/")
 
@@ -503,13 +503,14 @@ def edit_template(template_id: str, food_query: str = Query(None), user_id: str 
         add_url=f"/edit-template/{template_id}",
         template=template_data,
         page="/edit-template",
-        query=food_query
+        query=food_query,
+        back_url=back_url
     )
     return HTMLResponse(content=html)
 
 
 @app.post("/edit-template/{template_id}")
-async def edit_template_post(template_id: str, request: Request, user_id: str = Depends(get_current_user)):
+async def edit_template_post(template_id: str, request: Request, back_url: str = Query(None), user_id: str = Depends(get_current_user)):
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Не удалось обновить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
@@ -531,7 +532,8 @@ async def edit_template_post(template_id: str, request: Request, user_id: str = 
             return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить, так как шаблон с названием \"{edited_template.name}\" уже существует"})
 
         template_collection.update_one({"_id": ObjectId(template_id)}, {"$set": edited_template.to_dict()})
-        return JSONResponse({"status": "ok", "href": f"/food-collection?food_query={edited_template.name[:25]}", "message": "Шаблон успешно обновлён"})
+        href = back_url if back_url else f"/food-collection?food_query={edited_template.name[:25]}"
+        return JSONResponse({"status": "ok", "href": href, "message": "Шаблон успешно обновлён"})
     except ConnectionError as e:
         return JSONResponse({"status": "FAIL", "message": f"Не удалось обновить шаблон из-за ошибки: {e}"})
 

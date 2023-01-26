@@ -69,6 +69,7 @@
     </div>
 
     <script src="/js/forms.js"></script>
+    <script src="/js/swipe.js"></script>
     <script src="/js/food_collection.js"></script>
     <script>
         function ClickFoodItem(foodId) {
@@ -153,6 +154,13 @@
 
                 location.href = `/diary?date={{date}}`
             })
+        }
+
+        for (let foodData of document.getElementsByClassName("food-data")) {
+            let isTemplate = foodData.classList.contains("food-data-template")
+            let foodId = foodData.parentNode.getAttribute("id")
+            let swipe = new Swipe(foodData, null, false)
+            swipe.onPress = () => location.href = `/${isTemplate ? "edit-template" : "edit-food"}/${foodId}?back_url=${encodeURIComponent(location.href)}`
         }
         {% endif %}
     </script>
