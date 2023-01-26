@@ -59,18 +59,18 @@
 
                 <div class="meal-actions no-display" id="{{meal_type}}-actions">
                     {% if meal_statistic[meal_type]["foods"] %}
-                    <div class="meal-action">
-                        <button onclick="ToggleCopyMealType('{{meal_type}}')"><span class="fa fa-clone" id="{{meal_type}}-copy-icon"></span></button>
+                    <div class="meal-action" onclick="ToggleCopyMealType('{{meal_type}}')">
+                        <button><span class="fa fa-clone" id="{{meal_type}}-copy-icon"></span></button>
                         <span class="meal-action-name">Копировать приём пищи</span>
                     </div>
-                    <div class="meal-action">
-                        <button onclick="MakeTemplateFromMealType('{{meal_type}}')"><span class="food-name-group-icon" id="{{meal_type}}-template-icon"></span></button>
+                    <div class="meal-action" onclick="MakeTemplateFromMealType('{{meal_type}}')">
+                        <button><span class="food-name-group-icon" id="{{meal_type}}-template-icon"></span></button>
                         <span class="meal-action-name">Создать шаблон из приёма пищи</span>
                     </div>
                     {% endif %}
                     {% if meal_type not in names %}
-                    <div class="meal-action">
-                        <button onclick="StartRenameMealType('{{meal_type}}')"><span class="fa fa-pencil" id="{{meal_type}}-rename-icon"></span></button>
+                    <div class="meal-action" onclick="StartRenameMealType('{{meal_type}}')">
+                        <button><span class="fa fa-pencil" id="{{meal_type}}-rename-icon"></span></button>
                         <span class="meal-action-name">Переименовать приём пищи</span>
                     </div>
                     {% endif %}
