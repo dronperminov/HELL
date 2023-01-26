@@ -38,7 +38,10 @@ class Search:
         if query == "<F>":
             food_items = list(self.food_collection.find({}))
         else:
-            food_items = list(self.food_collection.find({"name": {"$regex": re.escape(query), "$options": "i"}}))
+            food_items = list(self.food_collection.find({"$or": [
+                {"name": {"$regex": re.escape(query), "$options": "i"}},
+                {"aliases": {"$elemMatch": {"$regex": re.escape(query), "$options": "i"}}}
+            ]}))
 
         self.__process_food_items(food_items)
         return food_items
