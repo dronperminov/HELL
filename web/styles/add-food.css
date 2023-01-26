@@ -70,6 +70,27 @@
     display: table-cell;
 }
 
+.alias {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    grid-template-areas:
+        "icon name"
+        "error error";
+    margin-bottom: 5px;
+}
+
+.alias-close {
+    grid-area: icon;
+}
+
+.alias-name {
+    grid-area: name;
+}
+
+.alias-error {
+    grid-area: error;
+}
+
 .fatsecret-result {
     margin-top: 5px;
     border-top: 1px solid var(--border-color);

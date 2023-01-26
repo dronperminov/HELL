@@ -56,8 +56,15 @@
         </div>
 
         <div class="form-row">
-            <label>Описание:</label>
+            <label>Описание</label>
             <div class="contenteditable" contenteditable id="description">{% if food %}{{food.description}}{% endif %}</div>
+        </div>
+
+        <div class="form-row">
+            <label>Алиасы</label>
+            <div id="aliases-box"></div>
+            <div class="error-center" id="aliases-error"></div>
+            <button id="aliases-button" onclick="AddAlias()"><span class="fa fa-plus"></span> Добавить алиас</button>
         </div>
 
         <div class="form-row center">
@@ -136,9 +143,8 @@
             let unitDiv = MakeDiv('conversions-unit')
             let valueDiv = MakeDiv('conversions-value')
 
-            let closeIcon = document.createElement('span')
-            closeIcon.innerText = '✖'
-            closeIcon.addEventListener('click', () => block.removeChild(div))
+            let closeIcon = MakeDiv("fa fa-times", closeDiv, null, "span")
+            closeIcon.addEventListener("click", () => block.removeChild(div))
 
             let unitSelect = document.createElement('select')
             let portion = document.getElementById("portion").value
@@ -218,6 +224,50 @@
             return conversions
         }
 
+        function AddAlias(name = null) {
+            let aliases = document.getElementById("aliases-box")
+            let alias = MakeDiv("alias", aliases)
+
+            let aliasRemove = MakeDiv("alias-close", alias)
+            let aliasRemoveIcon = MakeDiv("fa fa-times", aliasRemove)
+            aliasRemoveIcon.addEventListener("click", () => aliases.removeChild(alias))
+
+            let aliasName = MakeDiv("alias-name", alias)
+            let aliasInput = MakeInput("text", aliasName)
+            let aliasError = MakeDiv("alias-error error-center", alias)
+
+            aliasInput.addEventListener("input", () => {
+                aliasInput.classList.remove("error")
+                aliasError.innerText = ""
+            })
+
+            if (name !== null)
+                aliasInput.value = name
+        }
+
+        function GetAliases() {
+            let aliases = []
+            let isCorrect = true
+
+            for (let aliasItem of document.getElementsByClassName('alias')) {
+                let aliasInput = aliasItem.getElementsByClassName('alias-name')[0].children[0]
+                let alias = aliasInput.value.trim()
+                let error = aliasItem.getElementsByClassName('alias-error')[0]
+
+                aliasInput.value = alias
+                aliases.push(alias)
+                error.innerText = ""
+
+                if (alias.length == 0) {
+                    aliasInput.classList.add("error")
+                    error.innerText = "Алиас не заполнен"
+                    isCorrect = false
+                }
+            }
+
+            return isCorrect ? aliases : null
+        }
+
         function ValidateFields(fields) {
             let data = {}
             let haveErrors = false
@@ -258,12 +308,14 @@
 
             let food = ValidateFields(fields)
             let conversions = GetConversions()
+            let aliases = GetAliases()
 
-            if (food === null || conversions === null)
+            if (food === null || conversions === null || aliases === null)
                 return
 
             food.description = document.getElementById("description").innerText
             food.conversions = conversions
+            food.aliases = aliases
             {% if date and meal_type %}
             food.date = "{{date}}"
             food.meal_type = "{{meal_type}}"
@@ -421,6 +473,10 @@
         {% if food %}
         {% for unit, value in food.conversions.items() %}
         AddConversion({unit: "{{unit}}", value: "{{value}}"})
+        {% endfor %}
+
+        {% for alias in food.aliases %}
+        AddAlias("{{alias}}")
         {% endfor %}
         {% endif %}
 

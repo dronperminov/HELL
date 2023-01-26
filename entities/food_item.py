@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from decimal import Decimal
 from bson.decimal128 import Decimal128
 from dataclasses import dataclass
@@ -17,6 +17,7 @@ class FoodItem:
     carbohydrates: Decimal
     portion: BasePortionUnit
     conversions: Optional[Dict[PortionUnit, Decimal]] = None
+    aliases: Optional[List[str]] = None
 
     def __post_init__(self) -> None:
         if self.portion == BasePortionUnit.g100:
@@ -47,8 +48,9 @@ class FoodItem:
 
         portion = BasePortionUnit(data["portion"])
         conversions = {PortionUnit(unit): Decimal(str(value)) for unit, value in data["conversions"].items()}
+        aliases = data.get("aliases", [])
 
-        return cls(food_id, name, description, energy, fats, proteins, carbohydrates, portion, conversions)
+        return cls(food_id, name, description, energy, fats, proteins, carbohydrates, portion, conversions, aliases)
 
     def to_dict(self) -> dict:
         return dict(
@@ -59,7 +61,8 @@ class FoodItem:
             energy=Decimal128(str(self.energy)),
             fats=Decimal128(str(self.fats)),
             proteins=Decimal128(str(self.proteins)),
-            carbohydrates=Decimal128(str(self.carbohydrates))
+            carbohydrates=Decimal128(str(self.carbohydrates)),
+            aliases=self.aliases if self.aliases else []
         )
 
     def to_json(self) -> dict:
@@ -72,7 +75,8 @@ class FoodItem:
             "energy": float(str(self.energy)),
             "fats": float(str(self.fats)),
             "proteins": float(str(self.proteins)),
-            "carbohydrates": float(str(self.carbohydrates))
+            "carbohydrates": float(str(self.carbohydrates)),
+            "aliases": self.aliases if self.aliases else []
         }
 
     def __repr__(self) -> str:
@@ -83,7 +87,8 @@ class FoodItem:
             f"Энергетическая ценность: {self.energy} ккал",
             f"Жиры: {self.fats}г",
             f"Белки: {self.proteins}г",
-            f"Углеводы: {self.carbohydrates}г"
+            f"Углеводы: {self.carbohydrates}г",
+            f"Алиасы: {', '.join(self.aliases if self.aliases else [])}"
         ]
 
         return "\n".join(lines)
