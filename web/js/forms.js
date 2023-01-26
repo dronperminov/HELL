@@ -76,26 +76,6 @@ function MakeInput(type, parent, attributes = null) {
     return input
 }
 
-function MakeSelect(parent, options, attributes = null) {
-    let select = document.createElement("select")
-    SetAttributes(select, attributes)
-
-    for (let key of Object.keys(options)) {
-        let option = document.createElement("option")
-        option.value = key
-        option.innerText = key
-        option.setAttribute("data-value", options[key])
-
-        if (attributes !== null && attributes.value == key)
-            option.setAttribute("selected", "")
-        select.appendChild(option)
-    }
-
-    parent.appendChild(select)
-
-    return select
-}
-
 function MakeIcon(parent, className, onclick = null) {
     let icon = document.createElement("button")
     let iconSpan = document.createElement("span")

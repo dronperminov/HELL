@@ -64,6 +64,30 @@ function ValidatePortion(id) {
     return portionSize.value
 }
 
+function MakeFoodItemSelect(parent, conversions, attributes = null) {
+    let select = document.createElement("select")
+    let portion = "мл" in conversions && Math.abs(conversions["мл"] - 0.01) < 0.0001 ? "мл" : "г"
+    SetAttributes(select, attributes)
+
+    for (let key of Object.keys(conversions)) {
+        let option = document.createElement("option")
+        option.value = key
+        option.innerText = key
+
+        if (key != "г" && key != "мл")
+            option.innerText += ` (${Math.round(conversions[key] * 1000) / 10} ${portion})`
+        option.setAttribute("data-value", conversions[key])
+
+        if (attributes !== null && attributes.value == key)
+            option.setAttribute("selected", "")
+        select.appendChild(option)
+    }
+
+    parent.appendChild(select)
+
+    return select
+}
+
 function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen = false) {
     let foodItem = MakeDiv("food-item", resultsDiv, {"id": data.id})
     let withPortion = "unit" in data && "size" in data
@@ -119,7 +143,7 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
     })
 
     let portionUnit = MakeDiv("food-portion-unit", portionControl)
-    let portionUnitInput = MakeSelect(portionUnit, data.conversions, {
+    let portionUnitInput = MakeFoodItemSelect(portionUnit, data.conversions, {
         "id": `${data.id}-portion-unit`,
         "value": data.default_unit
     })

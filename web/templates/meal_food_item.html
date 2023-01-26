@@ -25,8 +25,10 @@
 
             <div class="food-portion-unit">
                 <select id="{{food_item.meal_id}}-portion-unit">
-                    {% for unit in food_item.food_item.conversions %}
-                    <option value="{{unit}}">{{unit}}</option>
+                    {% for unit, scale in food_item.food_item.conversions.items() %}
+                    <option value="{{unit}}">{{unit}}
+                        {% if unit not in ["г", "мл"] %} ({{(((1000 * scale|string|float)|round / 10)|string).replace('.0', '')}} {{food_item.food_item.portion[3:]}}){% endif %}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
