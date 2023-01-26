@@ -13,10 +13,18 @@
     {% endif %}
 
         <div class="food-info">
-            <div class="food-info-cell food-energy">{{food_item.energy}} ккал{% if not is_template %} / {{food_item.portion}}{% endif %}</div>
-            <div class="food-info-cell food-proteins">Б{{food_item.proteins}} г</div>
-            <div class="food-info-cell food-fats">Ж{{food_item.fats}} г</div>
-            <div class="food-info-cell food-carbohydrates">У{{food_item.carbohydrates}} г</div>
+            <div class="food-info-cell food-energy">
+                <span id="{{food_item._id}}-food-energy">{{food_item.energy}}</span> ккал{% if not is_template %} / {{food_item.portion}}{% endif %}
+            </div>
+            <div class="food-info-cell food-proteins">
+                Б<span id="{{food_item._id}}-food-proteins">{{food_item.proteins}}</span> г
+            </div>
+            <div class="food-info-cell food-fats">
+                Ж<span id="{{food_item._id}}-food-fats">{{food_item.fats}}</span> г
+            </div>
+            <div class="food-info-cell food-carbohydrates">
+                У<span id="{{food_item._id}}-food-carbohydrates">{{food_item.carbohydrates}}</span> г
+            </div>
         </div>
     </div>
 
@@ -29,14 +37,14 @@
         <div class="food-portion-text">Редактирование порции:</div>
         <div class="food-portion-control">
             <div class="food-portion-size">
-                <input id="{{food_item._id}}-portion-size" type="number" value="{{food_item.default_value}}">
+                <input id="{{food_item._id}}-portion-size" type="number" value="{{food_item.default_value}}" oninput="UpdatePortionInfo('{{food_item._id}}')">
             </div>
 
             {% if not is_template %}
             <div class="food-portion-unit">
-                <select id="{{food_item._id}}-portion-unit">
+                <select id="{{food_item._id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item._id}}')">
                     {% for unit, scale in food_item.conversions.items() %}
-                    <option value="{{unit}}" {% if food_item.default_unit == unit %}selected{% endif %}>{{unit}}
+                    <option value="{{unit}}" data-value="{{scale}}" {% if food_item.default_unit == unit %}selected{% endif %}>{{unit}}
                         {% if unit not in ["г", "мл"] %} ({{(((1000 * scale|string|float)|round / 10)|string).replace('.0', '')}} {{food_item.portion[3:]}}){% endif %}
                     </option>
                     {% endfor %}
@@ -55,6 +63,25 @@
             </div>
         </div>
         <div class="error-center" id="{{food_item._id}}-portion-error"></div>
+        <div class="food-portion-info">
+            {% if is_template %}
+            {% set scale = 1 %}
+            {% else %}
+            {% set scale = (food_item.default_value|string|float) * (food_item.conversions[food_item.default_unit]|string|float) * 10 %}
+            {% endif %}
+            <div class="food-portion-info-cell food-portion-energy">
+                <span id="{{food_item._id}}-food-portion-energy">{{(((food_item.energy|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> ккал{% if not is_template %} <span id="{{food_item._id}}-food-portion-portion">/ {{food_item.default_value}} {{food_item.default_unit}}</span>{% endif %}
+            </div>
+            <div class="food-portion-info-cell food-portion-proteins">
+                Б<span id="{{food_item._id}}-food-portion-proteins">{{(((food_item.proteins|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> г
+            </div>
+            <div class="food-portion-info-cell food-portion-fats">
+                Ж<span id="{{food_item._id}}-food-portion-fats">{{(((food_item.fats|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> г
+            </div>
+            <div class="food-portion-info-cell food-portion-carbohydrates">
+                У<span id="{{food_item._id}}-food-portion-carbohydrates">{{(((food_item.carbohydrates|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> г
+            </div>
+        </div>
     </div>
     {% endif %}
 </div>

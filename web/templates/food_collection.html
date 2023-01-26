@@ -74,6 +74,7 @@
         function ClickFoodItem(foodId) {
         {% if date and meal_type %}
             TogglePortionEdit(foodId)
+            UpdatePortionInfo(foodId)
         {% else %}
             location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
@@ -82,6 +83,7 @@
         function ClickTemplateItem(templateId) {
         {% if date and meal_type %}
             TogglePortionEdit(templateId)
+            UpdatePortionInfo(templateId)
         {% else %}
             location.href = `/edit-template/${templateId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}

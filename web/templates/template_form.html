@@ -240,7 +240,7 @@
 
         function Search() {
             SearchFood(
-                (id) => TogglePortionEdit(id),
+                (id) => {TogglePortionEdit(id); UpdatePortionInfo(id)},
                 (data, portion) => AddFoodToTemplate(data, portion)
             )
         }

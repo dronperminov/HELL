@@ -35,3 +35,25 @@
 .food-portion-size input {
     text-align: right;
 }
+
+.food-portion-info {
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.9em;
+}
+
+.food-portion-info-cell {
+    display: table-cell;
+}
+
+.food-portion-energy {
+    color: var(--success-color);
+    width: 40%;
+}
+
+.food-portion-fats, .food-portion-proteins, .food-portion-carbohydrates {
+    color: var(--disabled-color);
+    text-align: right;
+    width: 20%;
+}

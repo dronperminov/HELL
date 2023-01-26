@@ -31,6 +31,56 @@ function EndEditPortions(ignoreEdit = null) {
     }
 }
 
+function UpdatePortionInfo(foodId) {
+    let sizeInput = document.getElementById(`${foodId}-portion-size`)
+    let unitInput = document.getElementById(`${foodId}-portion-unit`)
+    let portionError = document.getElementById(`${foodId}-portion-error`)
+
+    let size = sizeInput.value
+    let scale
+
+    if (unitInput === null) {
+        scale = +size
+    }
+    else {
+        let unit = unitInput.value
+        let conversions = {}
+
+        for (let option of unitInput.children)
+            conversions[option.getAttribute("value")] = +option.getAttribute("data-value")
+
+        scale = +size * conversions[unit]
+    }
+
+    if (!IsPositiveReal(size)) {
+        portionError.innerText = "Размер порции введён некорректно"
+        sizeInput.classList.add("error")
+        scale = 0
+    }
+    else {
+        sizeInput.classList.remove("error")
+        portionError.innerText = ""
+    }
+
+    for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
+        let value = document.getElementById(`${foodId}-food-${key}`).innerText
+        let span = document.getElementById(`${foodId}-food-portion-${key}`)
+        span.innerText = `${Math.floor(+value * scale * 10) / 10}`
+    }
+
+    let portion = document.getElementById(`${foodId}-food-portion-portion`)
+
+    if (scale > 0) {
+        portion.innerText = `/ ${size}`
+
+        if (unitInput !== null)
+            portion.innerText += ` ${unitInput.value}`
+    }
+    else {
+        portion.innerText = ""
+    }
+}
+
 function TogglePortionEdit(id) {
     let foodItem = document.getElementById(id)
     let portionEdit = foodItem.getElementsByClassName('food-portion-edit')[0]
@@ -109,23 +159,23 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
 
     if (withPortion) {
         scale = data.size * data.conversions[data.unit]
-        energyText = `<span class="food-energy-span">${Math.round(data.energy * scale * 100) / 100}</span> ккал (<span class="food-size-span">${data.size}</span> <span class="food-unit-span">${data.unit}</span>)`
+        energyText = `<span class="food-energy-span" id="${data.id}-food-energy">${Math.round(data.energy * scale * 100) / 100}</span> ккал (<span class="food-size-span">${data.size}</span> <span class="food-unit-span">${data.unit}</span>)`
     }
     else {
-        energyText = `<span class="food-energy-span">${data.energy}</span> ккал / ${data.portion}`
+        energyText = `<span class="food-energy-span" id="${data.id}-food-energy">${data.energy}</span> ккал / ${data.portion}`
     }
 
     let foodEnergy = MakeDiv("food-info-cell food-energy", foodInfo, {
         "innerHTML": energyText, "data-value": data.energy
     })
     MakeDiv("food-info-cell food-proteins", foodInfo, {
-        "innerHTML": `Б<span class="food-proteins-span">${Math.round(data.proteins * scale * 100) / 100}</span> г`, "data-value": data.proteins
+        "innerHTML": `Б<span class="food-proteins-span" id="${data.id}-food-proteins">${Math.round(data.proteins * scale * 100) / 100}</span> г`, "data-value": data.proteins
     })
     MakeDiv("food-info-cell food-fats", foodInfo, {
-        "innerHTML": `Ж<span class="food-fats-span">${Math.round(data.fats * scale * 100) / 100}</span> г`, "data-value": data.fats
+        "innerHTML": `Ж<span class="food-fats-span" id="${data.id}-food-fats">${Math.round(data.fats * scale * 100) / 100}</span> г`, "data-value": data.fats
     })
     MakeDiv("food-info-cell food-carbohydrates", foodInfo, {
-        "innerHTML": `У<span class="food-carbohydrates-span">${Math.round(data.carbohydrates * scale * 100) / 100}</span> г`, "data-value": data.carbohydrates
+        "innerHTML": `У<span class="food-carbohydrates-span" id="${data.id}-food-carbohydrates">${Math.round(data.carbohydrates * scale * 100) / 100}</span> г`, "data-value": data.carbohydrates
     })
 
     let portionEdit = MakeDiv(`food-portion-edit${isPortionOpen ? "" : " no-display"}`, foodItem, {
@@ -148,6 +198,11 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
         "value": data.default_unit
     })
 
+    if (!withPortion) {
+        portionSizeInput.addEventListener("input", () => UpdatePortionInfo(data.id))
+        portionUnitInput.addEventListener("change", () => UpdatePortionInfo(data.id))
+    }
+
     let portionChange = MakeDiv("food-portion-change", portionControl)
     let icon = MakeIcon(portionChange, withPortion ? "fa fa-check" : "fa fa-plus", () => {
         let size = ValidatePortion(data.id)
@@ -160,6 +215,33 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
     })
 
     MakeDiv("error-center", portionEdit, {"id": `${data.id}-portion-error`})
+
+    if (!withPortion) {
+        let portionInfo = MakeDiv("food-portion-info", portionEdit)
+
+        for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
+            let before = {"energy": "", "proteins": "Б", "fats": "Ж", "carbohydrates": "У"}[key]
+            let after = {"energy": " ккал", "proteins": " г", "fats": " г", "carbohydrates": " г"}[key]
+            let portionInfoCell = MakeDiv(`food-portion-info-cell food-portion-${key}`, portionInfo)
+
+            MakeDiv("", portionInfoCell, {"innerText": before}, "span")
+            MakeDiv("", portionInfoCell, {
+                "id": `${data.id}-food-portion-${key}`,
+                "innerText": `${0}`
+            }, "span")
+            MakeDiv("", portionInfoCell, {"innerText": after}, "span")
+
+            if (key != "energy")
+                continue
+
+            MakeDiv("", portionInfoCell, {
+                "id": `${data.id}-food-portion-portion`,
+                "innerText": `/ 0`
+            }, "span")
+        }
+
+        UpdatePortionInfo(data.id)
+    }
 
     return foodItem
 }
