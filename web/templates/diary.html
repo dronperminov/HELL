@@ -32,8 +32,12 @@
                         <span id="meal-caret-{{meal_type}}" class="fa meal-caret fa-caret-right"></span>
                         {% endif %}
 
-                        {% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %}
+                        <span id="{{meal_type}}-name">{% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %}</span>
                     </div>
+                    {% if meal_type not in names %}
+                    <input type="text" class="meal-type meal-type-input no-display" id="{{meal_type}}-edit-name" placeholder="Введите название" list="names">
+                    <div class="error-center"></div>
+                    {% endif %}
 
                 {% if meal_statistic[meal_type]["foods"] %}
                     <div class="meal-info" id="meal-info-{{meal_type}}">
@@ -44,9 +48,14 @@
                     </div>
                 {% endif %}
                     <div class="meal-buttons">
-                        <button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'"><span class="fa fa-plus"></span></button>
+                        <button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'" id="{{meal_type}}-add-meal-icon"><span class="fa fa-plus"></span></button>
+                        {% if meal_type not in names %}
+                        <button onclick="RenameMealType('{{meal_type}}')" class="no-display" id="{{meal_type}}-edit-icon"><span class="fa fa-check"></span></button>
+                        {% endif %}
                     </div>
                 </div>
+
+                <div class="error-center"></div>
 
                 <div class="meal-actions no-display" id="{{meal_type}}-actions">
                     {% if meal_statistic[meal_type]["foods"] %}
@@ -57,6 +66,12 @@
                     <div class="meal-action">
                         <button onclick="MakeTemplateFromMealType('{{meal_type}}')"><span class="food-name-group-icon" id="{{meal_type}}-template-icon"></span></button>
                         <span class="meal-action-name">Создать шаблон из приёма пищи</span>
+                    </div>
+                    {% endif %}
+                    {% if meal_type not in names %}
+                    <div class="meal-action">
+                        <button onclick="StartRenameMealType('{{meal_type}}')"><span class="fa fa-pencil" id="{{meal_type}}-rename-icon"></span></button>
+                        <span class="meal-action-name">Переименовать приём пищи</span>
                     </div>
                     {% endif %}
                 </div>
@@ -131,6 +146,10 @@
         </div>
     </div>
 
+    <datalist id="names">
+        {% for name in meal_names %}<option value="{{name}}"></option>{% endfor %}
+    </datalist>
+
     <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
     <script src="/js/chart.js"></script>
@@ -173,6 +192,7 @@
                 let mealType = mealItem.getAttribute("data-meal-type")
                 ToggleCopyMealType(mealType, false)
                 ToggleMealActions(mealType, false)
+                CancelRenameMealType(mealType)
             }
         }
 
@@ -306,7 +326,7 @@
 
             SendRequest('/remove-meal', {"date": date, "meal_type": mealType, "meal_id": mealId}).then((response) => {
                 if (response.status != "ok") {
-                    alert("Не удалось удалить продукт...")
+                    alert(response.message)
                     location.reload()
                     return
                 }
@@ -350,13 +370,13 @@
             })
         }
 
-        function EnterMealType(e, mealType, error) {
+        function EnterMealType(e, mealType, error, onEnter) {
             error.innerText = ""
             mealType.classList.remove("error")
 
             if (e.keyCode == 13) {
                 e.preventDefault()
-                ValidateMealType(mealType)
+                onEnter(mealType)
                 return
             }
         }
@@ -368,11 +388,20 @@
             mealType.value = mealTypeName
             error.innerText = ""
 
+            if (mealTypeName.length == 0) {
+                error.innerText = "Название приёма пищи не может быть пустым"
+                mealType.classList.add("error")
+                return null
+            }
+
             for (let mealTypeItem of document.getElementsByClassName("meal-type")) {
+                if (mealTypeItem.classList.contains("no-display") || mealTypeItem.tagName == "INPUT")
+                    continue
+
                 if (mealTypeItem != mealType && mealTypeItem.innerText.trim() == mealTypeName) {
                     error.innerText = "Нельзя добавить такой приём пищи, так как он уже существует"
                     mealType.classList.add('error')
-                    return
+                    return null
                 }
             }
 
@@ -380,33 +409,11 @@
             if (chars.length > 0) {
                 error.innerText = `В названии приёма пищи присутствуют недопустимые символы (${chars.join('')})`
                 mealType.classList.add("error")
-                return
+                return null
             }
 
             mealType.classList.remove('error')
-            mealType.removeAttribute("contenteditable")
-
-            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealTypeName}).then((response) => {
-                if (response.status != "ok")
-                    alert("Не удалось добавить приём пищи")
-
-                location.reload()
-            })
-        }
-
-        function CreateMealTypeDatalist() {
-            let datalist = document.createElement("datalist")
-            datalist.setAttribute("id", "names")
-
-            let options = [{% for name in meal_names %}"{{name}}",{% endfor %}]
-
-            for (let optionName of options) {
-                let option = document.createElement("option")
-                option.value = optionName
-                datalist.appendChild(option)
-            }
-
-            return datalist
+            return mealTypeName
         }
 
         function CreateMealType() {
@@ -420,18 +427,30 @@
             let mealIcon = MakeDiv("meal-buttons", mealData)
             let error = MakeDiv("error-center", mealItem)
 
-            mealData.appendChild(this.CreateMealTypeDatalist())
-
-            MakeIcon(mealIcon, "fa fa-check", () => ValidateMealType(mealType))
+            MakeIcon(mealIcon, "fa fa-check", () => AddMealType(mealType))
             mealType.setAttribute("list", "names")
             mealType.setAttribute("placeholder", "Введите название")
-            mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType, error))
+            mealType.addEventListener("keydown", (e) => EnterMealType(e, mealType, error, (mealType) => AddMealType(mealType)))
             mealType.focus()
 
             addButton.classList.add("no-display")
             cancelButton.classList.remove("no-display")
 
             document.execCommand('selectAll', false)
+        }
+
+        function AddMealType(mealType) {
+            let mealTypeName = ValidateMealType(mealType)
+
+            if (mealTypeName === null)
+                return
+
+            SendRequest("/add-meal-type", {"date": "{{date}}", "meal_type": mealTypeName}).then((response) => {
+                if (response.status != "ok")
+                    alert(response.message)
+
+                location.reload()
+            })
         }
 
         function CancelCreateMealType() {
@@ -445,10 +464,65 @@
             cancelButton.classList.add("no-display")
         }
 
+        function StartRenameMealType(mealType) {
+            EndActions()
+
+            let originalName = document.getElementById(`${mealType}-name`)
+            let editName = document.getElementById(`${mealType}-edit-name`)
+            let addIcon = document.getElementById(`${mealType}-add-meal-icon`)
+            let editIcon = document.getElementById(`${mealType}-edit-icon`)
+
+            originalName.parentNode.classList.add("no-display")
+            editName.classList.remove("no-display")
+            editName.value = originalName.innerText
+            addIcon.classList.add("no-display")
+            editIcon.classList.remove("no-display")
+        }
+
+        function RenameMealType(mealType) {
+            let originalName = document.getElementById(`${mealType}-name`).innerText
+            let editName = document.getElementById(`${mealType}-edit-name`)
+            let name = ValidateMealType(editName)
+
+            if (name === null)
+                return
+
+            if (name == originalName) {
+                CancelRenameMealType(mealType)
+                return
+            }
+
+            SendRequest("/rename-meal-type", {"date": "{{date}}", "meal_type": originalName, "new_meal_type": name}).then((response) => {
+                if (response.status != "ok") {
+                    alert(response.message)
+                    CancelRenameMealType(mealType)
+                    return
+                }
+
+                location.reload()
+            })
+        }
+
+        function CancelRenameMealType(mealType) {
+            let editName = document.getElementById(`${mealType}-edit-name`)
+
+            if (editName === null)
+                return
+
+            let originalName = document.getElementById(`${mealType}-name`)
+            let addIcon = document.getElementById(`${mealType}-add-meal-icon`)
+            let editIcon = document.getElementById(`${mealType}-edit-icon`)
+
+            originalName.parentNode.classList.remove("no-display")
+            editName.classList.add("no-display")
+            addIcon.classList.remove("no-display")
+            editIcon.classList.add("no-display")
+        }
+
         function RemoveMealType(mealType) {
             SendRequest("/remove-meal-type", {"date": "{{date}}", "meal_type": mealType}).then((response) => {
                 if (response.status != "ok")
-                    alert("Не удалось удалить приём пищи")
+                    alert(response.message)
 
                 location.reload()
             })
@@ -648,13 +722,22 @@
         for (let mealItem of document.getElementsByClassName("meal-data")) {
             mealItem.addEventListener('click', (e) => {
                 for (let item of e.composedPath())
-                    if (item.tagName == "BUTTON")
+                    if (item.tagName == "BUTTON" || item.tagName == "INPUT")
                         return
 
                 ToggleMeal(mealItem)
             })
 
             RemoveMealOnSwipe(mealItem)
+
+            let mealTypeInput = mealItem.getElementsByClassName("meal-type-input")
+
+            if (mealTypeInput.length == 0)
+                continue
+
+            let error = mealTypeInput[0].parentNode.getElementsByClassName("error-center")[0]
+            let mealType = mealItem.parentNode.getAttribute("data-meal-type")
+            mealTypeInput[0].addEventListener('keydown', (e) => EnterMealType(e, mealTypeInput[0], error, () => RenameMealType(mealType)))
         }
 
         for (let groupItem of document.getElementsByClassName("food-item-group-data")) {

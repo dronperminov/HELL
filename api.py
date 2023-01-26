@@ -858,6 +858,12 @@ def add_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..., 
 
     date = parse_date(date)
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+
+    meal_doc = diary_collection.find_one({"date": date})
+
+    if meal_doc and meal_type in meal_doc["meal_info"]:
+        return JSONResponse({"status": "fail", "message": "Невозможно добавить приём пищи, так как он уже существует"})
+
     diary_collection.update_one({"date": date}, {"$set": {f"meal_info.{meal_type}": []}}, upsert=True)
     return JSONResponse({"status": "ok"})
 
@@ -871,11 +877,41 @@ def remove_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
     meal_doc = diary_collection.find_one({"date": date})
+
+    if not meal_doc or meal_type not in meal_doc["meal_info"]:
+        return JSONResponse({"status": "fail", "message": "Невозможно удалить приём пищи, так как он уже удалён"})
+
     meal_ids = meal_doc["meal_info"][meal_type]
 
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meal_collection.delete_many({"_id": {"$in": meal_ids}})
     diary_collection.update_one({"date": date}, {"$unset": {f"meal_info.{meal_type}": 1}})
+
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/rename-meal-type")
+def remove_meal_type(
+        date: str = Body(..., embed=True),
+        meal_type: str = Body(..., embed=True),
+        new_meal_type: str = Body(..., embed=True),
+        user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    date = parse_date(date)
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+
+    meal_doc = diary_collection.find_one({"date": date})
+
+    if not meal_doc or meal_type not in meal_doc["meal_info"]:
+        return JSONResponse({"status": "fail", "message": "Невозможно переименовать приём пищи, так как его больше не существует"})
+
+    if meal_type != new_meal_type and new_meal_type in meal_doc["meal_info"]:
+        return JSONResponse({"status": "fail", "message": "Невозможно переименовать приём пищи, так как выбранное название уже присутствует"})
+
+    if meal_type != new_meal_type:
+        diary_collection.update_one({"date": date}, {"$rename": {f"meal_info.{meal_type}": f"meal_info.{new_meal_type}"}})
 
     return JSONResponse({"status": "ok"})
 
