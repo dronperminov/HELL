@@ -59,16 +59,27 @@
 }
 
 .food-search-autocomplete-results {
-    margin-top: 5px;
     white-space: nowrap;
+    max-height: 200px;
+    overflow-y: scroll;
 }
 
 .food-search-autocomplete-result {
     margin-bottom: 5px;
+    text-overflow: ellipsis;
     color: var(--disabled-color);
     overflow-x: hidden;
+    font-size: 0.9rem;
 }
 
 .food-search-autocomplete-result span:hover {
     color: var(--success-color);
+}
+
+.food-search-autocomplete-result:first-child {
+    margin-top: 5px;
+}
+
+.food-search-autocomplete-result:last-child {
+    margin-bottom: 10px;
 }

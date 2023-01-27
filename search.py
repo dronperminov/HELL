@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import List, Dict
 
 from bson import ObjectId
-from pymongo import MongoClient, DESCENDING
+from pymongo import MongoClient, ASCENDING
 from pymongo.errors import OperationFailure
 
 import constants
@@ -22,6 +22,7 @@ class Search:
         self.meal_collection = self.database[constants.MONGO_MEAL_COLLECTION]
 
         self.food_collection.create_index([("name", "text"), ("aliases", "text")])
+        self.food_collection.create_index([("name", ASCENDING), ("aliases", ASCENDING)])
         self.template_collection.create_index([("name", "text")])
 
     def search(self, query: str, user_id: str = "") -> List[dict]:
@@ -38,7 +39,10 @@ class Search:
 
     def autocomplete(self, query: str) -> List[str]:
         results = self.food_collection.aggregate([
-            {"$match": {"$text": {"$search": f"{query}", "$caseSensitive": False}}},
+            {"$match": {"$or": [
+                {"$text": {"$search": f"{query}", "$caseSensitive": False}},
+                {"name": {"$regex": f"{re.escape(query)}", "$options": "i"}}
+            ]}},
             {"$project": {"_id": 0, "name": 1, "score": {"$meta": "textScore"}}},
             {"$sort": {"score": -1}}
         ])
