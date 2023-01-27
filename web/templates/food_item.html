@@ -17,13 +17,13 @@
                 <span id="{{food_item._id}}-food-energy">{{food_item.energy}}</span> ккал{% if not is_template %} / {{food_item.portion}}{% endif %}
             </div>
             <div class="food-info-cell food-proteins">
-                Б<span id="{{food_item._id}}-food-proteins">{{food_item.proteins}}</span> г
+                Б <span id="{{food_item._id}}-food-proteins">{{food_item.proteins}}</span>г
             </div>
             <div class="food-info-cell food-fats">
-                Ж<span id="{{food_item._id}}-food-fats">{{food_item.fats}}</span> г
+                Ж <span id="{{food_item._id}}-food-fats">{{food_item.fats}}</span>г
             </div>
             <div class="food-info-cell food-carbohydrates">
-                У<span id="{{food_item._id}}-food-carbohydrates">{{food_item.carbohydrates}}</span> г
+                У <span id="{{food_item._id}}-food-carbohydrates">{{food_item.carbohydrates}}</span>г
             </div>
         </div>
     </div>
@@ -73,13 +73,13 @@
                 <span id="{{food_item._id}}-food-portion-energy">{{(((food_item.energy|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> ккал{% if not is_template %} <span id="{{food_item._id}}-food-portion-portion">/ {{food_item.default_value}} {{food_item.default_unit}}</span>{% endif %}
             </div>
             <div class="food-portion-info-cell food-portion-proteins">
-                Б<span id="{{food_item._id}}-food-portion-proteins">{{(((food_item.proteins|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> г
+                Б <span id="{{food_item._id}}-food-portion-proteins">{{(((food_item.proteins|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
             </div>
             <div class="food-portion-info-cell food-portion-fats">
-                Ж<span id="{{food_item._id}}-food-portion-fats">{{(((food_item.fats|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> г
+                Ж <span id="{{food_item._id}}-food-portion-fats">{{(((food_item.fats|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
             </div>
             <div class="food-portion-info-cell food-portion-carbohydrates">
-                У<span id="{{food_item._id}}-food-portion-carbohydrates">{{(((food_item.carbohydrates|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> г
+                У <span id="{{food_item._id}}-food-portion-carbohydrates">{{(((food_item.carbohydrates|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
             </div>
         </div>
     </div>

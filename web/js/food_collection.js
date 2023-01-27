@@ -172,13 +172,13 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
         "innerHTML": energyText, "data-value": data.energy
     })
     MakeDiv("food-info-cell food-proteins", foodInfo, {
-        "innerHTML": `Б<span class="food-proteins-span" id="${data.id}-food-proteins">${Math.round(data.proteins * scale * 100) / 100}</span> г`, "data-value": data.proteins
+        "innerHTML": `Б <span class="food-proteins-span" id="${data.id}-food-proteins">${Math.round(data.proteins * scale * 100) / 100}</span>г`, "data-value": data.proteins
     })
     MakeDiv("food-info-cell food-fats", foodInfo, {
-        "innerHTML": `Ж<span class="food-fats-span" id="${data.id}-food-fats">${Math.round(data.fats * scale * 100) / 100}</span> г`, "data-value": data.fats
+        "innerHTML": `Ж <span class="food-fats-span" id="${data.id}-food-fats">${Math.round(data.fats * scale * 100) / 100}</span>г`, "data-value": data.fats
     })
     MakeDiv("food-info-cell food-carbohydrates", foodInfo, {
-        "innerHTML": `У<span class="food-carbohydrates-span" id="${data.id}-food-carbohydrates">${Math.round(data.carbohydrates * scale * 100) / 100}</span> г`, "data-value": data.carbohydrates
+        "innerHTML": `У <span class="food-carbohydrates-span" id="${data.id}-food-carbohydrates">${Math.round(data.carbohydrates * scale * 100) / 100}</span>г`, "data-value": data.carbohydrates
     })
 
     let portionEdit = MakeDiv(`food-portion-edit${isPortionOpen ? "" : " no-display"}`, foodItem, {
@@ -223,8 +223,8 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
         let portionInfo = MakeDiv("food-portion-info", portionEdit)
 
         for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
-            let before = {"energy": "", "proteins": "Б", "fats": "Ж", "carbohydrates": "У"}[key]
-            let after = {"energy": " ккал", "proteins": " г", "fats": " г", "carbohydrates": " г"}[key]
+            let before = {"energy": "", "proteins": "Б ", "fats": "Ж ", "carbohydrates": "У "}[key]
+            let after = {"energy": " ккал", "proteins": "г", "fats": "г", "carbohydrates": "г"}[key]
             let portionInfoCell = MakeDiv(`food-portion-info-cell food-portion-${key}`, portionInfo)
 
             MakeDiv("", portionInfoCell, {"innerText": before}, "span")
