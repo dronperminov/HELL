@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
     {% include "head.html" %}
     <title>Статистика с {{start_date}} по {{end_date}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
@@ -10,7 +7,7 @@
 </head>
 <body>
     {% include "menu.html" %}
-    {% if user_id %}<button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
+    {% if user_id %}<button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
     <h1>Статистика</h1>
 
     <div class="statistic-parameters">

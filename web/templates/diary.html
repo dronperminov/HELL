@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
     {% include "head.html" %}
     <title>Дневник питания | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
@@ -11,7 +8,7 @@
 </head>
 <body>
     {% include "menu.html" %}
-    {% if user_id %}<button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
+    {% if user_id %}<button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
     <div class="diary" id="diary">
         <div class="diary-date" id="date-picker"></div>
 

@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
     {% include "head.html" %}
     <title>{{title}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
@@ -58,7 +55,7 @@
                     <span class="fa fa-times">
                 </div>
                 <div class="food-search-input">
-                    <input type="text" id="food-query" oninput="Autocomplete(SetQuery)" class="search-input" placeholder="Введите название продукта">
+                    <input type="text" id="food-query" autocomplete="off" oninput="Autocomplete(SetQuery)" class="search-input" placeholder="Введите название продукта">
                 </div>
                 <div class="food-search-button">
                     <button id="search-button"><span class="fa fa-search"></span></button>
@@ -240,13 +237,14 @@
 
         function SetQuery(query) {
             let queryInput = document.getElementById("food-query")
-            let autocompleteResults = document.getElementById("autocomplete-results")
             queryInput.value = query
-            autocompleteResults.innerHTML = ""
             Search()
         }
 
         function Search() {
+            let autocompleteResults = document.getElementById("autocomplete-results")
+            autocompleteResults.innerHTML = ""
+
             SearchFood(
                 (id) => {TogglePortionEdit(id); UpdatePortionInfo(id)},
                 (data, portion) => AddFoodToTemplate(data, portion)

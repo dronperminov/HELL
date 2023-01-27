@@ -21,6 +21,7 @@ from auth_utils import validate_password, get_password_hash, create_access_token
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from entities.template import Template, TemplateAvailability
+from entities.user_settings import UserSettings
 from fatsecret_parser import FatSecretParser
 from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 from search import Search
@@ -35,6 +36,7 @@ templates = Environment(loader=FileSystemLoader('web/templates'), cache_size=0)
 mongo = MongoClient(constants.MONGO_URL)
 database = mongo[constants.MONGO_DATABASE]
 search = Search(mongo)
+database[constants.MONGO_SETTINGS_COLLECTION].create_index([("user_id", 1)])
 
 
 async def token_to_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT"))) -> Optional[str]:
@@ -69,6 +71,16 @@ def unauthorized_access(url: str) -> Response:
     return RedirectResponse("/login", status_code=302)
 
 
+def get_user_settings(user_id: str) -> UserSettings:
+    settings_collection = database[constants.MONGO_SETTINGS_COLLECTION]
+    settings_data = settings_collection.find_one({"user_id": ObjectId(user_id)})
+
+    if settings_data is None:
+        settings_data = {"user_id": user_id}
+
+    return UserSettings.from_dict(settings_data)
+
+
 def error_page(error_text: str, user_id: str) -> Response:
     template = templates.get_template('error.html')
     return HTMLResponse(template.render(error_text=error_text, user_id=user_id))
@@ -100,13 +112,36 @@ def login(username: str = Form(...), password: str = Form(...)):
     return response
 
 
+@app.get("/settings")
+def settings_get(user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=302)
+
+    template = templates.get_template('settings.html')
+    content = template.render(
+        user_id=user_id,
+        settings=get_user_settings(user_id)
+    )
+    return HTMLResponse(content=content)
+
+
+@app.post("/settings")
+async def settings_post(request: Request, user_id: Optional[str] = Depends(get_current_user)):
+    data = await request.json()
+    settings = UserSettings.from_dict(data)
+    settings_collection = database[constants.MONGO_SETTINGS_COLLECTION]
+    settings_collection.update_one({"user_id": ObjectId(user_id)}, {"$set": settings.to_dict()}, upsert=True)
+    return JSONResponse({"status": "ok"})
+
+
 @app.get("/update-password")
 def update_password_get(user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
-        return RedirectResponse(url="/", status_code=302)
+        return RedirectResponse(url="/login", status_code=302)
 
     template = templates.get_template('update_password.html')
-    return HTMLResponse(content=template.render(user_id=user_id))
+    content = template.render(user_id=user_id, settings=get_user_settings(user_id))
+    return HTMLResponse(content=content)
 
 
 @app.post("/update-password")
@@ -184,6 +219,7 @@ async def index(date: Optional[str] = Query(None), user_id: Optional[str] = Depe
     template = templates.get_template('index.html')
     content = template.render(
         user=user,
+        settings=get_user_settings(user_id),
         date=format_date(date),
         prev_date=format_date(date + timedelta(days=-1)),
         next_date=format_date(date + timedelta(days=1)),
@@ -273,8 +309,14 @@ def food_collection_get(food_query: str = Query(None), user_id: str = Depends(ge
     food_query = food_query.strip() if food_query else None
     food_items = search.search(food_query, user_id)
     template = templates.get_template('food_collection.html')
-    html = template.render(user_id=user_id, food_items=food_items, query=food_query, page="/food-collection")
-    return HTMLResponse(content=html)
+    content = template.render(
+        user_id=user_id,
+        settings=get_user_settings(user_id),
+        food_items=food_items,
+        query=food_query,
+        page="/food-collection"
+    )
+    return HTMLResponse(content=content)
 
 
 @app.post("/food-collection")
@@ -297,6 +339,7 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
     template = templates.get_template('food_form.html')
     html = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         title="Добавление нового продукта",
         add_text="Добавить продукт",
         add_url="/add-food",
@@ -328,6 +371,7 @@ def edit_food(food_id: str, food_query: str = Query(None), back_url: str = Query
     template = templates.get_template('food_form.html')
     html = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         title="Редактирование продукта",
         add_text="Обновить продукт",
         add_url=f"/edit-food/{food_id}",
@@ -415,6 +459,7 @@ def add_template_get(food_query: str = Query(None), date: str = Query(None), mea
     template = templates.get_template('template_form.html')
     html = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         title="Добавление нового шаблона",
         add_text="Добавить шаблон",
         add_url="/add-template",
@@ -450,6 +495,7 @@ def create_template(date: str = Query(None), meal_type: str = Query(None), user_
     template = templates.get_template('template_form.html')
     html = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         title="Добавление нового шаблона",
         add_text="Добавить шаблон",
         add_url="/add-template",
@@ -504,6 +550,7 @@ def edit_template(template_id: str, food_query: str = Query(None), back_url: str
     template = templates.get_template('template_form.html')
     html = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         title="Редактирование шаблона",
         add_text="Обновить шаблон",
         add_url=f"/edit-template/{template_id}",
@@ -700,6 +747,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     template = templates.get_template('diary.html')
     content = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         date=format_date(date),
         used_dates=[format_date(date["date"]) for date in used_dates],
         copy_date=format_date(copy_date),
@@ -725,6 +773,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
     template = templates.get_template('food_collection.html')
     html = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         food_items=add_default_unit(food_items),
         frequent_food_items=add_default_unit(frequent_food_items),
         query=food_query,
@@ -1009,6 +1058,7 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
     template = templates.get_template("statistic.html")
     content = template.render(
         user_id=user_id,
+        settings=get_user_settings(user_id),
         start_date=format_date(start_date),
         end_date=format_date(end_date),
         period=period,

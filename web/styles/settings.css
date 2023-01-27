@@ -1,0 +1,32 @@
+.settings {
+    margin-top: 10px;
+}
+
+.settings-header {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.setting-row {
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.setting-cell {
+    display: table-cell;
+    vertical-align: bottom;
+    white-space: nowrap
+}
+
+.setting-value {
+    padding-left: 5px;
+    width: 100%;
+}
+
+.setting-row a button {
+    color: unset;
+}

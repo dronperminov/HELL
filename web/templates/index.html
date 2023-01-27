@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
     {% include "head.html" %}
     {% if user %}
     <title>Личная страница | HELL</title>
@@ -15,7 +12,8 @@
 <body>
     {% include "menu.html" %}
     {% if user %}
-    <button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
     <div class="username">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</div>
     <div class="date" id="date-picker"></div>
 
@@ -32,23 +30,6 @@
         <button class="no-display" id="cancel-add-parameter" onclick="CancelAddParameter()"><span class="fa fa-ban"> Отменить</span></button>
     </div>
 
-    <div class="settings">
-        <div class="settings-header">Настройки и действия</div>
-        <div class="setting-row">
-            <div class="setting-cell">
-                <label for="theme-select">Тема приложения:</label>
-            </div>
-            <div class="setting-cell setting-value">
-                <select id="theme-select" onchange="UpdateTheme()">
-                    <option value="light">светлая</option>
-                    <option value="dark">тёмная</option>
-                </select>
-            </div>
-        </div>
-        <div class="setting-row">
-            <button onclick="location.href='/update-password'"><span class="fa fa-key"></span> Сменить пароль</button>
-        </div>
-    </div>
     <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
     <script src="/js/swipe.js"></script>
@@ -455,22 +436,6 @@
             BuildPlot(name)
         }
 
-        function UpdateTheme() {
-            let theme = document.getElementById('theme-select').value
-            localStorage.setItem("theme", theme)
-            SetTheme()
-        }
-
-        function InitTheme() {
-            let theme = localStorage.getItem("theme")
-
-            if (theme === null)
-                return
-
-            let themeInput = document.getElementById('theme-select')
-            themeInput.value = theme
-        }
-
         for (let parameterItem of document.getElementsByClassName("parameter-data")) {
             let parameterName = parameterItem.getElementsByClassName("parameter-name")[0].innerText
             let parameterInput = document.getElementById(`parameter-${parameterName}-value`)
@@ -499,11 +464,9 @@
 
             SwipeParameter(parameterItem)
         }
-
-        InitTheme()
     </script>
     {% else %}
-    <button class="sign" onclick="Login()"><span class="fa fa-sign-in"></span></button>
+    <button class="sign-icon" onclick="Login()"><span class="fa fa-sign-in"></span></button>
     <p class="center">Добро пожаловать в <b>HELL</b>!</p>
     <p>
         Пожалуйста, <button onclick="Login()"><span class="fa fa-sign-in"></span> войдите</button>, чтобы получить доступ ко всем функциям нашего приложения.

@@ -225,10 +225,16 @@ p {
     color: var(--menu-hover-text-color);
 }
 
-.sign {
+.sign-icon {
     position: absolute;
     top: 5px;
     right: 5px;
+}
+
+.settings-icon {
+    position: absolute;
+    top: 5px;
+    left: 5px;
 }
 
 @media (min-width: 1200px) {
@@ -245,7 +251,11 @@ p {
         margin: 0 auto;
     }
 
-    .sign {
-        right: calc((100vw - 380px) / 2);
+    .sign-icon {
+        right: calc((100vw - 400px) / 2);
+    }
+
+    .settings-icon {
+        left: calc((100vw - 400px) / 2);
     }
 }

@@ -18,18 +18,6 @@
             document.cookie = `token=${token}`
     }
 
-    function SetTheme() {
-        let theme = localStorage.getItem("theme")
-        let body = document.getElementsByTagName("body")[0]
-
-        if (theme !== null)
-            body.setAttribute("data-theme", theme)
-    }
-
-    {%if user or user_id %}
-    SetTheme()
-    {% endif %}
-
     window.addEventListener("beforeunload", UpdateCookieToken)
     window.addEventListener("unload", UpdateCookieToken)
 </script>

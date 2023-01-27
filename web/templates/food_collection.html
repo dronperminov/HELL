@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
     {% include "head.html" %}
     <title>{% if date and meal_type %}{{date}}. Добавление еды на {{names[meal_type]}}{% else %}Коллекция продуктов{% endif %} | HELL</title>
 
@@ -12,9 +9,9 @@
 <body>
     {% include "menu.html" %}
     {% if not user_id %}
-    <button class="sign" onclick="Login()"><span class="fa fa-sign-in"></span></button>
+    <button class="sign-icon" onclick="Login()"><span class="fa fa-sign-in"></span></button>
     {% elif not date or not meal_type %}
-    <button class="sign" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
     {% endif %}
     <h2>{% if date and meal_type %}{% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %} {{date}}{% else %}Продукты{% endif %}</h2>
 

@@ -1,0 +1,48 @@
+    {% include "head.html" %}
+    <title>Настройки | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/settings.css">
+</head>
+<body>
+    {% include "menu.html" %}
+    <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+
+    <div class="settings">
+        <div class="settings-header">Настройки</div>
+        <div class="setting-row">
+            <div class="setting-cell">
+                <label for="theme-select">Тема приложения:</label>
+            </div>
+            <div class="setting-cell setting-value">
+                <select id="theme-select" onchange="UpdateSettings()">
+                    <option value="light" {% if settings.theme == "light" %}selected{% endif %}>светлая</option>
+                    <option value="dark" {% if settings.theme == "dark" %}selected{% endif %}>тёмная</option>
+                </select>
+            </div>
+        </div>
+        <div class="setting-row">
+            <button onclick="location.href='/update-password'"><span class="fa fa-key"></span> Сменить пароль</button>
+        </div>
+    </div>
+
+    <script src="/js/forms.js"></script>
+    <script type="text/javascript">
+        function UpdateSettings() {
+            let theme = document.getElementById('theme-select').value
+            let settings = {
+                user_id: "{{user_id}}",
+                theme: theme
+            }
+
+            SendRequest("/settings", settings).then((response) => {
+                if (response.status != "ok")
+                    return
+
+                location.reload()
+            })
+        }
+    </script>
+
+    {% include "footer.html" %}
+</body>
+</html>
