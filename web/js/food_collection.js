@@ -24,6 +24,11 @@ function Autocomplete(onclick) {
     let query = document.getElementById("food-query").value.trim()
     let results = document.getElementById("autocomplete-results")
 
+    if (query.length == 0) {
+        results.innerHTML = ""
+        return
+    }
+
     SendRequest(`/autocomplete?food_query=${query}`).then((response) => {
         results.innerHTML = ""
 
