@@ -2,9 +2,11 @@ function ClearQuery() {
     let query = document.getElementById("food-query")
     let clear = document.getElementById("food-query-clear")
     let results = document.getElementById("food-search-results")
+    let autocompleteResults = document.getElementById("autocomplete-results")
     query.value = ""
     clear.classList.remove("food-search-clear-show")
     results.innerHTML = ""
+    autocompleteResults.innerHTML = ""
 }
 
 function UpdateClearQuery() {
@@ -15,6 +17,22 @@ function UpdateClearQuery() {
         clear.classList.add("food-search-clear-show")
     else
         clear.classList.remove("food-search-clear-show")
+}
+
+function Autocomplete(onclick) {
+    UpdateClearQuery()
+    let query = document.getElementById("food-query").value.trim()
+    let results = document.getElementById("autocomplete-results")
+
+    SendRequest(`/autocomplete?food_query=${query}`).then((response) => {
+        results.innerHTML = ""
+
+        for (let name of response.names) {
+            let result = MakeDiv("food-search-autocomplete-result", results)
+            let resultSpan = MakeDiv("", result, {"innerText": name}, "span")
+            resultSpan.addEventListener("click", () => onclick(name))
+        }
+    })
 }
 
 function EndEditPortions(ignoreEdit = null) {

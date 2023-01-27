@@ -1,16 +1,15 @@
 import re
 from decimal import Decimal
-from typing import List, Mapping, Any, Dict
+from typing import List, Dict
 
+from bson import ObjectId
+from pymongo import MongoClient, DESCENDING
 from pymongo.errors import OperationFailure
 
+import constants
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from entities.template import TemplateAvailability
-from bson import ObjectId
-from pymongo import MongoClient
-
-import constants
 from utils import normalize_statistic
 
 
@@ -21,6 +20,9 @@ class Search:
         self.food_collection = self.database[constants.MONGO_FOOD_COLLECTION]
         self.template_collection = self.database[constants.MONGO_TEMPLATE_COLLECTION]
         self.meal_collection = self.database[constants.MONGO_MEAL_COLLECTION]
+
+        self.food_collection.create_index([("name", "text"), ("aliases", "text")])
+        self.template_collection.create_index([("name", "text")])
 
     def search(self, query: str, user_id: str = "") -> List[dict]:
         if not query:
@@ -33,6 +35,14 @@ class Search:
             return food_items
         except OperationFailure:
             return []
+
+    def autocomplete(self, query: str) -> List[str]:
+        results = self.food_collection.aggregate([
+            {"$match": {"$text": {"$search": f"{query}", "$caseSensitive": False}}},
+            {"$project": {"_id": 0, "name": 1, "score": {"$meta": "textScore"}}},
+            {"$sort": {"score": -1}}
+        ])
+        return [result["name"] for result in results]
 
     def search_food(self, query: str):
         if query == "<F>":

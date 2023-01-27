@@ -286,6 +286,12 @@ def food_collection_post(food_query: str = Body(..., embed=True)):
     return JSONResponse(food_items)
 
 
+@app.get("/autocomplete")
+def autocomplete(food_query: str = Query("")):
+    names = search.autocomplete(food_query)
+    return JSONResponse({"names": names})
+
+
 @app.get("/add-food")
 def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None), user_id: str = Depends(get_current_user)):
     template = templates.get_template('food_form.html')

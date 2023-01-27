@@ -58,13 +58,14 @@
                     <span class="fa fa-times">
                 </div>
                 <div class="food-search-input">
-                    <input type="text" id="food-query" oninput="UpdateClearQuery()" class="search-input" placeholder="Введите название продукта">
+                    <input type="text" id="food-query" oninput="Autocomplete(SetQuery)" class="search-input" placeholder="Введите название продукта">
                 </div>
                 <div class="food-search-button">
                     <button id="search-button"><span class="fa fa-search"></span></button>
                 </div>
             </div>
 
+            <div class="food-search-autocomplete-results" id="autocomplete-results"></div>
             <div class="food-search-results" id="food-search-results">
                 
             </div>
@@ -235,6 +236,14 @@
                 alert(response.message)
                 location.href = response.href
             })
+        }
+
+        function SetQuery(query) {
+            let queryInput = document.getElementById("food-query")
+            let autocompleteResults = document.getElementById("autocomplete-results")
+            queryInput.value = query
+            autocompleteResults.innerHTML = ""
+            Search()
         }
 
         function Search() {

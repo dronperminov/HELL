@@ -57,3 +57,18 @@
 .food-search-info a {
     color: var(--text-color);
 }
+
+.food-search-autocomplete-results {
+    margin-top: 5px;
+    white-space: nowrap;
+}
+
+.food-search-autocomplete-result {
+    margin-bottom: 5px;
+    color: var(--disabled-color);
+    overflow-x: hidden;
+}
+
+.food-search-autocomplete-result span:hover {
+    color: var(--success-color);
+}
