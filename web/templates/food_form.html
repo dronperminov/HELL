@@ -393,12 +393,6 @@
                 let resultsDiv = document.getElementById("fatsecret-search-result")
                 let nextBtn = document.getElementById("fatsecret-next-search-btn")
 
-                if (response.length == 0) {
-                    resultsDiv.innerText = `К сожалению, по запросу "${query}" ничего не нашлось`
-                    nextBtn.classList.add("no-display")
-                    return
-                }
-
                 for (let result of response) {
                     let resultDiv = document.createElement("div")
                     let link = document.createElement("div")
@@ -418,6 +412,12 @@
                 }
 
                 nextBtn.classList.remove("no-display")
+
+                if (response.length == 0 || response.length < 10) {
+                    if (!next)
+                        resultsDiv.innerText = `К сожалению, по запросу "${query}" ничего не нашлось`
+                    nextBtn.classList.add("no-display")
+                }
             })
         }
 
