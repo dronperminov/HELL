@@ -97,6 +97,14 @@
 }
 
 .fatsecret-link {
+    display: inline-block;
+    font-weight: bold;
+    color: var(--text-color);
+    text-decoration: underline;
+    margin-bottom: 2px;
+}
+
+.fatsecret-link:hover  {
     color: var(--success-color);
 }
 

@@ -30,4 +30,4 @@ STATISTIC_MEAL_TYPE_MIN_COUNT = 3
 STATISTIC_KEYS = ["proteins", "fats", "carbohydrates", "energy"]
 
 PIECE_NAMES = ["штука", "бургер", "батончик", "ролл", "мороженое"]
-PORTION_NAMES = ["мерных скупа"]
+PORTION_NAMES = ["мерных скупа", "чашка"]
