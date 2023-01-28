@@ -129,6 +129,16 @@
             }
         }
 
+        function SetConversionValue(unitSelect, valueInput) {
+            let portion = document.getElementById("portion").value
+            let unit = unitSelect.value
+
+            if (portion in PORTION_UNITS_CONVERSIONS && unit in PORTION_UNITS_CONVERSIONS[portion])
+                valueInput.value = Math.round(PORTION_UNITS_CONVERSIONS[portion][unit] * 1000) / 10
+            else
+                valueInput.value = 100
+        }
+
         function AddConversion(target = null) {
             let block = document.getElementById('conversions-box')
 
@@ -161,21 +171,25 @@
             valueInput.min = 0.01
             valueInput.value = 100
             valueInput.addEventListener('focus', () => valueInput.select())
+            unitSelect.addEventListener("change", () => SetConversionValue(unitSelect, valueInput))
 
             if (target !== null) {
                 unitSelect.value = target.unit
-                valueInput.value = target.value * 100
+                valueInput.value = Math.round(target.value * 1000) / 10
 
                 if (target.unit in PORTION_UNITS_DEFAULT[portion]) {
                     unitSelect.setAttribute('disabled', '')
                     valueInput.setAttribute('disabled', '')
+                }
+                else if (target.blocked) {
+                    unitSelect.setAttribute('disabled', '')
                 }
             }
 
             let baseDiv = MakeDiv("conversions-base-unit")
             baseDiv.innerHTML = BASE_UNIT_TO_PORTION[portion]
 
-            if (target === null || !(target.unit in PORTION_UNITS_DEFAULT[portion])) {
+            if (target === null || !(target.unit in PORTION_UNITS_DEFAULT[portion]) && !target.blocked) {
                 div.appendChild(closeDiv)
                 closeDiv.appendChild(closeIcon)
             }
@@ -468,15 +482,18 @@
 
         {% if food %}
         {% for unit, value in food.conversions.items() %}
-        AddConversion({unit: "{{unit}}", value: "{{value}}"})
+        {% if unit in ["г", "мл"] %}AddConversion({unit: "{{unit}}", value: "{{value}}", blocked: {% if unit in used_units %}true{% else %}false{% endif %} }){% endif %}
+        {% endfor %}
+        {% for unit, value in food.conversions.items() %}
+        {% if unit not in ["г", "мл"] %}AddConversion({unit: "{{unit}}", value: "{{value}}", blocked: {% if unit in used_units %}true{% else %}false{% endif %} }){% endif %}
         {% endfor %}
 
         {% for alias in food.aliases %}
         AddAlias("{{alias}}")
         {% endfor %}
-        {% endif %}
-
+        {% else %}
         InitConversions()
+        {% endif %}
 
         {% if food and not back_url %}
         let removeButton = document.getElementById("remove-button")

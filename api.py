@@ -368,6 +368,13 @@ async def add_food_post(request: Request):
 def edit_food(food_id: str, food_query: str = Query(None), back_url: str = Query(None), user_id: str = Depends(get_current_user)):
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
     food = food_collection.find_one({"_id": ObjectId(food_id)})
+
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    used_units = [unit["_id"] for unit in meal_collection.aggregate([
+        {"$match": {"food_id": ObjectId(food_id)}},
+        {"$group": {"_id": "$portion_unit"}}
+    ])]
+
     template = templates.get_template('food_form.html')
     html = template.render(
         user_id=user_id,
@@ -376,6 +383,7 @@ def edit_food(food_id: str, food_query: str = Query(None), back_url: str = Query
         add_text="Обновить продукт",
         add_url=f"/edit-food/{food_id}",
         food=normalize_statistic(food),
+        used_units=used_units,
         page="/edit-food",
         query=food_query,
         back_url=back_url

@@ -24,8 +24,6 @@ class FoodItem:
             self.conversions[PortionUnit.g] = Decimal("0.01")
         elif self.portion == BasePortionUnit.ml100:
             self.conversions[PortionUnit.ml] = Decimal("0.01")
-            self.conversions[PortionUnit.tea_spoon] = Decimal("0.05")
-            self.conversions[PortionUnit.table_spoon] = Decimal("0.18")
 
     def make_portion(self, portion_size: Decimal, portion_unit: PortionUnit) -> dict:
         scale = self.conversions[portion_unit] * portion_size
