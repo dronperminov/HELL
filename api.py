@@ -731,6 +731,15 @@ def get_meal_type_count(documents: List[dict]):
     return meal2count
 
 
+def get_used_dates(user_id: str):
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    used_dates = diary_collection.aggregate([
+        {"$match": {"$expr": {"$gt": [{"$size": {"$filter": {"input": {"$objectToArray": "$meal_info"}, "as": "pair", "cond": {"$ne": ["$$pair.v", []]}}}}, 0]}}},
+        {"$project": {"date": 1, "_id": 0}}
+    ])
+    return [format_date(date["date"]) for date in used_dates]
+
+
 @app.get("/diary")
 def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
@@ -747,17 +756,12 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     meal2count = get_meal_type_count(documents)
     meal_names = [meal_type for meal_type, count in meal2count.items() if count >= constants.STATISTIC_MEAL_TYPE_MIN_COUNT and meal_type not in meal_statistic]
 
-    used_dates = diary_collection.aggregate([
-        {"$match": {"$expr": {"$gt": [{"$size": {"$filter": {"input": {"$objectToArray": "$meal_info"}, "as": "pair", "cond": {"$ne": ["$$pair.v", []]}}}}, 0]}}},
-        {"$project": {"date": 1, "_id": 0}}
-    ])
-
     template = templates.get_template('diary.html')
     content = template.render(
         user_id=user_id,
         settings=get_user_settings(user_id),
         date=format_date(date),
-        used_dates=[format_date(date["date"]) for date in used_dates],
+        used_dates=get_used_dates(user_id),
         copy_date=format_date(copy_date),
         meal_info=meal_info,
         names=constants.MEAL_TYPE_NAMES,
@@ -1071,6 +1075,7 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
         end_date=format_date(end_date),
         period=period,
         statistic=statistic,
+        used_dates=get_used_dates(user_id),
         statistic_meal_type=statistic_meal_type,
         meal_types=meal_types,
         dates_range=[format_date(date) for date in dates_range],

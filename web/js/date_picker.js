@@ -13,7 +13,10 @@ function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = tru
     this.popup = this.MakeNode("div", "date-picker-popup", document.getElementsByTagName("body")[0])
 
     window.addEventListener('click', (e) => {
-        if (!this.picker.contains(e.target)) {
+        if (!this.IsOpened())
+            return
+
+        if (!this.picker.parentNode.parentNode.contains(e.target)) {
             this.HideCalendar()
             e.stopPropagation()
         }
@@ -277,24 +280,22 @@ DatePicker.prototype.FixRange = function() {
 }
 
 DatePicker.prototype.ClickOnDay = function(date) {
-    if (this.isRange) {
-        if (this.range.end !== null) {
-            this.startDateInput.value = date
-            this.endDateInput.value = date
-            this.range = {start: date, end: null}
-            return
-        }
-        else {
-            this.range.end = date
-            this.endDateInput.value = date
-            this.FixRange()
-        }
-    }
-    else {
+    if (!this.isRange) {
         this.currDateInput.value = date
+        this.onSelect(this.GetDate())
+        return
     }
 
-    this.onSelect(this.GetDate())
+    if (this.range.end !== null) {
+        this.startDateInput.value = date
+        this.endDateInput.value = date
+        this.range = {start: date, end: null}
+    }
+    else {
+        this.range.end = date
+        this.endDateInput.value = date
+        this.FixRange()
+    }
 }
 
 DatePicker.prototype.ClickOnMonth = function() {
@@ -302,7 +303,9 @@ DatePicker.prototype.ClickOnMonth = function() {
     this.range.end = this.FormatDate(this.dates.end)
     this.startDateInput.value = this.range.start
     this.endDateInput.value = this.range.end
-    this.onSelect(this.GetDate())
+
+    if (!this.isRange)
+        this.onSelect(this.GetDate())
 }
 
 DatePicker.prototype.MakeControls = function(dateValue) {
@@ -357,15 +360,12 @@ DatePicker.prototype.MakeIcons = function() {
     this.closeIcon.style.display = "none"
     this.closeIcon.addEventListener("click", () => this.HideCalendar())
 
+    if (!this.isRange)
+        return
+
     this.applyIcon = this.MakeNode("span", "date-picker-apply-icon fa fa-check", this.picker)
     this.applyIcon.style.display = "none"
-    this.applyIcon.addEventListener("click", () => {
-        if (!this.ValidateInput())
-            this.Reset()
-
-        this.onSelect(this.GetDate())
-        this.HideCalendar()
-    })
+    this.applyIcon.addEventListener("click", () => this.onSelect(this.GetDate()))
 }
 
 DatePicker.prototype.MakeCalendarCell = function() {

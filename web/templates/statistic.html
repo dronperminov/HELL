@@ -11,22 +11,17 @@
     <h1>Статистика</h1>
 
     <div class="statistic-parameters">
-        <div class="statistic-period">
-            <select id="period" onchange="UpdateStatisticParameters()">
-                <option value="today"{% if period == "today" %} selected{% endif %}>сегодня</option>
-                <option value="yesterday"{% if period == "yesterday" %} selected{% endif %}>вчера</option>
-                <option value="week"{% if period == "week" or not period %} selected{% endif %}>текущая неделя</option>
-                <option value="last-week"{% if period == "last-week" %} selected{% endif %}>прошлая неделя</option>
-                <option value="last-14days"{% if period == "last-14days" %} selected{% endif %}>последние 14 дней</option>
-                <option value="period"{% if period == "period" %} selected{% endif %}>период</option>
-            </select>
+        <select id="period" onchange="UpdateStatisticParameters()">
+            <option value="today"{% if period == "today" %} selected{% endif %}>сегодня</option>
+            <option value="yesterday"{% if period == "yesterday" %} selected{% endif %}>вчера</option>
+            <option value="week"{% if period == "week" or not period %} selected{% endif %}>текущая неделя</option>
+            <option value="last-week"{% if period == "last-week" %} selected{% endif %}>прошлая неделя</option>
+            <option value="last-14days"{% if period == "last-14days" %} selected{% endif %}>последние 14 дней</option>
+            <option value="period"{% if period == "period" %} selected{% endif %}>период</option>
+        </select>
 
-        </div>
-        <div class="statistic-button">
-            <button onclick="ChangeStatisticParameters()">Показать</button>
-        </div>
+        <div class="statistic-period-input{% if period != "period" %} no-display{% endif %}" id="dates"></div>
     </div>
-    <div class="statistic-period-input{% if period != "period" %} no-display{% endif %}" id="dates"></div>
 
     <div class="statistic-showed">
         Показана информация за
@@ -82,8 +77,9 @@
     <script>
         let datePicker = new DatePicker("{{start_date}}-{{end_date}}", "dates", (date) => {
             datePicker.SetDate(date)
-            datePicker.UpdateCalendar()
-        }, null, false)
+            datePicker.HideCalendar()
+            ChangeStatisticParameters()
+        },  [{% for date in used_dates %}"{{date}}", {% endfor %}], false)
 
         const CALORIES_DATA = [
             {% for date in dates_range %}{ {% for key in statistic[date] %}"{{key}}": {{statistic[date][key]}}, {% endfor %}"date": "{{date}}"},
@@ -188,9 +184,11 @@
 
             if (period == "period") {
                 dates.classList.remove("no-display")
+                datePicker.ShowCalendar()
             }
             else {
                 dates.classList.add("no-display")
+                ChangeStatisticParameters()
             }
         }
 

@@ -50,23 +50,8 @@
 }
 
 .parameter-plot-controls {
-    display: table;
-    box-sizing: border-box;
-    width: 100%;
     margin-bottom: 5px;
     padding: 0 5px;
-}
-
-.parameter-period {
-    display: table-cell;
-    vertical-align: bottom;
-}
-
-.parameter-button {
-    display: table-cell;
-    width: 80px;
-    text-align: right;
-    vertical-align: top;
 }
 
 .parameter-period-input {

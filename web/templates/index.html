@@ -53,7 +53,8 @@
         {% set end_date = data[-1]["date"] %}
         "{{parameter.name}}": new DatePicker("{{start_date}}-{{end_date}}", "parameter-{{parameter.name}}-dates", (date) => {
             parameterDatePickers["{{parameter.name}}"].SetDate(date)
-            parameterDatePickers["{{parameter.name}}"].UpdateCalendar()
+            parameterDatePickers["{{parameter.name}}"].HideCalendar()
+            UpdateParameterPeriod("{{parameter.name}}")
         }, parametersData["{{parameter.name}}"].map((item) => item.date), false),
         {% endfor %}
         }
@@ -348,6 +349,7 @@
             let parameter = document.getElementById(`parameter-${name}`)
             let parameterPlot = parameter.getElementsByClassName("parameter-plot")[0]
             let parameterPlotInfo = document.getElementById(`parameter-${name}-plot-info`)
+            let parameterPlotSVG = parameter.getElementsByClassName("parameter-plot-svg")[0]
             let {startDate, endDate} = GetPlotPeriod(name)
             let showTrend = document.getElementById(`parameter-${name}-show-trend`).checked
             let svg = parameter.getElementsByTagName("svg")[0]
@@ -355,12 +357,12 @@
 
             if (data.length == 0) {
                 parameterPlotInfo.innerText = `Нет данных для отображения с ${startDate} по ${endDate}`
-                svg.classList.add("no-display")
+                parameterPlotSVG.classList.add("no-display")
                 return
             }
 
             parameterPlotInfo.innerText = `Показаны данные с ${startDate} по ${endDate}`
-            svg.classList.remove("no-display")
+            parameterPlotSVG.classList.remove("no-display")
             let plot = new Plot()
             plot.Plot(svg, data, showTrend)
         }
@@ -371,10 +373,14 @@
 
             if (period == "period") {
                 dates.classList.remove("no-display")
+                parameterDatePickers[name].ShowCalendar()
             }
             else {
                 dates.classList.add("no-display")
             }
+
+            let {startDate, endDate} = this.GetPlotPeriod(name)
+            BuildPlot(name)
         }
 
         function GetPlotPeriod(name) {
@@ -394,7 +400,7 @@
             }
             else if (period == "period") {
                 [startDate, endDate] = parameterDatePickers[name].GetDate().split('-')
-                startDate =ParseDate(startDate)
+                startDate = ParseDate(startDate)
                 endDate = ParseDate(endDate)
             }
             else if (period == "month") {
@@ -412,12 +418,6 @@
             }
 
             return {startDate, endDate}
-        }
-
-        function ChangeParameterPeriod(name) {
-            let period = document.getElementById(`parameter-${name}-period`).value
-            let {startDate, endDate} = this.GetPlotPeriod(name)
-            BuildPlot(name)
         }
 
         function ToggleParameterPlot(name, open = null) {
