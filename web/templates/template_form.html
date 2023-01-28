@@ -12,7 +12,7 @@
     <div class="template">
         <div class="form-row">
             <label>Название:
-                <input type="text" id="name" {% if template %}value="{{template.name}}"{% endif %}>
+                <input type="text" id="name" autocomplete="off" {% if template %}value="{{template.name}}"{% endif %}>
             </label>
             <div class="error-center" id="name-error"></div>
         </div>

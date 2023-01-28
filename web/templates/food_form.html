@@ -8,7 +8,7 @@
     <div>
         <div class="form-row">
             <label>Название продукта:
-                <input type="text" id="name" {% if food %}value="{{food.name}}"{% endif %}>
+                <input type="text" id="name" autocomplete="off" {% if food %}value="{{food.name}}"{% endif %}>
             </label>
             <div class="error-center" id="name-error"></div>
         </div>
@@ -83,7 +83,7 @@
             </div>
 
             <div class="add-from-url-search-input">
-                <input type="text" id="url-box" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
+                <input type="text" id="url-box" autocomplete="off" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
             </div>
 
             <div class="add-from-url-button">
