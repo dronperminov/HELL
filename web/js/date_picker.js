@@ -479,8 +479,9 @@ DatePicker.prototype.UpdateCalendarDays = function(calendarCell, dates) {
             dayDiv.classList.add("date-picker-calendar-day-current")
         if (this.IsToday(dates, day))
             dayDiv.classList.add("date-picker-calendar-day-today")
+
         if (this.IsUsed(dates, day))
-            dayDiv.classList.add("date-picker-calendar-day-used")
+            this.MakeNode("div", "date-picker-calendar-day-used", dayDiv, {"innerText": " "})
 
         if (this.isRange) {
             if (this.range.end === null) {

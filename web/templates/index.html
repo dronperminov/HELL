@@ -54,7 +54,7 @@
         "{{parameter.name}}": new DatePicker("{{start_date}}-{{end_date}}", "parameter-{{parameter.name}}-dates", (date) => {
             parameterDatePickers["{{parameter.name}}"].SetDate(date)
             parameterDatePickers["{{parameter.name}}"].HideCalendar()
-            UpdateParameterPeriod("{{parameter.name}}")
+            ChangeParameterPeriod("{{parameter.name}}")
         }, parametersData["{{parameter.name}}"].map((item) => item.date), false),
         {% endfor %}
         }
@@ -377,8 +377,11 @@
             }
             else {
                 dates.classList.add("no-display")
+                ChangeParameterPeriod(name)
             }
+        }
 
+        function ChangeParameterPeriod(name) {
             let {startDate, endDate} = this.GetPlotPeriod(name)
             BuildPlot(name)
         }
