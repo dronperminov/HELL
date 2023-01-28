@@ -98,9 +98,13 @@ class FatSecretParser:
         return texts_filtered
 
     def __replace_unit(self, unit: str) -> str:
-        unit = re.sub(rf'{"|".join(constants.PIECE_NAMES)}', "шт", unit)
-        unit = re.sub(rf'{"|".join(constants.PORTION_NAMES)}', "порция", unit)
-        return unit
+        if re.fullmatch(rf'{"|".join(constants.SLICE_NAMES)}', unit):
+            return "ломтик"
+
+        if re.fullmatch(rf'{"|".join(constants.PORTION_NAMES)}', unit):
+            return "порция"
+
+        return "шт"
 
     def __get_portion_info(self, portion_text: str) -> Tuple[BasePortionUnit, Dict[PortionUnit, Decimal], Decimal]:
         conversions = dict()
@@ -111,7 +115,7 @@ class FatSecretParser:
         if portion_text in ["100g (100 г)"]:
             return BasePortionUnit.g100, conversions, Decimal("1")
 
-        match = re.match(rf"^(?P<count>\d+) +(?P<unit>порция|шт|ломтик|{'|'.join(constants.PIECE_NAMES)}|{'|'.join(constants.PORTION_NAMES)}) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
+        match = re.match(rf"^(?P<count>\d+) +(?P<unit>\w+(?: \w+)*) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
         if match:
             count, unit, value = Decimal(match.group("count")), self.__replace_unit(match.group("unit")), match.group("value")
             scale = Decimal("100") / Decimal(value)
