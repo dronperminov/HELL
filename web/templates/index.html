@@ -349,6 +349,7 @@
             let parameterPlot = parameter.getElementsByClassName("parameter-plot")[0]
             let parameterPlotInfo = document.getElementById(`parameter-${name}-plot-info`)
             let {startDate, endDate} = GetPlotPeriod(name)
+            let showTrend = document.getElementById(`parameter-${name}-show-trend`).checked
             let svg = parameter.getElementsByTagName("svg")[0]
             let data = parametersData[name].filter((dataItem) => CompareDates(startDate, dataItem["date"]) <= 0 && CompareDates(dataItem["date"], endDate) <= 0)
 
@@ -361,7 +362,7 @@
             parameterPlotInfo.innerText = `Показаны данные с ${startDate} по ${endDate}`
             svg.classList.remove("no-display")
             let plot = new Plot()
-            plot.Plot(svg, data)
+            plot.Plot(svg, data, showTrend)
         }
 
         function UpdateParameterPeriod(name) {

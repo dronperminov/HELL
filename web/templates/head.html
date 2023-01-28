@@ -18,7 +18,7 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png">
-    <meta name="theme-color" content="#fefdfb">
+    <meta name="theme-color" content="{% if settings and settings.theme == "dark" %}#1c1b19{% else %}#fdfdfb{% endif %}">
 
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">

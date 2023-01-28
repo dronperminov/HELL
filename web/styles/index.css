@@ -79,6 +79,11 @@
     text-align: center;
 }
 
+.parameter-plot-options {
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
 .parameter-plot-svg {
     overflow-x: auto;
 }

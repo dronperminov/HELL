@@ -37,6 +37,10 @@
         </div>
         <div class="parameter-period-input no-display" id="parameter-{{parameter.name}}-dates"></div>
         <div class="parameter-plot-info" id="parameter-{{parameter.name}}-plot-info"></div>
+        <div class="parameter-plot-options">
+            <input type="checkbox" id="parameter-{{parameter.name}}-show-trend" onchange="BuildPlot('{{parameter.name}}')">
+            <label for="parameter-{{parameter.name}}-show-trend">Показывать линию тренда</label>
+        </div>
         <div class="parameter-plot-svg">
             <svg id="parameter-{{parameter.name}}-svg"></svg>
         </div>

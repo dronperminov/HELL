@@ -93,6 +93,26 @@ Plot.prototype.Interpolate = function(xi, x, y) {
     return result / sumWeights
 }
 
+Plot.prototype.GetTrend = function(x, y) {
+    let sum_x = 0
+    let sum_y = 0
+    let sum_xx = 0
+    let sum_xy = 0
+
+    for (let i = 0; i < x.length; i++) {
+        sum_x += x[i]
+        sum_y += y[i]
+        sum_xx += x[i] * x[i]
+        sum_xy += x[i] * y[i]
+    }
+
+    let den = x.length * sum_xx - sum_x * sum_x
+    let b = (sum_y * sum_xx - sum_x * sum_xy) / den
+    let k = (x.length * sum_xy - sum_x * sum_y) / den
+
+    return {k, b}
+}
+
 Plot.prototype.AppendLabel = function(svg, x, y, labelText, align = "middle", baseline = "middle", rotation = null) {
     let label = document.createElementNS('http://www.w3.org/2000/svg', "text")
     label.textContent = labelText
@@ -127,7 +147,22 @@ Plot.prototype.AddPoint = function(xi, yi, viewWidth, viewHeight, linePoints, ar
     }
 }
 
-Plot.prototype.Plot = function(svg, data, className = "plot-color", keyX = "date", keyY = "value") {
+Plot.prototype.PlotTrend = function(svg, x, y, ymax, viewWidth, viewHeight) {
+    let {k, b} = this.GetTrend(x, y)
+    let x1 = this.padding
+    let y1 = this.padding + (ymax - b) * viewHeight
+
+    let x2 = this.padding + viewWidth
+    let y2 = this.padding + (ymax - k - b) * viewHeight
+
+    let trendPath = document.createElementNS('http://www.w3.org/2000/svg', "path")
+    trendPath.setAttribute("d", `M${x1} ${y1} L${x2} ${y2}`)
+    trendPath.setAttribute("class", this.lineClass)
+    trendPath.setAttribute("stroke-dasharray", "4 2")
+    svg.appendChild(trendPath)
+}
+
+Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", keyX = "date", keyY = "value") {
     svg.innerHTML = ''
     svg.style.width = null
 
@@ -184,6 +219,9 @@ Plot.prototype.Plot = function(svg, data, className = "plot-color", keyX = "date
     axisPath.setAttribute("d", `M${this.padding} ${this.padding} L${this.padding} ${height - this.paddingBottom} L${width - this.padding} ${height - this.paddingBottom}`)
     axisPath.setAttribute("class", this.axisClass)
     svg.appendChild(axisPath)
+
+    if (showTrend)
+        this.PlotTrend(svg, infoX.x, dataY, infoY.max, viewWidth, viewHeight)
 
     svg.appendChild(linePath)
     for (let i = 0; i < data.length; i++) {
