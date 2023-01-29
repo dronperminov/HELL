@@ -47,7 +47,7 @@
         <div class="error" id="error-carbohydrates"></div>
 
         <div class="setting-row">
-            <input type="checkbox" onchange="UncheckOnNoLimits()" id="add-limits"{% if settings.add_limits %} checked{% endif %}><label for="add-limits"><b>Добавлять каждый день</b></label>
+            <input type="checkbox" onchange="UncheckOnNoLimits()" id="add-limits"{% if settings.add_limits %} checked{% endif %}><label for="add-limits">Добавлять каждый день</label>
         </div>
         <div class="setting-row center">
             <button onclick="UpdateSettings()"><span class="fa fa-save"></span> Сохранить настройки</button>

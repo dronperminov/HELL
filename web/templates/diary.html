@@ -143,28 +143,28 @@
         <div class="diary-limit">
             <span class="diary-limit-name">Калории:</span>
             <span class="input" id="limit-energy" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('energy', '')}}" onkeydown="KeyDownLimit(event, 'energy')" oninput="StartEditLimit('energy')">{{limits.get('energy', '')}}</span>
-            ккал <span class="diary-limit-lost {% if 'energy' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-energy"></span> ккал)</span>
+            ккал <span class="diary-limit-lost {% if 'energy' not in limits %}no-display{% endif %}">(<span id="limit-lost-energy"></span> ккал)</span>
         </div>
         <div class="error" id="error-energy"></div>
 
         <div class="diary-limit">
             <span class="diary-limit-name">Белки:</span>
             <span class="input" id="limit-proteins" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('proteins', '')}}" onkeydown="KeyDownLimit(event, 'proteins')" oninput="StartEditLimit('proteins')">{{limits.get('proteins', '')}}</span>
-            г <span class="diary-limit-lost {% if 'proteins' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-proteins"></span> г)</span>
+            г <span class="diary-limit-lost {% if 'proteins' not in limits %}no-display{% endif %}">(<span id="limit-lost-proteins"></span> г)</span>
         </div>
         <div class="error" id="error-proteins"></div>
 
         <div class="diary-limit">
             <span class="diary-limit-name">Жиры:</span>
             <span class="input" id="limit-fats" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('fats', '')}}" onkeydown="KeyDownLimit(event, 'fats')" oninput="StartEditLimit('fats')">{{limits.get('fats', '')}}</span>
-            г <span class="diary-limit-lost {% if 'fats' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-fats"></span> г)</span>
+            г <span class="diary-limit-lost {% if 'fats' not in limits %}no-display{% endif %}">(<span id="limit-lost-fats"></span> г)</span>
         </div>
         <div class="error" id="error-fats"></div>
 
         <div class="diary-limit">
             <span class="diary-limit-name">Углеводы:</span>
             <span class="input" id="limit-carbohydrates" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('carbohydrates', '')}}" onkeydown="KeyDownLimit(event, 'carbohydrates')" oninput="StartEditLimit('carbohydrates')">{{limits.get('carbohydrates', '')}}</span>
-            г <span class="diary-limit-lost {% if 'carbohydrates' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-carbohydrates"></span> г)</span>
+            г <span class="diary-limit-lost {% if 'carbohydrates' not in limits %}no-display{% endif %}">(<span id="limit-lost-carbohydrates"></span> г)</span>
         </div>
         <div class="error" id="error-carbohydrates"></div>
 
@@ -783,8 +783,13 @@
                     continue
                 }
 
+                let lost = Round(+limit - Round(statistic[key]))
                 lostSpan.parentNode.classList.remove("no-display")
-                lostSpan.innerText = Round(+limit - Round(statistic[key]))
+
+                if (lost >= 0)
+                    lostSpan.innerText = `ещё ${lost}`
+                else
+                    lostSpan.innerText = `сверх ${-lost}`
             }
         }
 

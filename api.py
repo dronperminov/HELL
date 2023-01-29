@@ -628,7 +628,7 @@ def remove_template(template_id: str = Body(..., embed=True), user_id: str = Dep
     return JSONResponse({"status": "ok"})
 
 
-def get_meal_info(date: datetime, user_id: str) -> Tuple[Dict[str, List[ObjectId]], Optional[Dict[str, Decimal128]]]:
+def get_meal_info(date: datetime, user_id: str, settings: UserSettings) -> Tuple[Dict[str, List[ObjectId]], Optional[Dict[str, Decimal128]]]:
     meal_info = OrderedDict()
 
     for meal_type in constants.MEAL_TYPES:
@@ -642,6 +642,15 @@ def get_meal_info(date: datetime, user_id: str) -> Tuple[Dict[str, List[ObjectId
         limits = meal_doc.get("limits", {})
         for meal_type, meal_ids in meal_doc["meal_info"].items():
             meal_info[meal_type] = meal_ids
+
+    if date >= get_current_date() and settings.limits and settings.add_limits:
+        limits = settings.limits_to_dict()
+        data = {"limits": limits}
+
+        if not meal_doc:
+            data["meal_info"] = meal_info
+
+        diary_collection.update_one({"date": date}, {"$set": data}, upsert=True)
 
     return meal_info, limits
 
@@ -756,19 +765,15 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
 
     curr_date = get_current_date()
     date = parse_date(date) if date else curr_date
+    settings = get_user_settings(user_id)
     copy_date = curr_date + timedelta(days=(1 if date == curr_date else 0))
-    meal_info, limits = get_meal_info(date, user_id)
+    meal_info, limits = get_meal_info(date, user_id, settings)
     meal_statistic = {meal_type: get_meals_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     documents = diary_collection.find({}, {"meal_info": 1})
     meal2count = get_meal_type_count(documents)
     meal_names = [meal_type for meal_type, count in meal2count.items() if count >= constants.STATISTIC_MEAL_TYPE_MIN_COUNT and meal_type not in meal_statistic]
-
-    settings = get_user_settings(user_id)
-    if date == get_current_date() and not limits and settings.limits and settings.add_limits:
-        limits = settings.limits_to_dict()
-        diary_collection.update_one({"date": date}, {"$set": {"limits": limits}}, upsert=True)
 
     template = templates.get_template('diary.html')
     content = template.render(
@@ -800,6 +805,9 @@ def save_limits(date: str = Body(..., embed=True), limits: dict = Body(..., embe
     result = diary_collection.update_one({"date": date}, {"$set": {"limits": limits}}, upsert=True)
 
     if result.matched_count != 1:
+        result = diary_collection.update_one({"date": date}, {"$set": {"meal_info": {meal_type: [] for meal_type in constants.MEAL_TYPES}}})
+
+    if result.modified_count != 1 and result.matched_count != 1:
         return JSONResponse({"status": "fail", "message": "Не удалось обновить информацию о лимитах"})
 
     return JSONResponse({"status": "ok"})
