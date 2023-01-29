@@ -34,7 +34,17 @@ function Autocomplete(onclick) {
 
         for (let name of response.names) {
             let result = MakeDiv("food-search-autocomplete-result", results)
-            let resultSpan = MakeDiv("", result, {"innerText": name}, "span")
+            let attributes
+
+            if (name.startsWith("<t>:")) {
+                name = name.substr(4)
+                attributes = {"innerHTML": `<span class="food-name-icon"></span> ${name}`}
+            }
+            else {
+                attributes = {"innerText": name}
+            }
+
+            let resultSpan = MakeDiv("", result, attributes, "span")
             resultSpan.addEventListener("click", () => onclick(name))
         }
     })

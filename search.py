@@ -24,6 +24,7 @@ class Search:
         self.food_collection.create_index([("name", "text"), ("aliases", "text")])
         self.food_collection.create_index([("name", ASCENDING), ("aliases", ASCENDING)])
         self.template_collection.create_index([("name", "text")])
+        self.template_collection.create_index([("name", ASCENDING)])
 
     def search(self, query: str, user_id: str = "") -> List[dict]:
         if not query:
@@ -37,16 +38,36 @@ class Search:
         except OperationFailure:
             return []
 
-    def autocomplete(self, query: str) -> List[str]:
-        results = self.food_collection.aggregate([
+    def autocomplete(self, query: str, user_id: str) -> List[str]:
+        results_food = [result["name"] for result in self.food_collection.aggregate([
             {"$match": {"$or": [
                 {"$text": {"$search": f"{query}", "$caseSensitive": False}},
                 {"name": {"$regex": f"{re.escape(query)}", "$options": "i"}}
             ]}},
             {"$project": {"_id": 0, "name": 1, "score": {"$meta": "textScore"}}},
             {"$sort": {"score": -1}}
-        ])
-        return [result["name"] for result in results]
+        ])]
+
+        if not user_id:
+            return results_food
+
+        results_template = [f'<t>:{result["name"]}' for result in self.template_collection.aggregate([
+            {"$match": {"$and": [
+                {"$or": [
+                    {"$text": {"$search": f"{query}", "$caseSensitive": False}},
+                    {"name": {"$regex": f"{re.escape(query)}", "$options": "i"}}
+                ]},
+                {"$or": [
+                    {"creator_id": ObjectId(user_id)},
+                    {"availability": f"{TemplateAvailability.users}"}
+                ]}
+            ]}},
+            {"$project": {"_id": 0, "name": 1, "score": {"$meta": "textScore"}}},
+            {"$sort": {"score": -1}}
+        ])]
+
+        results = results_food + results_template
+        return results
 
     def search_food(self, query: str):
         if query == "<F>":
