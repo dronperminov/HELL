@@ -9,6 +9,7 @@
 <body>
     {% include "menu.html" %}
     {% set can_remove = template and template.id and user_id == template.creator_id and not back_url %}
+    {% set can_edit = not template or template.id and user_id == template.creator_id %}
     <div class="template">
         <div class="form-row">
             <label>Название:
@@ -48,7 +49,7 @@
             <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
         </div>
 
-        <div class="form-row">
+        <div class="form-row{% if not can_edit %} no-display{% endif %}">
             <div class="food-search-header">Поиск продуктов:</div>
             <div class="food-search">
                 <div class="food-search-clear" id="food-query-clear" onclick="ClearQuery()">
@@ -63,9 +64,7 @@
             </div>
 
             <div class="food-search-autocomplete-results" id="autocomplete-results"></div>
-            <div class="food-search-results" id="food-search-results">
-                
-            </div>
+            <div class="food-search-results" id="food-search-results"></div>
         </div>
 
     </div>
@@ -140,9 +139,11 @@
             let foodData = foodItem.getElementsByClassName("food-data")[0]
             let foodRemove = foodItem.getElementsByClassName("food-item-remove")[0]
 
+            {% if can_edit %}
             let swipe = new Swipe(foodData, foodRemove)
             swipe.onStart = () => EndEditPortions()
             swipe.onSwipe = () => RemoveFoodFromTemplate(data.id)
+            {% endif %}
         }
 
         function GetFoodItems() {
