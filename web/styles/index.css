@@ -67,6 +67,7 @@
 .parameter-plot-options {
     font-size: 0.9rem;
     margin-top: 5px;
+    padding: 5px;
 }
 
 .parameter-plot-svg {

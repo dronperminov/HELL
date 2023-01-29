@@ -5,15 +5,16 @@
 .settings-header {
     font-weight: bold;
     font-size: 1.2rem;
-    margin-bottom: 10px;
     text-align: center;
+    margin-top: 10px;
+    margin-bottom: -5px;
 }
 
 .setting-row {
     display: table;
     width: 100%;
     box-sizing: border-box;
-    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .setting-cell {
@@ -22,11 +23,31 @@
     white-space: nowrap
 }
 
+.setting-header {
+    font-weight: bold;
+    width: 0;
+}
+
 .setting-value {
     padding-left: 5px;
-    width: 100%;
 }
 
 .setting-row a button {
     color: unset;
+}
+
+.setting-group-header {
+    margin-top: 10px;
+    margin-bottom: -5px;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.setting-group-name {
+    width: 80px !important;
+}
+
+.setting-group-value {
+    width: 70px;
+    padding: 0 5px;
 }

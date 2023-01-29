@@ -8,7 +8,10 @@
 </head>
 <body>
     {% include "menu.html" %}
-    {% if user_id %}<button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>{% endif %}
+    {% if user_id %}
+    <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
+    {% endif %}
     <div class="diary" id="diary">
         <div class="diary-date" id="date-picker"></div>
 

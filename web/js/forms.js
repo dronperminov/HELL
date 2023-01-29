@@ -28,11 +28,11 @@ function IsNotEmptyValue(value) {
 }
 
 function IsRealValue(value) {
-    return value.match(/^\d+(.\d+)?$/g)
+    return value.match(/^\d+(\.\d+)?$/g) !== null
 }
 
 function IsPositiveReal(value) {
-    return value.match(/^\d+(.\d{0,2})?$/g) && +value > 0
+    return value.match(/^\d+(\.\d{0,2})?$/g) !== null && +value > 0
 }
 
 function GetInvalidMealTypeNameChars(name) {
