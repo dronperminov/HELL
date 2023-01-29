@@ -78,6 +78,8 @@ class Search:
             food_items = self.__search_food_by_type("fats")
         elif query in ["<у>", "<c>"]:
             food_items = self.__search_food_by_type("carbohydrates")
+        elif re.fullmatch(r"<[^>]+>", query):
+            food_items = list(self.food_collection.find({"name": query[1:-1]}))
         else:
             food_items = list(self.food_collection.find({"$or": [
                 {"name": {"$regex": re.escape(query), "$options": "i"}},
@@ -95,9 +97,10 @@ class Search:
             templates = self.__search_user_templates(user_id)
         elif query == "<T>":
             templates = self.__search_available_templates(user_id)
+        elif re.fullmatch(r"<[^>]+>", query):
+            templates = self.__search_query_templates(f"^{re.escape(query[1:-1])}$", user_id)
         else:
-            query = re.escape(query)
-            templates = self.__search_query_templates(query, user_id)
+            templates = self.__search_query_templates(re.escape(query), user_id)
 
         self.__process_templates(templates)
         return templates

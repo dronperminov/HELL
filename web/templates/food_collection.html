@@ -56,13 +56,13 @@
         <div class="food-search-info">
             <b>Как искать?</b><br>
             Сейчас поиск применяет обычное регулярное выражение из экранированного запроса к названию продукта и всем его алиасам. Однако есть дополнительные опции:<br>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<p>')">&lt;p&gt;</a></b> — показать белковые продукты;</div>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<f>')">&lt;f&gt;</a></b> — показать жирные продукты;</div>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<c>')">&lt;c&gt;</a></b> — показать углеводные продукты;</div>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<F>')">&lt;F&gt;</a></b> — показать все продукты;</div>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('p')">&lt;p&gt;</a></b> — показать белковые продукты;</div>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('f')">&lt;f&gt;</a></b> — показать жирные продукты;</div>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('c')">&lt;c&gt;</a></b> — показать углеводные продукты;</div>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('F')">&lt;F&gt;</a></b> — показать все продукты;</div>
             {% if user_id %}
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<T>')">&lt;T&gt;</a></b> — показать все доступные шаблоны;</div>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('<t>')">&lt;t&gt;</a></b> — показать все созданные шаблоны;</div>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('T')">&lt;T&gt;</a></b> — показать все доступные шаблоны;</div>
+            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('t')">&lt;t&gt;</a></b> — показать все созданные шаблоны;</div>
             {% endif %}
 
             <div class="food-search-info-list">Я постараюсь в ближайшее время сделать поиск более умным и удобным.</div>
@@ -94,7 +94,7 @@
         function SetQuery(query) {
             let queryInput = document.getElementById("food-query")
             let submit = document.getElementById("submit")
-            queryInput.value = query
+            queryInput.value = `<${query}>`
             submit.click()
         }
 
