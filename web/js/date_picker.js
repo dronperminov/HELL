@@ -16,7 +16,9 @@ function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = tru
         if (!this.IsOpened())
             return
 
-        if (!this.picker.parentNode.parentNode.contains(e.target)) {
+        let node = this.isRange ? this.picker.parentNode.parentNode : this.picker
+
+        if (!node.contains(e.target)) {
             this.HideCalendar()
             e.stopPropagation()
         }
