@@ -94,6 +94,9 @@ Plot.prototype.Interpolate = function(xi, x, y) {
 }
 
 Plot.prototype.GetTrend = function(x, y) {
+    if (x.length == 1)
+        return {k: 0, b: y[0]}
+
     let sum_x = 0
     let sum_y = 0
     let sum_xx = 0

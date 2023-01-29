@@ -1,5 +1,14 @@
-{% set data = body_parameters.get(parameter.name, [{"value": ""}]) %}
-{% if data[-1]["date"] == date %}{% set value = data[-1]["value"] %}{% else %}{% set value = "" %}{% endif %}
+{% set data = body_parameters[parameter.name] %}
+{% set index = body_date_indices.get(parameter.name, -1) %}
+{% if index == -1 %}
+    {% set prev_value, value = "", "" %}
+{% elif data[index]["date"] != date %}
+    {% set prev_index, prev_value, value = index, data[index]["value"], "" %}
+{% elif index == 0 %}
+    {% set prev_value, value = "", data[index]["value"] %}
+{% else %}
+    {% set prev_index, prev_value, value = index - 1, data[index - 1]["value"], data[index]["value"] %}
+{% endif %}
 
 <div class="parameter" id="parameter-{{parameter.name}}">
     <div class="remove" style="opacity: 0">
@@ -14,13 +23,13 @@
         <span class="parameter-icons no-display" id="parameter-{{parameter.name}}-icons">
             <button id="parameter-{{parameter.name}}-save" onclick="SaveParameterValue('{{date}}', '{{parameter.name}}')"><span class="fa fa-check"></span></button>
         </span>
-        <span class="parameter-last">{% if value == "" and data[-1]["value"] != "" %}({{data[-1]["date"]}}: {{data[-1]["value"]}} {{parameter.unit}}){% endif %}</span>
+        <span class="parameter-last">{% if prev_value != "" %}({{data[prev_index]["date"]}}: {{data[prev_index]["value"]}} {{parameter.unit}}){% endif %}</span>
         <div class="error-left parameter-error" id="parameter-{{parameter.name}}-error"></div>
     </div>
 
     <div class="parameter-plot no-display">
         <div class="parameter-plot-controls">
-            <div class="parameter-period">
+            <div class="parameter-period{% if data|length == 0 %} no-display{% endif %}">
                 <select id="parameter-{{parameter.name}}-period" onchange="UpdateParameterPeriod('{{parameter.name}}')">
                     <option value="all">всё время</option>
                     <option value="month">текущий месяц</option>

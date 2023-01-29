@@ -187,7 +187,7 @@ def have_body_parameter(user_id: str, name: str) -> bool:
     return user_collection.find_one({"_id": ObjectId(user_id), "body_parameters.name": name}) is not None
 
 
-def get_body_parameters(user_id: str) -> Tuple[List[datetime], List[dict]]:
+def get_body_parameters(user_id: str, date: datetime) -> Tuple[List[datetime], Dict[str, int], List[dict]]:
     parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
     parameter_docs = parameters_collection.aggregate([
         {"$group": {"_id": "$name", "values": {"$addToSet": {"value": "$value", "date": "$date"}}}}
@@ -195,12 +195,19 @@ def get_body_parameters(user_id: str) -> Tuple[List[datetime], List[dict]]:
 
     used_dates = [used_date["_id"] for used_date in parameters_collection.aggregate([{"$group": {"_id": "$date"}}])]
     parameters = {}
+    body_date_indices = {}
 
     for parameter_doc in parameter_docs:
+        parameter_name: str = parameter_doc["_id"]
         values = [{"date": format_date(parameter["date"]), "value": d2s(Decimal(str(parameter["value"])))} for parameter in parameter_doc["values"]]
-        parameters[parameter_doc["_id"]] = sorted(values, key=lambda value_item: parse_date(value_item["date"]))
+        parameters[parameter_name] = sorted(values, key=lambda value_item: parse_date(value_item["date"]))
+        body_date_indices[parameter_name] = -1
 
-    return used_dates, parameters
+        for i, parameter in enumerate(parameters[parameter_name]):
+            if parse_date(parameter["date"]) <= date:
+                body_date_indices[parameter_name] = i
+
+    return used_dates, body_date_indices, parameters
 
 
 @app.get("/")
@@ -213,7 +220,7 @@ async def index(date: Optional[str] = Query(None), user_id: Optional[str] = Depe
 
     user_collection = database[constants.MONGO_USER_COLLECTION]
     user = user_collection.find_one({"_id": ObjectId(user_id)})
-    body_used_dates, body_parameters = get_body_parameters(user_id)
+    body_used_dates, body_date_indices, body_parameters = get_body_parameters(user_id, date)
 
     template = templates.get_template('index.html')
     content = template.render(
@@ -223,6 +230,7 @@ async def index(date: Optional[str] = Query(None), user_id: Optional[str] = Depe
         prev_date=format_date(date + timedelta(days=-1)),
         next_date=format_date(date + timedelta(days=1)),
         body_used_dates=[format_date(used_date) for used_date in body_used_dates],
+        body_date_indices=body_date_indices,
         body_parameters=body_parameters,
         page="/"
     )

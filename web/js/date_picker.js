@@ -1,5 +1,5 @@
 function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = true) {
-    this.isRange = date.indexOf('-') > 0
+    this.isRange = date.indexOf('-') != -1
     this.onSelect = onSelect
     this.usedDates = usedDates === null ? new Set() : new Set(usedDates)
     this.needPrevNext = needPrevNext
@@ -26,7 +26,6 @@ function DatePicker(date, nodeId, onSelect, usedDates = null, needPrevNext = tru
     this.MakeCalendar()
     this.MakeIcons()
     this.SetDate(date)
-    this.UpdateCalendar()
 }
 
 DatePicker.prototype.SetAttributes = function(node, attributes) {
@@ -56,8 +55,15 @@ DatePicker.prototype.MakeNode = function(tagName, className, parent = null, attr
 }
 
 DatePicker.prototype.GetCalendarDates = function(date) {
-    let [day, month, year] = date.split(".")
-    let curr = new Date(+year, +month - 1, +day)
+    let curr
+
+    if (date == "") {
+        curr = new Date()
+    }
+    else {
+        let [day, month, year] = date.split(".")
+        curr = new Date(+year, +month - 1, +day)
+    }
 
     month = curr.getMonth()
     year = curr.getFullYear()
@@ -532,11 +538,15 @@ DatePicker.prototype.SetDate = function(date) {
         this.endDate = this.GetCalendarDates(endDate).curr
         this.range = {start: startDate, end: endDate}
         this.dates = this.GetCalendarDates(endDate)
+        this.startDateInput.value = this.range.start
+        this.endDateInput.value = this.range.end
     }
     else {
         this.dates = this.GetCalendarDates(date)
         this.initDate = this.dates.curr
     }
+
+    this.UpdateCalendar()
 }
 
 DatePicker.prototype.GetDate = function() {
