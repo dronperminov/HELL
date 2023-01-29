@@ -135,12 +135,12 @@
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i]
                 let span = document.getElementById(`${name}-${key}`)
-                let average = Math.round(statistic[key] / statistic.count * 2) / 2
-                let averagePercent = Math.round(statistic[key] / statistic.total * 100)
+                let average = Round(statistic[key] / statistic.count)
+                let averagePercent = Round(statistic[key] / statistic.total * 100)
                 percents += averagePercent
 
                 if (i == keys.length - 1)
-                    averagePercent = Math.round(averagePercent + 100 - percents)
+                    averagePercent = Round(averagePercent + 100 - percents)
 
                 span.innerText = `${average} г`
 
@@ -149,7 +149,7 @@
             }
 
             let span = document.getElementById(`${name}-energy`)
-            span.innerText = `${Math.round(statistic.energy / statistic.count * 2) / 2} ккал`
+            span.innerText = `${Round(statistic.energy / statistic.count)} ккал`
         }
 
         function PlotBarStatistic(svg, caloriesData, keys) {
