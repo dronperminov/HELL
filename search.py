@@ -33,7 +33,9 @@ class Search:
         try:
             food_items = self.search_food(query)
             food_items.extend(self.search_templates(query, user_id))
-            self.__sort_food_items(food_items, user_id)
+
+            if not re.fullmatch(r"<[^>]+>", query):
+                self.__sort_food_items(food_items, user_id)
             return food_items
         except OperationFailure:
             return []
@@ -70,14 +72,12 @@ class Search:
         return results
 
     def search_food(self, query: str):
-        if query == "<F>":
-            food_items = list(self.food_collection.find({}))
-        elif query in ["<б>", "<p>"]:
-            food_items = self.__search_food_by_type("proteins")
-        elif query in ["<ж>", "<f>"]:
-            food_items = self.__search_food_by_type("fats")
-        elif query in ["<у>", "<c>"]:
-            food_items = self.__search_food_by_type("carbohydrates")
+        if query in ["<p>", "<!p>"]:
+            food_items = self.__search_food_by_type("proteins", query.startswith("<!"))
+        elif query in ["<f>", "<!f>"]:
+            food_items = self.__search_food_by_type("fats", query.startswith("<!"))
+        elif query in ["<c>", "<!c>"]:
+            food_items = self.__search_food_by_type("carbohydrates", query.startswith("<!"))
         elif re.fullmatch(r"<[^>]+>", query):
             food_items = list(self.food_collection.find({"name": query[1:-1]}))
         else:
@@ -141,13 +141,24 @@ class Search:
         self.__sort_food_items(food_items, user_id)
         return food_items
 
-    def __search_food_by_type(self, main_key: str) -> List[dict]:
+    def __search_food_by_type(self, main_key: str, is_inverse: bool) -> List[dict]:
         other_keys = [key for key in ["proteins", "fats", "carbohydrates"] if key != main_key]
-        food_items = list(self.food_collection.aggregate([
-            {"$match": {"$expr": {"$and": [
+        operator = "$or" if is_inverse else "$and"
+
+        if is_inverse:
+            expr = [
+                {"$gt": [f"${other_keys[0]}", {"$multiply": [3, f"${main_key}"]}]},
+                {"$gt": [f"${other_keys[1]}", {"$multiply": [3, f"${main_key}"]}]}
+            ]
+        else:
+            expr = [
                 {"$gt": [f"${main_key}", {"$multiply": [3, f"${other_keys[0]}"]}]},
                 {"$gt": [f"${main_key}", {"$multiply": [3, f"${other_keys[1]}"]}]}
-            ]}}}
+            ]
+
+        food_items = list(self.food_collection.aggregate([
+            {"$match": {"$expr": {operator: expr}}},
+            {"$sort": {main_key: 1 if is_inverse else -1, "name": 1}}
         ]))
         return food_items
 
