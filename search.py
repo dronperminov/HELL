@@ -72,6 +72,12 @@ class Search:
     def search_food(self, query: str):
         if query == "<F>":
             food_items = list(self.food_collection.find({}))
+        elif query in ["<б>", "<p>"]:
+            food_items = self.__search_food_by_type("proteins")
+        elif query in ["<ж>", "<f>"]:
+            food_items = self.__search_food_by_type("fats")
+        elif query in ["<у>", "<c>"]:
+            food_items = self.__search_food_by_type("carbohydrates")
         else:
             food_items = list(self.food_collection.find({"$or": [
                 {"name": {"$regex": re.escape(query), "$options": "i"}},
@@ -130,6 +136,16 @@ class Search:
 
         self.__process_food_items(food_items)
         self.__sort_food_items(food_items, user_id)
+        return food_items
+
+    def __search_food_by_type(self, main_key: str) -> List[dict]:
+        other_keys = [key for key in ["proteins", "fats", "carbohydrates"] if key != main_key]
+        food_items = list(self.food_collection.aggregate([
+            {"$match": {"$expr": {"$and": [
+                {"$gt": [f"${main_key}", {"$multiply": [3, f"${other_keys[0]}"]}]},
+                {"$gt": [f"${main_key}", {"$multiply": [3, f"${other_keys[1]}"]}]}
+            ]}}}
+        ]))
         return food_items
 
     def __search_query_templates(self, query: str, user_id: str) -> List[dict]:
