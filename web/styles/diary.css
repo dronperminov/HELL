@@ -236,6 +236,11 @@ button:hover .food-name-group-icon {
     padding-top: 10px;
 }
 
+.diary-statistic-header {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
 .diary-statistic-info {
     display: table-cell;
     width: calc(100% - 100px);
@@ -255,4 +260,42 @@ button:hover .food-name-group-icon {
 
 .diary-statistic-row {
     margin-bottom: 5px;
+}
+
+.diary-limits {
+    margin-top: 10px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 5px;
+    position: relative;
+}
+
+.diary-limits-header {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.diary-limit {
+    margin-top: 5px;
+}
+
+.diary-limit-lost {
+    color: var(--disabled-color);
+    font-size: 0.9em;
+}
+
+.diary-limits-save {
+    position: absolute;
+    top: 5px;
+    right: 0;
+}
+
+.diary-limits-cancel {
+    position: absolute;
+    top: 5px;
+    right: 35px;
+}
+
+.diary-limits-error {
+    margin-top: 8px;
+    margin-bottom: 0;
 }

@@ -12,6 +12,9 @@
     <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
     <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
     {% endif %}
+    {% set have_limits = limits|length > 0 %}
+    {% if not limits %}{% set limits = settings.limits %}{% endif %}
+
     <div class="diary" id="diary">
         <div class="diary-date" id="date-picker"></div>
 
@@ -131,11 +134,48 @@
     <div class="add-meal-type">
         <button id="add-meal-type-button" onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
         <button class="no-display" id="cancel-add-meal-type-button" onclick="CancelCreateMealType()"><span class="fa fa-ban"></span> Отменить</button>
+        <button id="add-limits-button" {% if have_limits %}class="no-display"{% endif %} onclick="AddLimits()"><span class="fa fa-plus"></span> Добавить лимиты</button>
+        <button id="remove-limits-button" {% if not have_limits %}class="no-display"{% endif %} onclick="RemoveLimits('{{date}}')"><span class="fa fa-trash"></span> Удалить лимиты</button>
+    </div>
+
+    <div class="diary-limits{% if not have_limits %} no-display{% endif %}" id="limits">
+        <div class="diary-limits-header">Лимиты</div>
+        <div class="diary-limit">
+            <span class="diary-limit-name">Калории:</span>
+            <span class="input" id="limit-energy" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('energy', '')}}" onkeydown="KeyDownLimit(event, 'energy')" oninput="StartEditLimit('energy')">{{limits.get('energy', '')}}</span>
+            ккал <span class="diary-limit-lost {% if 'energy' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-energy"></span> ккал)</span>
+        </div>
+        <div class="error" id="error-energy"></div>
+
+        <div class="diary-limit">
+            <span class="diary-limit-name">Белки:</span>
+            <span class="input" id="limit-proteins" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('proteins', '')}}" onkeydown="KeyDownLimit(event, 'proteins')" oninput="StartEditLimit('proteins')">{{limits.get('proteins', '')}}</span>
+            г <span class="diary-limit-lost {% if 'proteins' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-proteins"></span> г)</span>
+        </div>
+        <div class="error" id="error-proteins"></div>
+
+        <div class="diary-limit">
+            <span class="diary-limit-name">Жиры:</span>
+            <span class="input" id="limit-fats" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('fats', '')}}" onkeydown="KeyDownLimit(event, 'fats')" oninput="StartEditLimit('fats')">{{limits.get('fats', '')}}</span>
+            г <span class="diary-limit-lost {% if 'fats' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-fats"></span> г)</span>
+        </div>
+        <div class="error" id="error-fats"></div>
+
+        <div class="diary-limit">
+            <span class="diary-limit-name">Углеводы:</span>
+            <span class="input" id="limit-carbohydrates" role="textbox" tabindex="-1" contenteditable inputmode="decimal" data-value="{{limits.get('carbohydrates', '')}}" onkeydown="KeyDownLimit(event, 'carbohydrates')" oninput="StartEditLimit('carbohydrates')">{{limits.get('carbohydrates', '')}}</span>
+            г <span class="diary-limit-lost {% if 'carbohydrates' not in limits %}no-display{% endif %}">(ещё <span id="limit-lost-carbohydrates"></span> г)</span>
+        </div>
+        <div class="error" id="error-carbohydrates"></div>
+
+        <button class="diary-limits-save{% if have_limits %} no-display{% endif %}" id="save-limits-button" onclick="SaveLimits('{{date}}')"><span class="fa fa-save"></span></button>
+        <button class="diary-limits-cancel no-display" id="cancel-limits-button" onclick="CancelEditLimits()"><span class="fa fa-ban"></span></button>
+        <div class="error-center diary-limits-error" id="error-limits"></div>
     </div>
 
     <div class="diary-statistic">
         <div class="diary-statistic-info">
-            <div class="diary-statistic-row"><b>Суточное потребление:</b></div>
+            <div class="diary-statistic-row diary-statistic-header">Суточное потребление:</div>
             <div class="diary-statistic-row"><span class="plot-circle chart-color1"></span> Белки: <span id="chart-proteins"></span></div>
             <div class="diary-statistic-row"><span class="plot-circle chart-color2"></span> Жиры: <span id="chart-fats"></span></div>
             <div class="diary-statistic-row"><span class="plot-circle chart-color3"></span> Углеводы: <span id="chart-carbohydrates"></span></div>
@@ -152,6 +192,7 @@
 
     <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
+    <script src="/js/limits.js"></script>
     <script src="/js/chart.js"></script>
     <script src="/js/swipe.js"></script>
     <script src="/js/date_picker.js"></script>
@@ -264,6 +305,7 @@
                 document.getElementById(`${mealType}-meal-${key}`).innerText = statistic[key]
 
             UpdateChart()
+            UpdateLimits()
         }
 
         function RemoveMealBlock(mealId) {
@@ -543,41 +585,50 @@
             })
         }
 
+        function GetTotalStatistic() {
+            let statistic = {}
+
+            for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
+                statistic[key] = 0
+
+                console.log(key)
+                for (let mealItem of document.getElementsByClassName("meal-info")) {
+                    let mealType = mealItem.id.replace("meal-info-", "")
+                    statistic[key] += +document.getElementById(`${mealType}-meal-${key}`).innerText
+                }
+            }
+
+            return statistic
+        }
+
         function UpdateChart() {
             let keys = ["proteins", "fats", "carbohydrates"]
-            let values = [0, 0, 0]
-            let energy = 0
+            let statistic = GetTotalStatistic()
             let total = 0
+            let values = []
 
-            for (let mealItem of document.getElementsByClassName("meal-info")) {
-                mealType = mealItem.id.replace("meal-info-", "")
-
-                for (let i = 0; i < keys.length; i++) {
-                    let value = +document.getElementById(`${mealType}-meal-${keys[i]}`).innerText
-                    values[i] += value
-                    total += value
-                }
-
-                energy += +document.getElementById(`${mealType}-meal-energy`).innerText
+            for (let key of keys) {
+                total += statistic[key]
+                values.push(statistic[key])
             }
 
             let percents = 0
 
-            for (let i = 0; i < keys.length; i++) {
-                let text = `${Math.round(values[i] * 2) / 2} г`
-                let percent = Math.round(values[i] / total * 100)
+            for (let key of keys) {
+                let text = `${Round(statistic[key])} г`
+                let percent = Round(statistic[key] / total * 100)
                 percents += percent
 
                 if (percents > 100)
-                    percent = Math.round(percent + 100 - percents)
+                    percent = Round(percent + 100 - percents)
 
                 if (total > 0)
                     text += ` (${percent}%)`
 
-                document.getElementById(`chart-${keys[i]}`).innerText = text
+                document.getElementById(`chart-${key}`).innerText = text
             }
 
-            document.getElementById(`diary-statistic-energy`).innerText = Math.round(energy * 100) / 100
+            document.getElementById(`diary-statistic-energy`).innerText = Round(statistic["energy"])
 
             let svg = document.getElementById("diary-chart")
             svg.innerHTML = ''
@@ -719,6 +770,120 @@
             location.href = `/create-template?date={{date}}&meal_type=${mealType}`
         }
 
+        /****************************************** LIMITS ******************************************/
+        function UpdateLimits() {
+            let statistic = GetTotalStatistic()
+
+            for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
+                let limit = document.getElementById(`limit-${key}`).innerText.trim()
+                let lostSpan = document.getElementById(`limit-lost-${key}`)
+
+                if (limit.length == 0) {
+                    lostSpan.parentNode.classList.add("no-display")
+                    continue
+                }
+
+                lostSpan.parentNode.classList.remove("no-display")
+                lostSpan.innerText = Round(+limit - Round(statistic[key]))
+            }
+        }
+
+        function StartEditLimit(name) {
+            let error = document.getElementById(`error-${name}`)
+            let input = document.getElementById(`limit-${name}`)
+            let saveButton = document.getElementById("save-limits-button")
+            let cancelButton = document.getElementById("cancel-limits-button")
+
+            error.innerText = ""
+            input.classList.remove("error")
+            saveButton.classList.remove("no-display")
+            cancelButton.classList.remove("no-display")
+        }
+
+        function CancelEditLimits() {
+            for (let name of ["energy", "proteins", "fats", "carbohydrates"]) {
+                let input = document.getElementById(`limit-${name}`)
+                let error = document.getElementById(`error-${name}`)
+
+                input.innerText = input.getAttribute("data-value")
+                input.classList.remove("error")
+                error.innerText = ""
+            }
+
+            let saveButton = document.getElementById("save-limits-button")
+            let cancelButton = document.getElementById("cancel-limits-button")
+            saveButton.classList.add("no-display")
+            cancelButton.classList.add("no-display")
+        }
+
+        function KeyDownLimit(e, name) {
+            let input = document.getElementById(`limit-${name}`)
+
+            if (e.keyCode == 13) {
+                e.preventDefault()
+                input.blur()
+            }
+        }
+
+        function AddLimits() {
+            let limits = document.getElementById("limits")
+            let addButton = document.getElementById("add-limits-button")
+            let removeButton = document.getElementById("remove-limits-button")
+
+            limits.classList.remove("no-display")
+            removeButton.classList.remove("no-display")
+            addButton.classList.add("no-display")
+
+            UpdateLimits()
+        }
+
+        function RemoveLimits(date) {
+            if (!confirm("Вы уверены, что хотите удалить лимиты?"))
+                return
+
+            let limits = document.getElementById("limits")
+            let addButton = document.getElementById("add-limits-button")
+            let removeButton = document.getElementById("remove-limits-button")
+
+            let error = document.getElementById("error-limits")
+
+            SendRequest("/save-limits", {"date": date, "limits": {}}).then((response) => {
+                if (response.status != "ok") {
+                    error.innerText = response.message
+                    return
+                }
+
+                error.innerText = ""
+                limits.classList.add("no-display")
+                removeButton.classList.add("no-display")
+                addButton.classList.remove("no-display")
+            })
+        }
+
+        function SaveLimits(date) {
+            let limits = GetLimits()
+
+            if (limits === null)
+                return
+
+            let error = document.getElementById("error-limits")
+            let saveButton = document.getElementById("save-limits-button")
+            let cancelButton = document.getElementById("cancel-limits-button")
+
+            SendRequest("/save-limits", {"date": date, "limits": limits}).then((response) => {
+                if (response.status != "ok") {
+                    error.innerText = response.message
+                    return
+                }
+
+                error.innerText = ""
+                saveButton.classList.add("no-display")
+                cancelButton.classList.add("no-display")
+                UpdateLimits()
+            })
+        }
+        /**************************************** END LIMITS ****************************************/
+
         for (let mealItem of document.getElementsByClassName("meal-data")) {
             mealItem.addEventListener('click', (e) => {
                 for (let item of e.composedPath())
@@ -757,6 +922,7 @@
         })
 
         UpdateChart()
+        UpdateLimits()
     </script>
     {% include "footer.html" %}
 </body>

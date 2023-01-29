@@ -628,7 +628,7 @@ def remove_template(template_id: str = Body(..., embed=True), user_id: str = Dep
     return JSONResponse({"status": "ok"})
 
 
-def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
+def get_meal_info(date: datetime, user_id: str) -> Tuple[Dict[str, List[ObjectId]], Optional[Dict[str, Decimal128]]]:
     meal_info = OrderedDict()
 
     for meal_type in constants.MEAL_TYPES:
@@ -636,12 +636,14 @@ def get_meal_info(date: datetime, user_id: str) -> Dict[str, List[ObjectId]]:
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
     meal_doc = diary_collection.find_one({"date": date})
+    limits = {}
 
     if meal_doc:
+        limits = meal_doc.get("limits", {})
         for meal_type, meal_ids in meal_doc["meal_info"].items():
             meal_info[meal_type] = meal_ids
 
-    return meal_info
+    return meal_info, limits
 
 
 # TODO: refactor this function
@@ -755,7 +757,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     curr_date = get_current_date()
     date = parse_date(date) if date else curr_date
     copy_date = curr_date + timedelta(days=(1 if date == curr_date else 0))
-    meal_info = get_meal_info(date, user_id)
+    meal_info, limits = get_meal_info(date, user_id)
     meal_statistic = {meal_type: get_meals_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
@@ -763,21 +765,44 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     meal2count = get_meal_type_count(documents)
     meal_names = [meal_type for meal_type, count in meal2count.items() if count >= constants.STATISTIC_MEAL_TYPE_MIN_COUNT and meal_type not in meal_statistic]
 
+    settings = get_user_settings(user_id)
+    if date == get_current_date() and not limits and settings.limits and settings.add_limits:
+        limits = settings.limits_to_dict()
+        diary_collection.update_one({"date": date}, {"$set": {"limits": limits}}, upsert=True)
+
     template = templates.get_template('diary.html')
     content = template.render(
         user_id=user_id,
-        settings=get_user_settings(user_id),
+        settings=settings,
         date=format_date(date),
         used_dates=get_used_dates(user_id),
         copy_date=format_date(copy_date),
         meal_info=meal_info,
         names=constants.MEAL_TYPE_NAMES,
+        limits=limits,
         meal_statistic=meal_statistic,
         meal_names=meal_names,
         page="/diary"
     )
 
     return HTMLResponse(content=content)
+
+
+@app.post("/save-limits")
+def save_limits(date: str = Body(..., embed=True), limits: dict = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
+    date = parse_date(date)
+    limits = {name: Decimal128(value) for name, value in limits.items()}
+
+    diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
+    result = diary_collection.update_one({"date": date}, {"$set": {"limits": limits}}, upsert=True)
+
+    if result.matched_count != 1:
+        return JSONResponse({"status": "fail", "message": "Не удалось обновить информацию о лимитах"})
+
+    return JSONResponse({"status": "ok"})
 
 
 @app.get("/add-meal/{date}/{meal_type}")

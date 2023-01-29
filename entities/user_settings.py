@@ -24,6 +24,9 @@ class UserSettings:
         return {
             "user_id": ObjectId(self.user_id),
             "theme": self.theme,
-            "limits": {name: Decimal128(str(value)) for name, value in self.limits.items()},
+            "limits": self.limits_to_dict(),
             "add_limits": self.add_limits
         }
+
+    def limits_to_dict(self):
+        return {name: Decimal128(str(value)) for name, value in self.limits.items()}

@@ -142,3 +142,14 @@ function ValidateInterval(startDate, endDate) {
     let end = endDate.split('.').reverse().join('.')
     return start <= end
 }
+
+function Round(value) {
+    let scale = 2
+
+    if (value < 10)
+        scale = 100
+    else if (value < 1000)
+        scale = 10
+
+    return Math.round(value * scale) / scale
+}

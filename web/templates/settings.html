@@ -23,35 +23,31 @@
 
         <div class="setting-group-header">Лимиты</div>
         <div class="setting-row">
-            <div class="setting-cell setting-header setting-group-name"><label for="limit-energy">Калории:</label></div>
-            <div class="setting-cell setting-group-value"><input type="number" id="limit-energy" oninput="UpdateLimit('energy')" placeholder="не задан" value="{{settings.limits.get('energy', '')}}" min="0" step="0.01"></div>
-            <div class="setting-cell">ккал</div>
+            <label for="limit-energy">Калории: </label>
+            <span class="input" id="limit-energy" role="textbox" tabindex="-1" contenteditable inputmode="decimal" oninput="UpdateLimit('energy')">{{settings.limits.get('energy', '')}}</span> ккал
         </div>
-        <div class="error-center" id="error-energy"></div>
+        <div class="error" id="error-energy"></div>
 
         <div class="setting-row">
-            <div class="setting-cell setting-header setting-group-name"><label for="limit-proteins">Белки:</label></div>
-            <div class="setting-cell setting-group-value"><input type="number" id="limit-proteins" oninput="UpdateLimit('proteins')" placeholder="не задан" value="{{settings.limits.get('proteins', '')}}" min="0" step="0.01"></div>
-            <div class="setting-cell">г</div>
+            <label for="limit-proteins">Белки: </label>
+            <span class="input" id="limit-proteins" role="textbox" tabindex="-1" contenteditable inputmode="decimal" oninput="UpdateLimit('proteins')">{{settings.limits.get('proteins', '')}}</span> г
         </div>
-        <div class="error-center" id="error-proteins"></div>
+        <div class="error" id="error-proteins"></div>
 
         <div class="setting-row">
-            <div class="setting-cell setting-header setting-group-name"><label for="limit-fats">Жиры:</label></div>
-            <div class="setting-cell setting-group-value"><input type="number" id="limit-fats" oninput="UpdateLimit('fats')" placeholder="не задан" value="{{settings.limits.get('fats', '')}}" min="0" step="0.01"></div>
-            <div class="setting-cell">г</div>
+            <label for="limit-fats">Жиры: </label>
+            <span class="input" id="limit-fats" role="textbox" tabindex="-1" contenteditable inputmode="decimal" oninput="UpdateLimit('fats')">{{settings.limits.get('fats', '')}}</span> г
         </div>
-        <div class="error-center" id="error-fats"></div>
+        <div class="error" id="error-fats"></div>
 
         <div class="setting-row">
-            <div class="setting-cell setting-header setting-group-name"><label for="limit-carbohydrates">Углеводы:</label></div>
-            <div class="setting-cell setting-group-value"><input type="number" id="limit-carbohydrates" oninput="UpdateLimit('carbohydrates')" placeholder="не задан" value="{{settings.limits.get('carbohydrates', '')}}" min="0" step="0.01"></div>
-            <div class="setting-cell">г</div>
+            <label for="limit-carbohydrates">Углеводы: </label>
+            <span class="input" id="limit-carbohydrates" role="textbox" tabindex="-1" contenteditable inputmode="decimal" oninput="UpdateLimit('carbohydrates')">{{settings.limits.get('carbohydrates', '')}}</span> г
         </div>
-        <div class="error-center" id="error-carbohydrates"></div>
+        <div class="error" id="error-carbohydrates"></div>
 
         <div class="setting-row">
-            <input type="checkbox" onchange="UncheckOnNoLimits()" id="add-limits"{% if settings.add_limits %} checked{% endif %}><label for="add-limits"><b>Добавлять лимиты каждый день</b></label>
+            <input type="checkbox" onchange="UncheckOnNoLimits()" id="add-limits"{% if settings.add_limits %} checked{% endif %}><label for="add-limits"><b>Добавлять каждый день</b></label>
         </div>
         <div class="setting-row center">
             <button onclick="UpdateSettings()"><span class="fa fa-save"></span> Сохранить настройки</button>
@@ -64,10 +60,11 @@
     </div>
 
     <script src="/js/forms.js"></script>
+    <script src="/js/limits.js"></script>
     <script type="text/javascript">
         function UncheckOnNoLimits() {
             for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
-                let value = document.getElementById(`limit-${key}`).value
+                let value = document.getElementById(`limit-${key}`).innerText.trim()
 
                 if (value != "")
                     return
@@ -84,33 +81,6 @@
             error.innerText = ""
             input.classList.remove("error")
             UncheckOnNoLimits()
-        }
-
-        function GetLimits() {
-            let limits = {}
-            let isCorrect = true
-
-            for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
-                let input = document.getElementById(`limit-${key}`)
-                let error = document.getElementById(`error-${key}`)
-                let value = input.value
-
-                error.innerText = ""
-                input.classList.remove("error")
-                input.value = value
-
-                if (!IsRealValue(value) && value != "") {
-                    error.innerText = "Введено некорректное значение"
-                    input.classList.add("error")
-                    input.focus()
-                    isCorrect = false
-                }
-                else if (value != "") {
-                    limits[key] = value
-                }
-            }
-
-            return isCorrect ? limits : null
         }
 
         function UpdateSettings() {
@@ -133,7 +103,7 @@
                 if (response.status != "ok")
                     return
 
-                location.reload()
+                alert("Настройки успешно сохранены")
             })
         }
     </script>
