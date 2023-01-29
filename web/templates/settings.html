@@ -14,7 +14,7 @@
                 <label for="theme-select">Тема приложения:</label>
             </div>
             <div class="setting-cell setting-value">
-                <select id="theme-select">
+                <select id="theme-select" onchange="UpdateTheme()">
                     <option value="light" {% if settings.theme == "light" %}selected{% endif %}>светлая</option>
                     <option value="dark" {% if settings.theme == "dark" %}selected{% endif %}>тёмная</option>
                 </select>
@@ -62,6 +62,12 @@
     <script src="/js/forms.js"></script>
     <script src="/js/limits.js"></script>
     <script type="text/javascript">
+        function UpdateTheme() {
+            let theme = document.getElementById('theme-select').value
+            let html = document.getElementsByTagName("html")[0]
+            html.setAttribute("data-theme", theme)
+        }
+
         function UncheckOnNoLimits() {
             for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
                 let value = document.getElementById(`limit-${key}`).innerText.trim()
