@@ -7,7 +7,6 @@
     <div class="food-data" onclick="ClickFoodItem('{{food_item._id}}')">
         <div class="food-name">{{food_item.name}}</div>
     {% endif %}
-        <div class="food-description">{{food_item.description.replace("<", "&lt;").replace(">", "&gt;")}}</div>
     {% if is_template and user_id != food_item.creator_id|string %}
         <div class="food-creator">Автор: <i>{{food_item.creator_username}}</i></div>
     {% endif %}

@@ -185,7 +185,6 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
 
     let foodData = MakeDiv("food-data", foodItem)
     let foodName = MakeDiv("food-name", foodData, {"innerText": data.name})
-    let foodDescription = MakeDiv("food-description", foodData, {"innerText": data.description})
     let foodInfo = MakeDiv("food-info", foodData)
 
     foodData.addEventListener("click", () => portionClick(data.id))
