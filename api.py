@@ -643,7 +643,7 @@ def get_meal_info(date: datetime, user_id: str, settings: UserSettings) -> Tuple
         for meal_type, meal_ids in meal_doc["meal_info"].items():
             meal_info[meal_type] = meal_ids
 
-    if date >= get_current_date() and settings.limits and settings.add_limits:
+    if date >= get_current_date() and not limits and settings.limits and settings.add_limits:
         limits = settings.limits_to_dict()
         data = {"limits": limits}
 
