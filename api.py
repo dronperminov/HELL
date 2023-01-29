@@ -187,10 +187,9 @@ def have_body_parameter(user_id: str, name: str) -> bool:
     return user_collection.find_one({"_id": ObjectId(user_id), "body_parameters.name": name}) is not None
 
 
-def get_body_parameters(user_id: str, date: datetime) -> Tuple[List[datetime], List[dict]]:
+def get_body_parameters(user_id: str) -> Tuple[List[datetime], List[dict]]:
     parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
     parameter_docs = parameters_collection.aggregate([
-        {"$match": {"date": {"$lte": date}}},
         {"$group": {"_id": "$name", "values": {"$addToSet": {"value": "$value", "date": "$date"}}}}
     ])
 
@@ -214,7 +213,7 @@ async def index(date: Optional[str] = Query(None), user_id: Optional[str] = Depe
 
     user_collection = database[constants.MONGO_USER_COLLECTION]
     user = user_collection.find_one({"_id": ObjectId(user_id)})
-    body_used_dates, body_parameters = get_body_parameters(user_id, date)
+    body_used_dates, body_parameters = get_body_parameters(user_id)
 
     template = templates.get_template('index.html')
     content = template.render(

@@ -295,7 +295,7 @@
                 }
             }
 
-            parametersData[name].push({date: date, value: value})
+            parametersData[name].push({date: date, value: +value})
             parametersData[name].sort((a, b) => CompareDates(a.date, b.date))
         }
 
