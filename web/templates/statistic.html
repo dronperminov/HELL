@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <div class="statistic">
+    <div class="statistic{% if meal_types|length == 0 %} no-display{% endif %}">
         <div class="statistic-name" onclick="ToggleStatistic(this)"><span class="fa fa-caret-down"></span> Статистика по приёмам пищи</div>
         <div class="statistic-block">
             {% for meal_type, meal_name in meal_types.items() %}

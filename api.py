@@ -743,8 +743,9 @@ def get_meal_type_count(documents: List[dict]):
     meal2count = defaultdict(int)
 
     for document in documents:
-        for meal_type in document["meal_info"]:
-            meal2count[meal_type] += 1
+        for meal_type, meal_items in document["meal_info"].items():
+            if meal_items:
+                meal2count[meal_type] += 1
 
     return meal2count
 
@@ -1100,6 +1101,9 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
         date2meal_info_ids[document["date"]] = defaultdict(list)
 
         for meal_type, meal_ids in document["meal_info"].items():
+            if not meal_ids:
+                continue
+
             meal_type_key = meal_type if total_meal2count[meal_type] >= constants.STATISTIC_MEAL_TYPE_MIN_COUNT or meal_type in constants.MEAL_TYPES else constants.OTHER
             date2meal_info_ids[document["date"]][meal_type_key].extend(meal_ids)
             meal_types[meal_type_key] = constants.MEAL_TYPE_NAMES.get(meal_type_key, meal_type_key)
