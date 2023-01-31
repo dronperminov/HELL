@@ -176,10 +176,10 @@
     <div class="diary-statistic">
         <div class="diary-statistic-info">
             <div class="diary-statistic-row diary-statistic-header">Потребление:</div>
+            <div class="diary-statistic-row">Калории: <span id="diary-statistic-energy"></span> ккал</div>
             <div class="diary-statistic-row"><span class="plot-circle chart-color1"></span> Белки: <span id="chart-proteins"></span></div>
             <div class="diary-statistic-row"><span class="plot-circle chart-color2"></span> Жиры: <span id="chart-fats"></span></div>
             <div class="diary-statistic-row"><span class="plot-circle chart-color3"></span> Углеводы: <span id="chart-carbohydrates"></span></div>
-            <div class="diary-statistic-row">Калории: <span id="diary-statistic-energy"></span> ккал</div>
         </div>
         <div class="diary-statistic-chart">
             <svg id="diary-chart"></svg>
@@ -603,20 +603,21 @@
 
         function UpdateChart() {
             let keys = ["proteins", "fats", "carbohydrates"]
+            let scales = {"proteins": 4, "fats": 9, "carbohydrates": 4}
             let statistic = GetTotalStatistic()
             let total = 0
             let values = []
 
             for (let key of keys) {
-                total += statistic[key]
-                values.push(statistic[key])
+                total += statistic[key] * scales[key]
+                values.push(statistic[key] * scales[key])
             }
 
             let percents = 0
 
             for (let key of keys) {
                 let text = `${Round(statistic[key])} г`
-                let percent = Round(statistic[key] / total * 100)
+                let percent = Round(statistic[key] * scales[key] / total * 100)
                 percents += percent
 
                 if (percents > 100)

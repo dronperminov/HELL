@@ -120,23 +120,24 @@
                     statistic.count++
             }
 
-            for (let key of keys)
-                statistic.total += statistic[key]
-
             statistic.count = Math.max(statistic.count, 1)
 
             return statistic
         }
 
-        function PrintInfo(caloriesData, name, keys) {
+        function PrintInfo(caloriesData, name, keys, scales) {
             let statistic = GetTotalStatistic(caloriesData, keys)
             let percents = 0
+            let total = 0
+
+            for (let key of keys)
+                total += statistic[key] * scales[key]
 
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i]
                 let span = document.getElementById(`${name}-${key}`)
                 let average = Round(statistic[key] / statistic.count)
-                let averagePercent = Round(statistic[key] / statistic.total * 100)
+                let averagePercent = Round(statistic[key] * scales[key] / total * 100)
                 percents += averagePercent
 
                 if (i == keys.length - 1)
@@ -144,7 +145,7 @@
 
                 span.innerText = `${average} г`
 
-                if (statistic.total > 0)
+                if (total > 0)
                     span.innerText += ` (${averagePercent}%)`
             }
 
@@ -169,16 +170,28 @@
 
         function PlotStatistic(caloriesData, name) {
             let keys = ["proteins", "fats", "carbohydrates"]
+            let scales = {"proteins": 4, "fats": 9, "carbohydrates": 4}
             let svg = document.getElementById(`statistic-${name}-chart`)
 
-            if (caloriesData.length == 1) {
-                PlotDonutStatistic(svg, caloriesData, keys)
-            }
-            else {
-                PlotBarStatistic(svg, caloriesData, keys)
+            let plotData = []
+
+            for (let data of caloriesData) {
+                let values = {}
+
+                for (let key of Object.keys(data))
+                    values[key] = key in scales ? data[key] * scales[key] : data[key]
+
+                plotData.push(values)
             }
 
-            PrintInfo(caloriesData, name, keys)
+            if (caloriesData.length == 1) {
+                PlotDonutStatistic(svg, plotData, keys)
+            }
+            else {
+                PlotBarStatistic(svg, plotData, keys)
+            }
+
+            PrintInfo(caloriesData, name, keys, scales)
         }
 
         function UpdateStatisticParameters() {
