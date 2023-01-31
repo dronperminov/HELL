@@ -110,7 +110,7 @@
                                     <span class="fa food-name-group-icon"></span> {{food_item["name"]}}
                                 </div>
                                 <div class="food-info">
-                                    <div class="food-info-cell food-energy"><span id="group-energy-{{food_item.group_id}}">{{food_item["statistic"].energy}}</span> ккал</div>
+                                    <div class="food-info-cell food-energy"><span id="group-energy-{{food_item.group_id}}">{{food_item["statistic"].energy}}</span> ккал{% if  food_item.group_portion %} ({{food_item.group_portion}}){% endif %}</div>
                                     <div class="food-info-cell food-proteins"><span id="group-proteins-{{food_item.group_id}}">{{food_item["statistic"].proteins}}</span> г</div>
                                     <div class="food-info-cell food-fats"><span id="group-fats-{{food_item.group_id}}">{{food_item["statistic"].fats}}</span> г</div>
                                     <div class="food-info-cell food-carbohydrates"><span id="group-carbohydrates-{{food_item.group_id}}">{{food_item["statistic"].carbohydrates}}</span> г</div>
@@ -208,6 +208,9 @@
         {% endfor %}
 
         function StatEditPortion(foodItem, mealId) {
+            if (foodItem.parentNode.parentNode.classList.contains("group-foods"))
+                return
+
             let portionEdit = foodItem.parentNode.getElementsByClassName('food-portion-edit')[0]
             EndEditPortions(portionEdit)
             portionEdit.classList.toggle('no-display')
@@ -591,7 +594,6 @@
             for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
                 statistic[key] = 0
 
-                console.log(key)
                 for (let mealItem of document.getElementsByClassName("meal-info")) {
                     let mealType = mealItem.id.replace("meal-info-", "")
                     statistic[key] += +document.getElementById(`${mealType}-meal-${key}`).innerText
@@ -646,7 +648,9 @@
             let mealId = foodItem.parentNode.id.replace("food-item-", "")
             let remove = foodItem.parentNode.getElementsByClassName("food-item-remove")[0]
 
-            let swipe = new Swipe(foodItem, remove, true, 0.6, 1000)
+            let isGroup = foodItem.parentNode.parentNode.classList.contains("group-foods")
+
+            let swipe = new Swipe(foodItem, remove, !isGroup, 0.6, 1000)
             swipe.onStart = () => EndEditPortions()
             swipe.onSwipe = () => RemoveMeal('{{date}}', mealType, mealId, false)
             swipe.onPress = () => location.href = `/edit-food/${foodId}?back_url=${encodeURIComponent(location.href)}`

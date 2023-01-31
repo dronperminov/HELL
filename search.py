@@ -202,6 +202,7 @@ class Search:
 
     def __process_template(self, template: dict, users: dict) -> dict:
         template["creator_username"] = users[template["creator_id"]]
+        template["weight"] = Decimal(str(template.get("weight", "0")))
 
         for key in constants.STATISTIC_KEYS:
             template[key] = Decimal("0")

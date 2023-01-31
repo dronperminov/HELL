@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from typing import List, Dict
+from decimal import Decimal
+from typing import List, Dict, Optional
 from enum import Enum
 
-from bson import ObjectId
+from bson import ObjectId, Decimal128
 
 from entities.meal_item import MealItem
 
@@ -20,12 +21,14 @@ class Template:
     meal_items: List[MealItem]
     availability: TemplateAvailability
     creator_id: str
+    weight: Optional[Decimal]
 
     @classmethod
     def from_dict(cls, data: dict) -> "Template":
         meal_items = [MealItem.from_dict(meal_item) for meal_item in data["meal_items"]]
         availability = TemplateAvailability(data.get("availability", "me"))
-        return cls(data["name"], data["description"], meal_items, availability, str(data["creator_id"]))
+        weight = Decimal(str(data.get("weight", "0")))
+        return cls(data["name"], data["description"], meal_items, availability, str(data["creator_id"]), weight)
 
     def to_dict(self) -> dict:
         return {
@@ -33,7 +36,8 @@ class Template:
             "description": self.description,
             "meal_items": [meal_item.to_dict() for meal_item in self.meal_items],
             "availability": f'{self.availability}',
-            "creator_id": ObjectId(self.creator_id)
+            "creator_id": ObjectId(self.creator_id),
+            "weight": Decimal128(str(self.weight))
         }
 
     def get_food_ids(self) -> List[ObjectId]:

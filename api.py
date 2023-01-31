@@ -460,7 +460,8 @@ def get_editable_template(template: Template, template_id: str = ""):
         "description": template.description,
         "availability": f"{template.availability}",
         "meal_items": meal_items,
-        "creator_id": template.creator_id
+        "creator_id": template.creator_id,
+        "weight": template.weight
     }
 
     return template_data
@@ -504,7 +505,7 @@ def create_template(date: str = Query(None), meal_type: str = Query(None), user_
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meals = [MealItem.from_dict(meal_item) for meal_item in meal_collection.find({"_id": {"$in": meal_ids}})]
 
-    template = Template("", "", meals, TemplateAvailability.me, str(user_id))
+    template = Template("", "", meals, TemplateAvailability.me, str(user_id), Decimal("0"))
     template_data = get_editable_template(template)
 
     template = templates.get_template('template_form.html')
@@ -681,7 +682,13 @@ def get_meals_statistic(meal_ids: Iterable[ObjectId], with_food: bool = True) ->
                 last_group = None
             else:
                 if not last_group or last_group["group_id"] != meal.group_id:
-                    last_group = {"name": meal.group_name, "group_id": meal.group_id, "foods": [food_item_data], "statistic": {key: Decimal("0") for key in constants.STATISTIC_KEYS}}
+                    last_group = {
+                        "name": meal.group_name,
+                        "group_id": meal.group_id,
+                        "group_portion": meal.group_portion,
+                        "foods": [food_item_data],
+                        "statistic": {key: Decimal("0") for key in constants.STATISTIC_KEYS}
+                    }
                     foods.append(last_group)
                 else:
                     last_group["foods"].append(food_item_data)
@@ -868,6 +875,7 @@ def add_meal_template(
         meal_type: str = Body(..., embed=True),
         template_id: str = Body(..., embed=True),
         portion_size: str = Body(..., embed=True),
+        portion_unit: str = Body(..., embed=True),
         user_id: Optional[str] = Depends(get_current_user)):
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Не удалось добавить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
@@ -882,17 +890,20 @@ def add_meal_template(
     meal_items = template["meal_items"]
     group_id = ObjectId()
 
+    scale = Decimal(str(template.get("weight", "1"))) if portion_unit == "г" else Decimal(1)
+
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
     for meal_item in meal_items:
-        meal_portion_size = Decimal(str(meal_item["portion_size"])) * Decimal(portion_size)
+        meal_portion_size = Decimal(str(meal_item["portion_size"])) * Decimal(portion_size) / scale
         meal = meal_collection.insert_one({
             "food_id": meal_item["food_id"],
             "portion_size": Decimal128(str(meal_portion_size)),
             "portion_unit": meal_item["portion_unit"],
             "group_name": template["name"],
-            "group_id": group_id
+            "group_id": group_id,
+            "group_portion": f"{portion_size} {portion_unit}"
         })
 
         diary_collection.update_one({"date": date}, {"$push": {f"meal_info.{meal_type}": meal.inserted_id}}, upsert=True)

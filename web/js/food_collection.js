@@ -70,20 +70,13 @@ function UpdatePortionInfo(foodId) {
     let portionError = document.getElementById(`${foodId}-portion-error`)
 
     let size = sizeInput.value
-    let scale
+    let unit = unitInput.value
+    let conversions = {}
 
-    if (unitInput === null) {
-        scale = +size
-    }
-    else {
-        let unit = unitInput.value
-        let conversions = {}
+    for (let option of unitInput.children)
+        conversions[option.getAttribute("value")] = +option.getAttribute("data-value")
 
-        for (let option of unitInput.children)
-            conversions[option.getAttribute("value")] = +option.getAttribute("data-value")
-
-        scale = +size * conversions[unit]
-    }
+    let scale = +size * conversions[unit]
 
     if (!IsPositiveReal(size)) {
         portionError.innerText = "Размер порции введён некорректно"
@@ -107,10 +100,7 @@ function UpdatePortionInfo(foodId) {
         return
 
     if (scale > 0) {
-        portion.innerText = `/ ${size}`
-
-        if (unitInput !== null)
-            portion.innerText += ` ${unitInput.value}`
+        portion.innerText = `/ ${size} ${unitInput.value}`
     }
     else {
         portion.innerText = ""
@@ -125,9 +115,7 @@ function TogglePortionEdit(id) {
     foodItem.classList.toggle('food-item-colored')
 
     let portionUnit = document.getElementById(`${id}-portion-unit`)
-
-    if (portionUnit !== null)
-        portionUnit.value = portionEdit.getAttribute("data-default-unit")
+    portionUnit.value = portionEdit.getAttribute("data-default-unit")
 
     let portionSize = document.getElementById(`${id}-portion-size`)
     portionSize.value = portionEdit.getAttribute("data-default-value")

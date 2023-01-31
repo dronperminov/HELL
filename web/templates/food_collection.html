@@ -130,6 +130,7 @@
 
         function AddMealTemplate(date, mealType, templateId) {
             let portionSize = document.getElementById(`${templateId}-portion-size`)
+            let portionUnit = document.getElementById(`${templateId}-portion-unit`)
             let portionError = document.getElementById(`${templateId}-portion-error`)
 
             if (!IsPositiveReal(portionSize.value)) {
@@ -144,6 +145,7 @@
                 meal_type: mealType,
                 template_id: templateId,
                 portion_size: portionSize.value,
+                portion_unit: portionUnit.value
             }
 
             SendRequest("/add-meal-template", data).then((response) => {

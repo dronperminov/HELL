@@ -29,7 +29,7 @@
 
     {% if date and meal_type %}
     {% if is_template %}
-    <div class="food-portion-edit no-display" data-default-value="{{food_item.default_value}}">
+    <div class="food-portion-edit no-display" data-default-unit="порция" data-default-value="{{food_item.default_value}}">
     {% else %}
     <div class="food-portion-edit no-display" data-default-unit="{{food_item.default_unit}}" data-default-value="{{food_item.default_value}}">
     {% endif %}
@@ -39,7 +39,14 @@
                 <input id="{{food_item._id}}-portion-size" type="number" value="{{food_item.default_value}}" oninput="UpdatePortionInfo('{{food_item._id}}')">
             </div>
 
-            {% if not is_template %}
+            {% if is_template %}
+            <div class="food-portion-unit">
+                <select id="{{food_item._id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item._id}}')">
+                    <option value="порция" data-value="1" selected>порция</option>
+                    {% if food_item.weight > 0 %}<option value="г" data-value="{{1 / food_item.weight}}">г</option>{% endif %}
+                </select>
+            </div>
+            {% else %}
             <div class="food-portion-unit">
                 <select id="{{food_item._id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item._id}}')">
                     {% for unit, scale in food_item.conversions.items() %}
@@ -69,7 +76,7 @@
             {% set scale = (food_item.default_value|string|float) * (food_item.conversions[food_item.default_unit]|string|float) * 10 %}
             {% endif %}
             <div class="food-portion-info-cell food-portion-energy">
-                <span id="{{food_item._id}}-food-portion-energy">{{(((food_item.energy|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> ккал{% if not is_template %} <span id="{{food_item._id}}-food-portion-portion">/ {{food_item.default_value}} {{food_item.default_unit}}</span>{% endif %}
+                <span id="{{food_item._id}}-food-portion-energy">{{(((food_item.energy|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> ккал <span id="{{food_item._id}}-food-portion-portion">/ {{food_item.default_value}} {{food_item.default_unit}}</span>
             </div>
             <div class="food-portion-info-cell food-portion-proteins">
                 Б <span id="{{food_item._id}}-food-portion-proteins">{{(((food_item.proteins|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г

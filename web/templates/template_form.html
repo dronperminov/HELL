@@ -40,7 +40,13 @@
             <div class="template-meals" id="template-meals"></div>
             <div class="error-center" id="meals-error"></div>
         </div>
-            
+
+        <div class="form-row">
+            <label>Масса готового блюда:
+            <span class="input" id="weight" role="textbox" tabindex="-1" contenteditable inputmode="decimal">{% if template and template.weight > 0 %}{{template.weight}}{% endif %}</span> г</label>
+            <div class="error-center" id="weight-error"></div>
+        </div>
+
         <div class="form-row center">
             <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
             {% if can_remove %}
@@ -208,11 +214,24 @@
                 return
             }
 
+            let weightInput = document.getElementById("weight")
+            let weightError = document.getElementById("weight-error")
+            let weight = weightInput.innerText.replace(/\s+/, "")
+            weightInput.innerText = weight
+
+            if (!IsRealValue(weight) && weight != "") {
+                weightError.innerText = "Вес готового блюда введён некорректно"
+                weightInput.classList.add("error")
+                weightInput.focus()
+                return
+            }
+
             let data = {
                 name: name,
                 description: document.getElementById("description").innerText,
                 availability: document.getElementById("availability").value,
-                meal_items: foodItems
+                meal_items: foodItems,
+                weight: weight == "" ? "0" : weight
             }
             {% if date and meal_type %}
             data.date = "{{date}}"
@@ -256,6 +275,13 @@
         nameInput.addEventListener('input', () => {
             nameInput.classList.remove("error")
             let error = document.getElementById("name-error")
+            error.innerText = ""
+        })
+
+        let weightInput = document.getElementById("weight")
+        weightInput.addEventListener('input', () => {
+            weightInput.classList.remove("error")
+            let error = document.getElementById("weight-error")
             error.innerText = ""
         })
 

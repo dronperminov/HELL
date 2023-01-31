@@ -14,10 +14,13 @@ class MealItem:
     portion_unit: PortionUnit
     group_id: Optional[str]
     group_name: Optional[str]
+    group_portion: Optional[str]
 
     @classmethod
     def from_dict(cls, data: dict) -> "MealItem":
-        return cls(data["food_id"], Decimal(str(data["portion_size"])), PortionUnit(data["portion_unit"]), str(data.get("group_id", "")), data.get("group_name"))
+        portion_size = Decimal(str(data["portion_size"]))
+        portion_unit = PortionUnit(data["portion_unit"])
+        return cls(data["food_id"], portion_size, portion_unit, str(data.get("group_id", "")), data.get("group_name"), data.get("group_portion"))
 
     def to_dict(self) -> dict:
         meal_dict = {
@@ -29,5 +32,6 @@ class MealItem:
         if self.group_id:
             meal_dict["group_id"] = ObjectId(self.group_id)
             meal_dict["group_name"] = self.group_name
+            meal_dict["group_portion"] = self.group_portion
 
         return meal_dict
