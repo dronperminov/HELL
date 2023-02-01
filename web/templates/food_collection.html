@@ -45,7 +45,7 @@
             {% if frequent_food_items %}
                 <div class="food-block">
                     <div class="food-block-name">Часто употребляемые</div>
-                    {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
+                    {% for food_item in frequent_food_items %}{% set food_item_id = "frequent-" + food_item._id|string %}{% include "food_item.html" %}{% endfor %}
                     {% include "add_food_buttons.html" %}
                 </div>
             {% endif %}
@@ -53,7 +53,7 @@
             {% if recently_food_items %}
                 <div class="food-block">
                     <div class="food-block-name">Недавно употреблённые</div>
-                    {% for food_item in recently_food_items %}{% include "food_item.html" %}{% endfor %}
+                    {% for food_item in recently_food_items %}{% set food_item_id = "recently-" + food_item._id|string %}{% include "food_item.html" %}{% endfor %}
                     {% include "add_food_buttons.html" %}
                 </div>
             {% endif %}
@@ -62,7 +62,7 @@
     </div>
         {% endif %}
     {% else %}
-        {% for food_item in food_items %}{% include "food_item.html" %}{% endfor %}
+        {% for food_item in food_items %}{% set food_item_id = food_item._id|string %}{% include "food_item.html" %}{% endfor %}
     </div>
     {% include "add_food_buttons.html" %}
     {% endif %}
@@ -112,7 +112,7 @@
             let data = {
                 date: date,
                 meal_type: mealType,
-                food_id: foodId,
+                food_id: foodId.replace(/^(frequent|recently)\-/gi, ""),
                 portion_size: portionSize.value,
                 portion_unit: portionUnit.value
             }
@@ -142,7 +142,7 @@
             let data = {
                 date: date,
                 meal_type: mealType,
-                template_id: templateId,
+                template_id: templateId.replace(/^(frequent|recently)\-/gi, ""),
                 portion_size: portionSize.value,
                 portion_unit: portionUnit.value
             }

@@ -1,10 +1,10 @@
 {% set is_template = "meal_items" in food_item %}
-<div class="food-item" id="{{food_item._id}}">
+<div class="food-item" id="{{food_item_id}}">
     {% if is_template %}
-    <div class="food-data food-data-template" onclick="ClickTemplateItem('{{food_item._id}}')">
+    <div class="food-data food-data-template" onclick="ClickTemplateItem('{{food_item_id}}')">
         <div class="food-name"><span class="food-name-icon"></span> {{food_item.name}}</div>
     {% else %}
-    <div class="food-data" onclick="ClickFoodItem('{{food_item._id}}')">
+    <div class="food-data" onclick="ClickFoodItem('{{food_item_id}}')">
         <div class="food-name">{{food_item.name}}</div>
     {% endif %}
     {% if is_template and user_id != food_item.creator_id|string %}
@@ -13,16 +13,16 @@
 
         <div class="food-info">
             <div class="food-info-cell food-energy">
-                <span id="{{food_item._id}}-food-energy">{{food_item.energy}}</span> ккал{% if not is_template %} / {{food_item.portion}}{% endif %}
+                <span id="{{food_item_id}}-food-energy">{{food_item.energy}}</span> ккал{% if not is_template %} / {{food_item.portion}}{% endif %}
             </div>
             <div class="food-info-cell food-proteins">
-                Б <span id="{{food_item._id}}-food-proteins">{{food_item.proteins}}</span>г
+                Б <span id="{{food_item_id}}-food-proteins">{{food_item.proteins}}</span>г
             </div>
             <div class="food-info-cell food-fats">
-                Ж <span id="{{food_item._id}}-food-fats">{{food_item.fats}}</span>г
+                Ж <span id="{{food_item_id}}-food-fats">{{food_item.fats}}</span>г
             </div>
             <div class="food-info-cell food-carbohydrates">
-                У <span id="{{food_item._id}}-food-carbohydrates">{{food_item.carbohydrates}}</span>г
+                У <span id="{{food_item_id}}-food-carbohydrates">{{food_item.carbohydrates}}</span>г
             </div>
         </div>
     </div>
@@ -36,19 +36,19 @@
         <div class="food-portion-text">Редактирование порции:</div>
         <div class="food-portion-control">
             <div class="food-portion-size">
-                <input id="{{food_item._id}}-portion-size" type="number" value="{{food_item.default_value}}" oninput="UpdatePortionInfo('{{food_item._id}}')">
+                <input id="{{food_item_id}}-portion-size" type="number" value="{{food_item.default_value}}" oninput="UpdatePortionInfo('{{food_item_id}}')">
             </div>
 
             {% if is_template %}
             <div class="food-portion-unit">
-                <select id="{{food_item._id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item._id}}')">
+                <select id="{{food_item_id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item_id}}')">
                     <option value="порция" data-value="1" selected>порция</option>
                     {% if food_item.weight > 0 %}<option value="г" data-value="{{1 / food_item.weight}}">г</option>{% endif %}
                 </select>
             </div>
             {% else %}
             <div class="food-portion-unit">
-                <select id="{{food_item._id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item._id}}')">
+                <select id="{{food_item_id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item_id}}')">
                     {% for unit, scale in food_item.conversions.items() %}
                     <option value="{{unit}}" data-value="{{scale}}" {% if food_item.default_unit == unit %}selected{% endif %}>{{unit}}
                         {% if unit not in ["г", "мл"] %} ({{(((1000 * scale|string|float)|round / 10)|string).replace('.0', '')}} {{food_item.portion[3:]}}){% endif %}
@@ -60,15 +60,15 @@
 
             <div class="food-portion-change">
                 {% if is_template %}
-                <button onclick="AddMealTemplate('{{date}}', '{{meal_type}}', '{{food_item._id}}')">
+                <button onclick="AddMealTemplate('{{date}}', '{{meal_type}}', '{{food_item_id}}')">
                 {% else %}
-                <button onclick="AddMeal('{{date}}', '{{meal_type}}', '{{food_item._id}}')">
+                <button onclick="AddMeal('{{date}}', '{{meal_type}}', '{{food_item_id}}')">
                 {% endif %}
                     <span class="fa fa-plus"></span>
                 </button>
             </div>
         </div>
-        <div class="error-center" id="{{food_item._id}}-portion-error"></div>
+        <div class="error-center" id="{{food_item_id}}-portion-error"></div>
         <div class="food-portion-info">
             {% if is_template %}
             {% set scale = 1 %}
@@ -76,16 +76,16 @@
             {% set scale = (food_item.default_value|string|float) * (food_item.conversions[food_item.default_unit]|string|float) * 10 %}
             {% endif %}
             <div class="food-portion-info-cell food-portion-energy">
-                <span id="{{food_item._id}}-food-portion-energy">{{(((food_item.energy|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> ккал <span id="{{food_item._id}}-food-portion-portion">/ {{food_item.default_value}} {{food_item.default_unit}}</span>
+                <span id="{{food_item_id}}-food-portion-energy">{{(((food_item.energy|string|float * scale)|round / 10)|string).replace('.0', '')}}</span> ккал <span id="{{food_item_id}}-food-portion-portion">/ {{food_item.default_value}} {{food_item.default_unit}}</span>
             </div>
             <div class="food-portion-info-cell food-portion-proteins">
-                Б <span id="{{food_item._id}}-food-portion-proteins">{{(((food_item.proteins|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
+                Б <span id="{{food_item_id}}-food-portion-proteins">{{(((food_item.proteins|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
             </div>
             <div class="food-portion-info-cell food-portion-fats">
-                Ж <span id="{{food_item._id}}-food-portion-fats">{{(((food_item.fats|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
+                Ж <span id="{{food_item_id}}-food-portion-fats">{{(((food_item.fats|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
             </div>
             <div class="food-portion-info-cell food-portion-carbohydrates">
-                У <span id="{{food_item._id}}-food-portion-carbohydrates">{{(((food_item.carbohydrates|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
+                У <span id="{{food_item_id}}-food-portion-carbohydrates">{{(((food_item.carbohydrates|string|float * scale)|round / 10)|string).replace('.0', '')}}</span>г
             </div>
         </div>
     </div>
