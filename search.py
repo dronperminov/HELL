@@ -151,7 +151,7 @@ class Search:
             pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
             pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "date": 1, "_id": 0}})
         else:
-            pipeline.append({"$project": {"meal_info": {"$objectToArray": "$meal_info"}}})
+            pipeline.append({"$project": {"meal_info": {"$objectToArray": "$meal_info"}, "date": 1}})
             pipeline.append({"$unwind": "$meal_info"})
             pipeline.append({"$project": {"meal_id": "$meal_info.v", "date": 1, "_id": 0}})
 
