@@ -1,4 +1,3 @@
-import re
 from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -14,7 +13,6 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 from pymongo import MongoClient
-from pymongo.errors import OperationFailure
 
 import constants
 from auth_utils import validate_password, get_password_hash, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
@@ -23,8 +21,8 @@ from entities.meal_item import MealItem
 from entities.template import Template, TemplateAvailability
 from entities.user_settings import UserSettings
 from fatsecret_parser import FatSecretParser
-from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 from search import Search
+from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 
 app = FastAPI()
 app.mount("/styles", StaticFiles(directory="web/styles"))
@@ -829,6 +827,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
     food_query = food_query.strip() if food_query else None
     food_items = search.search(food_query, user_id)
     frequent_food_items = search.get_frequent_foods(meal_type, user_id) if not food_query else []
+    recently_food_items = search.get_recently_foods(meal_type, user_id) if not food_query else []
 
     template = templates.get_template('food_collection.html')
     html = template.render(
@@ -836,6 +835,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
         settings=get_user_settings(user_id),
         food_items=add_default_unit(food_items),
         frequent_food_items=add_default_unit(frequent_food_items),
+        recently_food_items=add_default_unit(recently_food_items),
         query=food_query,
         date=date,
         meal_type=meal_type,

@@ -10,7 +10,7 @@ import constants
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from entities.template import TemplateAvailability
-from utils import normalize_statistic
+from utils import normalize_statistic, get_current_date
 
 
 class Search:
@@ -138,7 +138,45 @@ class Search:
         ]))
 
         self.__process_food_items(food_items)
-        self.__sort_food_items(food_items, user_id)
+        return food_items
+
+    def get_recently_foods(self, meal_type: str, user_id: str) -> list:
+        pipeline = [
+            {"$match": {"date": {"$lte": get_current_date()}}},
+            {"$sort": {"date": -1}},
+            {"$limit": constants.RECENTLY_MEAL_DAYS_COUNT}
+        ]
+
+        if meal_type in constants.MEAL_TYPES:
+            pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
+            pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "date": 1, "_id": 0}})
+        else:
+            pipeline.append({"$project": {"meal_info": {"$objectToArray": "$meal_info"}}})
+            pipeline.append({"$unwind": "$meal_info"})
+            pipeline.append({"$project": {"meal_id": "$meal_info.v", "date": 1, "_id": 0}})
+
+        pipeline.append({"$unwind": "$meal_id"})
+        pipeline.append({"$sort": {"date": -1, "meal_id": 1}})
+
+        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION + user_id]
+        documents = diary_collection.aggregate(pipeline)
+
+        meal_ids = [document["meal_id"] for document in documents]
+        documents = self.meal_collection.aggregate([
+            {"$match": {"_id": {"$in": meal_ids}}},
+            {"$addFields": {"order": {"$indexOfArray": [meal_ids, "$_id"]}}},
+            {"$group": {"_id": "$food_id", "order": {"$min": "$order"}}},
+            {"$sort": {"order": 1}}
+        ])
+
+        food_ids = [document["_id"] for document in documents]
+        food_items = list(self.food_collection.aggregate([
+            {"$match": {"_id": {"$in": food_ids}}},
+            {"$addFields": {"order": {"$indexOfArray": [food_ids, "$_id"]}}},
+            {"$sort": {"order": 1}}
+        ]))
+
+        self.__process_food_items(food_items)
         return food_items
 
     def __search_food_by_type(self, main_key: str, is_inverse: bool) -> List[dict]:

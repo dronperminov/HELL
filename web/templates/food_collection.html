@@ -5,6 +5,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/food-search.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-item.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -36,10 +37,20 @@
             {% if query %}
             <p>По запросу <i>"{{query.replace("<", "&lt;").replace(">", "&gt;")}}"</i> продуктов не найдено...</p>
             <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
-            {% elif frequent_food_items %}
-            <div class="frequent-food">
+            {% else %}
+            {% if frequent_food_items %}
+            <div class="food-block">
+                <div class="food-block-name">Часто употребляемые</div>
                 {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
             </div>
+            {% endif %}
+
+            {% if recently_food_items %}
+            <div class="food-block">
+                <div class="food-block-name">Недавно употреблённые</div>
+                {% for food_item in recently_food_items %}{% include "food_item.html" %}{% endfor %}
+            </div>
+            {% endif %}
             </div>
             {% endif %}
         {% else %}
