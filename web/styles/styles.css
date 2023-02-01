@@ -15,6 +15,7 @@
     --active-button-background: #4caf50;
 
     --block-background-color: #e8e8e88f;
+    --tabs-background-color: #dadada8f;
     --background-image: url("/images/food_texture.jpg");
     --template-image: url("/images/bread.svg");
     --template-image-hover: url("/images/bread_dark.svg");
@@ -56,6 +57,7 @@
     --active-button-background: #4caf50;
 
     --block-background-color: #1e1e1e8f;
+    --tabs-background-color: #56586a8f;
     --background-image: url("/images/food_texture_dark.jpg");
     --template-image: url("/images/bread_dark.svg");
     --template-image-hover: url("/images/bread.svg");

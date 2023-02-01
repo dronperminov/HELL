@@ -38,36 +38,52 @@
         <p>По запросу <i>"{{query.replace("<", "&lt;").replace(">", "&gt;")}}"</i> продуктов не найдено...</p>
         <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
     </div>
-    {% include "add_food_buttons.html" %}
         {% elif date and meal_type %}
         <div class="food-blocks">
+            <div class="food-blocks-header" id="food-blocks-header">
+                {% if frequent_food_items %}<div class="food-block-name">Часто употребляемые</div>{% endif %}
+                {% if recently_food_items %}<div class="food-block-name">Недавно употреблённые</div>{% endif %}
+            </div>
             <div class="food-blocks-flex" id="food-blocks">
             {% if frequent_food_items %}
                 <div class="food-block">
-                    <div class="food-block-name">Часто употребляемые</div>
                     {% for food_item in frequent_food_items %}{% set food_item_id = "frequent-" + food_item._id|string %}{% include "food_item.html" %}{% endfor %}
-                    {% include "add_food_buttons.html" %}
                 </div>
             {% endif %}
 
             {% if recently_food_items %}
                 <div class="food-block">
-                    <div class="food-block-name">Недавно употреблённые</div>
                     {% for food_item in recently_food_items %}{% set food_item_id = "recently-" + food_item._id|string %}{% include "food_item.html" %}{% endfor %}
-                    {% include "add_food_buttons.html" %}
                 </div>
             {% endif %}
             </div>
         </div>
     </div>
-        {% else %}
-        {% include "add_food_buttons.html" %}
         {% endif %}
     {% else %}
         {% for food_item in food_items %}{% set food_item_id = food_item._id|string %}{% include "food_item.html" %}{% endfor %}
     </div>
-    {% include "add_food_buttons.html" %}
     {% endif %}
+
+    <div class="add-food-buttons">
+        <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить продукт</button>
+
+        <button onclick="location.href='/add-template?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить шаблон</button>
+    </div>
+
+    <div class="food-search-info">
+        <b>Как искать?</b><br>
+        Сейчас поиск применяет обычное регулярное выражение из экранированного запроса к названию продукта и всем его алиасам. Однако есть дополнительные опции:<br>
+        <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('p')">&lt;p&gt;</a></b> — показать белковые продукты;</div>
+        <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('f')">&lt;f&gt;</a></b> — показать жирные продукты;</div>
+        <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('c')">&lt;c&gt;</a></b> — показать углеводные продукты;</div>
+        {% if user_id %}
+        <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('T')">&lt;T&gt;</a></b> — показать все доступные шаблоны;</div>
+        <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('t')">&lt;t&gt;</a></b> — показать все созданные шаблоны;</div>
+        {% endif %}
+
+        <div class="food-search-info-list">Я постараюсь в ближайшее время сделать поиск более умным и удобным.</div>
+    </div>
 
     <script src="/js/forms.js"></script>
     <script src="/js/swipe.js"></script>
@@ -169,11 +185,15 @@
         }
         {% endif %}
 
-        let foodBlocks = document.getElementById("food-blocks")
+        window.addEventListener("load", () => {
+            let foodBlocksHeader = document.getElementById("food-blocks-header")
+            let foodBlocks = document.getElementById("food-blocks")
 
-        if (foodBlocks !== null) {
-            let swipeTabs = new SwipeTabs(foodBlocks)
-        }
+            if (foodBlocks === null)
+                return
+
+            let swipeTabs = new SwipeTabs(foodBlocks, foodBlocksHeader)
+        })
     </script>
     {% include "footer.html" %}
 </body>
