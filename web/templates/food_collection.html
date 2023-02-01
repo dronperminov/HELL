@@ -33,52 +33,39 @@
     <div class="food-search-autocomplete-results" id="autocomplete-results"></div>
 
     <div class="food-search-results" id="food-search-results">
-        {% if food_items == [] %}
-            {% if query %}
-            <p>По запросу <i>"{{query.replace("<", "&lt;").replace(">", "&gt;")}}"</i> продуктов не найдено...</p>
-            <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
-            {% else %}
+    {% if food_items == [] %}
+        {% if query %}
+        <p>По запросу <i>"{{query.replace("<", "&lt;").replace(">", "&gt;")}}"</i> продуктов не найдено...</p>
+        <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
+    </div>
+    {% include "add_food_buttons.html" %}
+        {% else %}
+        <div class="food-blocks">
+            <div class="food-blocks-table">
             {% if frequent_food_items %}
-            <div class="food-block">
-                <div class="food-block-name">Часто употребляемые</div>
-                {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
-            </div>
+                <div class="food-block">
+                    <div class="food-block-name">Часто употребляемые</div>
+                    {% for food_item in frequent_food_items %}{% include "food_item.html" %}{% endfor %}
+                    {% include "add_food_buttons.html" %}
+                </div>
             {% endif %}
 
             {% if recently_food_items %}
-            <div class="food-block">
-                <div class="food-block-name">Недавно употреблённые</div>
-                {% for food_item in recently_food_items %}{% include "food_item.html" %}{% endfor %}
-            </div>
+                <div class="food-block">
+                    <div class="food-block-name">Недавно употреблённые</div>
+                    {% for food_item in recently_food_items %}{% include "food_item.html" %}{% endfor %}
+                    {% include "add_food_buttons.html" %}
+                </div>
             {% endif %}
             </div>
-            {% endif %}
-        {% else %}
-
-            {% for food_item in food_items %}{% include "food_item.html" %}{% endfor %}
-        {% endif %}
-        </div>
-
-        <div class="center">
-            <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить продукт</button>
-
-            <button onclick="location.href='/add-template?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить шаблон</button>
-        </div>
-
-        <div class="food-search-info">
-            <b>Как искать?</b><br>
-            Сейчас поиск применяет обычное регулярное выражение из экранированного запроса к названию продукта и всем его алиасам. Однако есть дополнительные опции:<br>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('p')">&lt;p&gt;</a></b> — показать белковые продукты;</div>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('f')">&lt;f&gt;</a></b> — показать жирные продукты;</div>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('c')">&lt;c&gt;</a></b> — показать углеводные продукты;</div>
-            {% if user_id %}
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('T')">&lt;T&gt;</a></b> — показать все доступные шаблоны;</div>
-            <div class="food-search-info-list"><b><a href="#" onclick="SetQuery('t')">&lt;t&gt;</a></b> — показать все созданные шаблоны;</div>
-            {% endif %}
-
-            <div class="food-search-info-list">Я постараюсь в ближайшее время сделать поиск более умным и удобным.</div>
         </div>
     </div>
+        {% endif %}
+    {% else %}
+        {% for food_item in food_items %}{% include "food_item.html" %}{% endfor %}
+    </div>
+    {% include "add_food_buttons.html" %}
+    {% endif %}
 
     <script src="/js/forms.js"></script>
     <script src="/js/swipe.js"></script>

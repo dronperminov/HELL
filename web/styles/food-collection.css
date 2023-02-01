@@ -1,5 +1,19 @@
-.food-block {
+.food-blocks {
+    width: 100vw;
+    overflow-x: auto;
+    margin: 0 -10px;
+}
 
+.food-blocks-table {
+    display: table;
+    width: 200vw;
+    overflow-x: hidden;
+}
+
+.food-block {
+    display: table-cell;
+    width: 100vw;
+    padding: 0 10px;
 }
 
 .food-block-name {
@@ -10,4 +24,9 @@
     font-size: 1.2rem;
     font-weight: bold;
     border-top: 1px solid var(--border-color);
+}
+
+.add-food-buttons {
+    margin-top: 8px;
+    text-align: center;
 }
