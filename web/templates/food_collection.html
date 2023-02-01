@@ -39,9 +39,9 @@
         <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
     </div>
     {% include "add_food_buttons.html" %}
-        {% else %}
+        {% elif date and meal_type %}
         <div class="food-blocks">
-            <div class="food-blocks-table">
+            <div class="food-blocks-flex" id="food-blocks">
             {% if frequent_food_items %}
                 <div class="food-block">
                     <div class="food-block-name">Часто употребляемые</div>
@@ -60,6 +60,8 @@
             </div>
         </div>
     </div>
+        {% else %}
+        {% include "add_food_buttons.html" %}
         {% endif %}
     {% else %}
         {% for food_item in food_items %}{% set food_item_id = food_item._id|string %}{% include "food_item.html" %}{% endfor %}
@@ -69,6 +71,7 @@
 
     <script src="/js/forms.js"></script>
     <script src="/js/swipe.js"></script>
+    <script src="/js/swipe_tabs.js"></script>
     <script src="/js/food_collection.js"></script>
     <script>
         function ClickFoodItem(foodId) {
@@ -76,6 +79,7 @@
             TogglePortionEdit(foodId)
             UpdatePortionInfo(foodId)
         {% else %}
+            foodId = foodId.replace(/^(frequent|recently)\-/gi, "")
             location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
         }
@@ -159,11 +163,17 @@
 
         for (let foodData of document.getElementsByClassName("food-data")) {
             let isTemplate = foodData.classList.contains("food-data-template")
-            let foodId = foodData.parentNode.getAttribute("id")
+            let foodId = foodData.parentNode.getAttribute("id").replace(/^(frequent|recently)\-/gi, "")
             let swipe = new Swipe(foodData, null, false)
             swipe.onPress = () => location.href = `/${isTemplate ? "edit-template" : "edit-food"}/${foodId}?back_url=${encodeURIComponent(location.href)}`
         }
         {% endif %}
+
+        let foodBlocks = document.getElementById("food-blocks")
+
+        if (foodBlocks !== null) {
+            let swipeTabs = new SwipeTabs(foodBlocks)
+        }
     </script>
     {% include "footer.html" %}
 </body>

@@ -33,6 +33,11 @@ Swipe.prototype.TouchStart = function(e) {
 }
 
 Swipe.prototype.TouchMove = function(e) {
+    if (!this.canSwipe) {
+        clearTimeout(this.pressTimeout)
+        return
+    }
+
     this.deltaX = e.touches[0].clientX - this.startX
     this.deltaY = e.touches[0].clientY - this.startY
 
@@ -43,9 +48,6 @@ Swipe.prototype.TouchMove = function(e) {
         return
 
     e.preventDefault()
-
-    if (!this.canSwipe)
-        return
 
     if (!this.isStarted) {
         this.onStart()

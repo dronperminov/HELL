@@ -1,19 +1,19 @@
 .food-blocks {
     width: 100vw;
-    overflow-x: auto;
     margin: 0 -10px;
+    overflow: hidden;
 }
 
-.food-blocks-table {
-    display: table;
-    width: 200vw;
-    overflow-x: hidden;
+.food-blocks-flex {
+    display: flex;
 }
 
 .food-block {
-    display: table-cell;
     width: 100vw;
+    height: min-content;
+    box-sizing: border-box;
     padding: 0 10px;
+    flex: 0 0 auto;
 }
 
 .food-block-name {
