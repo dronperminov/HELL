@@ -24,6 +24,7 @@ SwipeTabs.prototype.UpdateHeader = function(tab) {
 }
 
 SwipeTabs.prototype.UpdateParams = function() {
+    this.container.style.height = null
     this.container.style.transform = `translateX(${-this.tab * this.container.clientWidth}px)`
     this.container.style.height = `${this.container.children[this.tab].clientHeight}px`
     this.UpdateHeader(this.tab)
@@ -47,7 +48,7 @@ SwipeTabs.prototype.TouchMove = function(e) {
     this.isStarted = true
     let offset = this.tab * this.container.clientWidth - deltaX
 
-    if (offset < 0)
+    if (offset < 0 || offset > this.container.clientWidth * (this.tabs - 1))
         this.startX += deltaX
 
     offset = Math.max(0, Math.min(this.container.clientWidth * (this.tabs - 1), offset))
@@ -63,6 +64,9 @@ SwipeTabs.prototype.TouchMove = function(e) {
 }
 
 SwipeTabs.prototype.TouchEnd = function(e) {
+    if (!this.isStarted)
+        return
+
     this.isStarted = false
     this.ChangeTab(Math.round(this.part))
 }
