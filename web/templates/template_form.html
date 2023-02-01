@@ -13,14 +13,14 @@
     <div class="template">
         <div class="form-row">
             <label>Название:
-                <input type="text" id="name" autocomplete="off" {% if template %}value="{{template.name}}"{% endif %}>
+                <input type="text" id="name" autocomplete="off" {% if template %}value="{{template.name}}"{% endif %}{% if not can_edit %} readonly{% endif %}>
             </label>
             <div class="error-center" id="name-error"></div>
         </div>
 
         <div class="form-row">
             <label>Описание:</label>
-            <div class="contenteditable" contenteditable id="description">{% if template %}{{template.description.replace("<", "&lt;").replace(">", "&gt;")}}{% endif %}</div>
+            <div class="contenteditable" {% if can_edit %} contenteditable{% endif %} id="description">{% if template %}{{template.description.replace("<", "&lt;").replace(">", "&gt;")}}{% endif %}</div>
             <div class="error-center" id="name-error"></div>
         </div>
 
