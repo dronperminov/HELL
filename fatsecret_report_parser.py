@@ -9,6 +9,11 @@ from decimal import Decimal
 
 class FatSecretReportParser:
     def __init__(self):
+        self.weekdays = [
+            "понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье",
+            "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+        ]
+
         self.months = {
             "января": 1,
             "февраля": 2,
@@ -21,7 +26,20 @@ class FatSecretReportParser:
             "сентября": 9,
             "октября": 10,
             "ноября": 11,
-            "декабря": 12
+            "декабря": 12,
+
+            "January": 1,
+            "February": 2,
+            "March": 3,
+            "April": 4,
+            "May": 5,
+            "June": 6,
+            "July": 7,
+            "August": 8,
+            "September": 9,
+            "October": 10,
+            "November": 11,
+            "December": 12
         }
 
     def parse(self, path: str) -> Dict[datetime, Dict[str, List[dict]]]:
@@ -56,12 +74,12 @@ class FatSecretReportParser:
                 curr_meal_type = None
                 continue
 
-            if re.match(r'^"(понедельник|вторник|среда|четверг|пятница|суббота|воскресенье), \w+ \d\d?, \d{4}"', line):
+            if re.match(rf'^"({"|".join(self.weekdays)}), \w+ \d\d?, \d{{4}}"', line.lower()):
                 curr_date = self.__parse_date(line)
                 data[curr_date] = {}
                 continue
 
-            if re.match(r' (Завтрак|Обед|Ужин|Перекус/Другое),', line):
+            if re.match(r' (Завтрак|Обед|Ужин|Перекус/Другое|Breakfast|Lunch|Dinner|Snacks/Other),', line):
                 curr_meal_type = line.split(',')[0].strip()
                 data[curr_date][curr_meal_type] = []
                 continue
