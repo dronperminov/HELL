@@ -283,16 +283,10 @@ button:hover .food-name-group-icon {
     font-size: 0.9em;
 }
 
-.diary-limits-save {
+.diary-limits-icons {
     position: absolute;
     top: 5px;
     right: 0;
-}
-
-.diary-limits-cancel {
-    position: absolute;
-    top: 5px;
-    right: 35px;
 }
 
 .diary-limits-error {

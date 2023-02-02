@@ -17,8 +17,10 @@ function GetLimits() {
             input.focus()
             isCorrect = false
         }
-        else if (value != "") {
-            limits[key] = value
+        else {
+            if (value != "")
+                limits[key] = value
+
             input.setAttribute("data-value", value)
         }
     }

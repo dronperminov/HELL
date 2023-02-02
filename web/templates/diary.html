@@ -135,7 +135,6 @@
         <button id="add-meal-type-button" onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
         <button class="no-display" id="cancel-add-meal-type-button" onclick="CancelCreateMealType()"><span class="fa fa-ban"></span> Отменить</button>
         <button id="add-limits-button" {% if have_limits %}class="no-display"{% endif %} onclick="AddLimits()"><span class="fa fa-plus"></span> Добавить лимиты</button>
-        <button id="remove-limits-button" {% if not have_limits %}class="no-display"{% endif %} onclick="RemoveLimits('{{date}}')"><span class="fa fa-trash"></span> Удалить лимиты</button>
     </div>
 
     <div class="diary-limits{% if not have_limits %} no-display{% endif %}" id="limits">
@@ -168,8 +167,17 @@
         </div>
         <div class="error" id="error-carbohydrates"></div>
 
-        <button class="diary-limits-save{% if have_limits %} no-display{% endif %}" id="save-limits-button" onclick="SaveLimits('{{date}}')"><span class="fa fa-save"></span></button>
-        <button class="diary-limits-cancel no-display" id="cancel-limits-button" onclick="CancelEditLimits()"><span class="fa fa-ban"></span></button>
+        <div class="diary-limits-icons">
+            <button {% if have_limits %}class="no-display"{% endif %} id="save-limits-button" onclick="SaveLimits('{{date}}')">
+                <span class="fa fa-save"></span>
+            </button>
+            <button class="no-display" id="cancel-limits-button" onclick="CancelEditLimits()">
+                <span class="fa fa-ban"></span>
+            </button>
+            <button {% if not have_limits %}class="no-display"{% endif %} id="remove-limits-button" onclick="RemoveLimits('{{date}}')">
+                <span class="fa fa-trash"></span>
+            </button>
+        </div>
         <div class="error-center diary-limits-error" id="error-limits"></div>
     </div>
 
