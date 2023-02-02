@@ -1,5 +1,4 @@
 .food-blocks {
-    width: 100vw;
     margin: 0 -10px;
     overflow: hidden;
 }
@@ -41,7 +40,7 @@
 }
 
 .food-block {
-    width: 100vw;
+    width: 100%;
     height: min-content;
     box-sizing: border-box;
     padding: 0 10px;

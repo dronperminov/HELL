@@ -101,6 +101,7 @@
         {% if date and meal_type %}
             TogglePortionEdit(foodId)
             UpdatePortionInfo(foodId)
+            swipeTabs.UpdateParams()
         {% else %}
             foodId = foodId.replace(/^(frequent|recently)\-/gi, "")
             location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
@@ -111,6 +112,7 @@
         {% if date and meal_type %}
             TogglePortionEdit(templateId)
             UpdatePortionInfo(templateId)
+            swipeTabs.UpdateParams()
         {% else %}
             location.href = `/edit-template/${templateId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
