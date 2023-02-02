@@ -23,7 +23,7 @@
         <span class="parameter-icons no-display" id="parameter-{{parameter.name}}-icons">
             <button id="parameter-{{parameter.name}}-save" onclick="SaveParameterValue('{{date}}', '{{parameter.name}}')"><span class="fa fa-check"></span></button>
         </span>
-        <span class="parameter-last">{% if prev_value != "" %}({{data[prev_index]["date"]}}: {{data[prev_index]["value"]}} {{parameter.unit}}){% endif %}</span>
+        <div class="parameter-last">{% if prev_value != "" %}{{data[prev_index]["date"]}}: {{data[prev_index]["value"]}} {{parameter.unit}}{% endif %}</div>
         <div class="error-left parameter-error" id="parameter-{{parameter.name}}-error"></div>
     </div>
 

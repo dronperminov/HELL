@@ -258,6 +258,7 @@
                     continue
 
                 input.innerText = input.getAttribute("data-value")
+                input.classList.remove("error")
                 input.blur()
                 error.innerText = ""
                 icons.classList.add("no-display")

@@ -45,6 +45,7 @@
 }
 
 .parameter-last {
+    margin-top: 5px;
     font-size: 0.9rem;
     color: var(--disabled-color);
 }
