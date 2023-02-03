@@ -12,7 +12,7 @@
     {% set can_edit = not template or template.id and user_id == template.creator_id %}
     <div class="template">
         <div class="form-row">
-            <label>Название:
+            <label>Название шаблона:
                 <input type="text" id="name" autocomplete="off" {% if template %}value="{{template.name}}"{% endif %}{% if not can_edit %} readonly{% endif %}>
             </label>
             <div class="error-center" id="name-error"></div>
@@ -48,7 +48,7 @@
         </div>
 
         <div class="form-row center">
-            <button id="save-button"><span class="fa fa-check"></span> {{add_text}}</button>
+            <button id="save-button"><span class="fa fa-save"></span> Сохранить</button>
             {% if can_remove %}
             <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
             {% endif %}
