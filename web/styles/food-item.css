@@ -66,19 +66,19 @@
     position: absolute;
     top: 0;
     right: 0;
+    bottom: 0;
     text-align: right;
     background: var(--error-color);
     color: var(--disabled-color);
     pointer-events: none;
     transition: width 0.5s, opacity 0.5s;
-    display: table;
     height: 100%;
 }
 
 .food-item-remove-cell {
-    display: table-cell;
-    vertical-align: middle;
-    padding-right: 10px;
+    position: absolute;
+    right: 10px;
+    top: calc(50% - 11px);
 }
 
 .food-item-remove span {

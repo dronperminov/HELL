@@ -2,34 +2,34 @@
     <div class="menu-item">
         <a {% if page == "/" %}class="current"{% endif %} href="/">
             {% if user or user_id %}
-            <span class="fa fa-user"></span><br>
-            <sub>Я</sub>
+            <span class="fa fa-user"></span>
+            <div class="menu-name">Я</div>
             {% else %}
-            <span class="fa fa-home"></span><br>
-            <sub>Главная</sub>
+            <span class="fa fa-home"></span>
+            <div class="menu-name">Главная</div>
             {% endif %}
         </a>
     </div>
     {% if user or user_id %}
     <div class="menu-item">
         <a {% if page == "/diary" %}class="current"{% endif %} href="/diary">
-            <span class="fa fa-cutlery"></span><br>
-            <sub>Дневник</sub>
+            <span class="fa fa-cutlery"></span>
+            <div class="menu-name">Дневник</div>
         </a>
     </div>
     {% endif %}
     <div class="menu-item">
         <a {% if page == "/food-collection" %}class="current"{% endif %} href="/food-collection">
-            <span class="fa fa-shopping-basket"></span><br>
-            <sub>Продукты</sub>
+            <span class="fa fa-shopping-basket"></span>
+            <div class="menu-name">Продукты</div>
         </a>
     </div>
 
     {% if user or user_id %}
     <div class="menu-item">
         <a {% if page == "/statistic" %}class="current"{% endif %} href="/statistic">
-            <span class="fa fa-bar-chart"></span><br>
-            <sub>Статистика</sub>
+            <span class="fa fa-bar-chart"></span>
+            <div class="menu-name">Статистика</div>
         </a>
     </div>
     {% endif %}

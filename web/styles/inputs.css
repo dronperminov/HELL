@@ -12,6 +12,7 @@ select,
     padding: 0;
     background: var(--background-color);
     font-size: 0.9rem;
+    font-family: Roboto;
 }
 
 .input {
@@ -44,6 +45,8 @@ button {
     color: 1px solid var(--disabled-color);
     border-radius: 5px;
     padding: 4px 8px;
+    font-size: 0.9rem;
+    font-family: Roboto;
 }
 
 button:focus, button:hover {
@@ -67,6 +70,7 @@ textarea {
     background: var(--background-color);
     font-size: 0.9rem;
     resize: vertical;
+    font-family: Roboto;
 }
 
 textarea:focus, textarea:hover {
@@ -116,6 +120,7 @@ input[type="checkbox"]:checked + label::before {
     white-space: pre-wrap;
     border: 1px solid var(--border-color);
     min-height: 2em;
+    font-family: Roboto;
 }
 
 .contenteditable:focus, .contenteditable:hover {
