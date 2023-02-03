@@ -155,7 +155,21 @@
 
         function PlotBarStatistic(svg, caloriesData, keys) {
             let barChart = new BarChart()
-            barChart.Plot(svg, caloriesData, keys, "date", "energy", "ккал")
+            let days = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"]
+            let data = []
+
+            for (let i = 0; i < caloriesData.length; i++) {
+                data.push({})
+
+                for (let key of Object.keys(caloriesData[i]))
+                    data[i][key] = caloriesData[i][key]
+
+                let [day, month, year] = data[i]["date"].split(".").map((v) => +v)
+                let date = new Date(year, month - 1, day)
+                data[i]["date"] = `${days[date.getDay()]}\n${data[i]["date"]}`
+            }
+
+            barChart.Plot(svg, data, keys, "date", "energy", "ккал")
         }
 
         function PlotDonutStatistic(svg, caloriesData, keys) {

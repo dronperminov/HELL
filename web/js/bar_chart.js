@@ -1,4 +1,4 @@
-function BarChart(barClass = 'bar-color', labelClass = 'label', dividerClass = 'bar-divider', padding = 5, topPadding = 18, bottomPadding = 10, minRectWidth=42, maxRectWidth = 60, gap = 2) {
+function BarChart(barClass = 'bar-color', labelClass = 'label', dividerClass = 'bar-divider', padding = 5, topPadding = 18, bottomPadding = 20, minRectWidth=42, maxRectWidth = 60, gap = 2) {
     this.barClass = barClass
     this.labelClass = labelClass
     this.dividerClass = dividerClass
@@ -20,15 +20,20 @@ BarChart.prototype.GetMaxValue = function(data, key) {
     return max > 0 ? max : 1
 }
 
-BarChart.prototype.MakeLabel = function(x, y, labelText, baseline = "middle") {
-    let label = document.createElementNS('http://www.w3.org/2000/svg', "text")
-    label.textContent = labelText
-    label.setAttribute("x", x)
-    label.setAttribute("y", y)
-    label.setAttribute("alignment-baseline", baseline)
-    label.setAttribute("text-anchor", "middle")
-    label.setAttribute("class", this.labelClass)
-    return label
+BarChart.prototype.AppendLabel = function(svg, x, y, labelText, baseline = "middle") {
+    let lines = labelText.split("\n")
+
+    for (let line of lines) {
+        let label = document.createElementNS('http://www.w3.org/2000/svg', "text")
+        label.textContent = line
+        label.setAttribute("x", x)
+        label.setAttribute("y", y)
+        label.setAttribute("alignment-baseline", baseline)
+        label.setAttribute("text-anchor", "middle")
+        label.setAttribute("class", this.labelClass)
+        svg.appendChild(label)
+        y += label.getBBox().height
+    }
 }
 
 BarChart.prototype.MakeBar = function(x, y, rectWidth, rectHeight, className) {
@@ -98,8 +103,8 @@ BarChart.prototype.Plot = function(svg, data, keys, axisKey, labelKey, labelUnit
 
         this.AppendBar(svg, x, y, rectWidth, rectHeight, data[i], keys)
 
-        svg.appendChild(this.MakeLabel(x + rectWidth / 2, height - this.bottomPadding / 2, data[i][axisKey]))
-        svg.appendChild(this.MakeLabel(x + rectWidth / 2, y - 8, `${data[i][labelKey]}`, "top"))
-        svg.appendChild(this.MakeLabel(x + rectWidth / 2, y - 2, labelUnit, "top"))
+        this.AppendLabel(svg, x + rectWidth / 2, height - this.bottomPadding, data[i][axisKey], "before-edge")
+        this.AppendLabel(svg, x + rectWidth / 2, y - 8, `${data[i][labelKey]}`, "top")
+        this.AppendLabel(svg, x + rectWidth / 2, y - 2, labelUnit, "top")
     }
 }
