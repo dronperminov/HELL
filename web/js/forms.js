@@ -27,6 +27,10 @@ function IsNotEmptyValue(value) {
     return !value.match(/^\s*$/g)
 }
 
+function IsNumber(value) {
+    return value.match(/^-?\d+(\.\d+)?$/g) !== null
+}
+
 function IsRealValue(value) {
     return value.match(/^\d+(\.\d+)?$/g) !== null
 }
