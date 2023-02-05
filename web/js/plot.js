@@ -165,6 +165,27 @@ Plot.prototype.PlotTrend = function(svg, x, y, ymax, viewWidth, viewHeight) {
     svg.appendChild(trendPath)
 }
 
+Plot.prototype.PlotAxes = function(svg, width, height, ymin, ymax) {
+    let y0
+
+    if (ymin >= 0)
+        y0 = height - this.paddingBottom
+    else if (ymax <= 0)
+        y0 = this.padding
+    else
+        y0 = this.padding + ymax / (ymax - ymin) * (height - this.paddingBottom - this.padding)
+
+    let x1 = this.padding
+    let x2 = width - this.padding
+    let y1 = this.padding
+    let y2 = height - this.paddingBottom
+
+    let axisPath = document.createElementNS('http://www.w3.org/2000/svg', "path")
+    axisPath.setAttribute("d", `M${x1} ${y1} L${x1} ${y2} M${x1} ${y0} L${x2} ${y0}`)
+    axisPath.setAttribute("class", this.axisClass)
+    svg.appendChild(axisPath)
+}
+
 Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", keyX = "date", keyY = "value") {
     svg.innerHTML = ''
     svg.style.width = null
@@ -218,15 +239,11 @@ Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", k
     linePath.setAttribute("class", this.lineClass)
     svg.appendChild(linePath)
 
-    let axisPath = document.createElementNS('http://www.w3.org/2000/svg', "path")
-    axisPath.setAttribute("d", `M${this.padding} ${this.padding} L${this.padding} ${height - this.paddingBottom} L${width - this.padding} ${height - this.paddingBottom}`)
-    axisPath.setAttribute("class", this.axisClass)
-    svg.appendChild(axisPath)
+    this.PlotAxes(svg, width, height, infoY.min, infoY.max)
 
     if (showTrend)
         this.PlotTrend(svg, infoX.x, dataY, infoY.max, viewWidth, viewHeight)
 
-    svg.appendChild(linePath)
     for (let i = 0; i < data.length; i++) {
         let x = points[i].x
         let y = points[i].y
