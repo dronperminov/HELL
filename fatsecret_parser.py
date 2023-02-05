@@ -73,7 +73,14 @@ class FatSecretParser:
         return results
 
     def __round(self, value: Decimal) -> Decimal:
-        return Decimal(str(int(value * 10) / 10))
+        if value < Decimal("10"):
+            scale = 100
+        elif value < Decimal("1000"):
+            scale = 10
+        else:
+            scale = 2
+
+        return Decimal(str(int(value * scale) / scale))
 
     def __get_div_texts(self, div: Tag) -> List[str]:
         texts = [d.text.strip() for d in div if d.text.strip()]
@@ -120,6 +127,13 @@ class FatSecretParser:
             count, unit, value = Decimal(match.group("count")), self.__replace_unit(match.group("unit")), match.group("value")
             scale = Decimal("100") / Decimal(value)
             conversions[PortionUnit(unit)] = Decimal(value) / count / Decimal("100")
+            return BasePortionUnit.g100, conversions, scale
+
+        match = re.match(rf"^100г +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
+        if match:
+            value = match.group("value")
+            scale = Decimal("100") / Decimal(value)
+            conversions[PortionUnit.portion] = Decimal(value) / Decimal("100")
             return BasePortionUnit.g100, conversions, scale
 
         match = re.match(r"^1 +(?P<unit>порция) +\((?P<value>\d+(.\d*)?) мл\)$", portion_text)
