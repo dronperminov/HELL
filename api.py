@@ -334,8 +334,8 @@ def food_collection_post(food_query: str = Body(..., embed=True)):
 
 
 @app.get("/autocomplete")
-def autocomplete(food_query: str = Query(""), user_id: str = Depends(get_current_user)):
-    names = search.autocomplete(food_query, user_id)
+def autocomplete(food_query: str = Query(""), with_templates: str = Query(""), user_id: str = Depends(get_current_user)):
+    names = search.autocomplete(food_query, user_id if with_templates == "true" else "")
     return JSONResponse({"names": names})
 
 

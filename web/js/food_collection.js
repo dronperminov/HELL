@@ -19,7 +19,7 @@ function UpdateClearQuery() {
         clear.classList.remove("food-search-clear-show")
 }
 
-function Autocomplete(onclick) {
+function Autocomplete(onclick, withTemplates = true) {
     UpdateClearQuery()
     let query = document.getElementById("food-query").value.trim()
     let results = document.getElementById("autocomplete-results")
@@ -29,7 +29,7 @@ function Autocomplete(onclick) {
         return
     }
 
-    SendRequest(`/autocomplete?food_query=${query}`).then((response) => {
+    SendRequest(`/autocomplete?food_query=${query}&with_templates=${withTemplates}`).then((response) => {
         results.innerHTML = ""
 
         for (let name of response.names) {
