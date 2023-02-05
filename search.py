@@ -105,7 +105,7 @@ class Search:
         self.__process_templates(templates)
         return templates
 
-    def get_frequent_foods(self, meal_type: str, user_id: str) -> list:
+    def get_frequent(self, meal_type: str, user_id: str) -> List[dict]:
         pipeline = []
 
         if meal_type in constants.MEAL_TYPES:
@@ -122,23 +122,54 @@ class Search:
         documents = diary_collection.aggregate(pipeline)
 
         meal_ids = [document["meal_id"] for document in documents]
+        food_items = self.__get_frequent_foods(meal_ids)
+        templates = self.__get_frequent_templates(meal_ids, user_id)
+        frequent = sorted(templates + food_items, key=lambda v: v["count"], reverse=True)
+        return frequent[:constants.FREQUENT_MEAL_CLIP_COUNT]
+
+    def __get_frequent_foods(self, meal_ids: List[ObjectId]) -> List[dict]:
         documents = self.meal_collection.aggregate([
             {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": False}}},
             {"$group": {"_id": "$food_id", "count": {"$sum": 1}}},
             {"$match": {"count": {"$gte": constants.FREQUENT_MEAL_MIN_COUNT}}},
-            {"$sort": {"count": -1}},
-            {"$limit": constants.FREQUENT_MEAL_CLIP_COUNT}
         ])
 
-        food_ids = [document["_id"] for document in documents]
-        food_items = list(self.food_collection.aggregate([
-            {"$match": {"_id": {"$in": food_ids}}},
-            {"$addFields": {"order": {"$indexOfArray": [food_ids, "$_id"]}}},
-            {"$sort": {"order": 1}}
-        ]))
+        food2count = {document["_id"]: document["count"] for document in documents}
+        food_ids = [food_id for food_id in food2count]
 
+        food_items = list(self.food_collection.find({"_id": {"$in": food_ids}}))
         self.__process_food_items(food_items)
+
+        for food_item in food_items:
+            food_item["count"] = food2count[food_item["_id"]]
+
         return food_items
+
+    def __get_frequent_templates(self, meal_ids: List[ObjectId], user_id: str) -> List[dict]:
+        documents = self.meal_collection.aggregate([
+            {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": True}}},
+            {"$group": {"_id": "$group_name", "group_ids": {"$addToSet": "$group_id"}}},
+            {"$match": {"$expr": {"$gte": [{"$size": "$group_ids"}, constants.FREQUENT_MEAL_MIN_COUNT]}}},
+            {"$project": {"_id": 1, "count": {"$size": "$group_ids"}}},
+        ])
+
+        templates2count = {document["_id"]: document["count"] for document in documents}
+        template_names = [template_name for template_name in templates2count]
+
+        templates = list(self.template_collection.find({
+            "name": {"$in": template_names},
+            "$or": [
+                {"creator_id": ObjectId(user_id)},
+                {"availability": f"{TemplateAvailability.users}"}
+            ]}
+        ))
+
+        self.__process_templates(templates)
+
+        for template in templates:
+            template["count"] = templates2count[template["name"]]
+
+        return templates
 
     def get_recently_foods(self, meal_type: str, user_id: str) -> list:
         pipeline = [
