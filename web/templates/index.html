@@ -33,7 +33,7 @@
     <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
     <script src="/js/swipe.js"></script>
-    <script src="/js/plot.js"></script>
+    <script src="/js/plot.js?v=2"></script>
     <script src="/js/date_picker.js"></script>
 
     <script type="text/javascript">
@@ -351,12 +351,12 @@
             let parameter = document.getElementById(`parameter-${name}`)
             let parameterPlot = parameter.getElementsByClassName("parameter-plot")[0]
             let parameterPlotInfo = document.getElementById(`parameter-${name}-plot-info`)
-            let parameterPlotSVG = parameter.getElementsByClassName("parameter-plot-svg")[0]
+            let parameterPlotView = parameter.getElementsByClassName("parameter-plot-view")[0]
             let dates = this.GetPlotPeriod(name)
 
             if (dates === null) {
                 parameterPlotInfo.innerText = `Нет данных об этом параметре`
-                parameterPlotSVG.classList.add("no-display")
+                parameterPlotView.classList.add("no-display")
                 return
             }
 
@@ -368,12 +368,12 @@
 
             if (data.length == 0) {
                 parameterPlotInfo.innerText = `Нет данных для отображения с ${startDate} по ${endDate}`
-                parameterPlotSVG.classList.add("no-display")
+                parameterPlotView.classList.add("no-display")
                 return
             }
 
             parameterPlotInfo.innerText = `Показаны данные с ${startDate} по ${endDate}`
-            parameterPlotSVG.classList.remove("no-display")
+            parameterPlotView.classList.remove("no-display")
             let plot = new Plot()
             plot.Plot(svg, data, showTrend)
         }
