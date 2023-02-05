@@ -18,6 +18,7 @@
             document.cookie = `token=${token}`
     }
 
+    UpdateCookieToken()
     window.addEventListener("beforeunload", UpdateCookieToken)
     window.addEventListener("unload", UpdateCookieToken)
 </script>
