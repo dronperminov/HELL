@@ -1,4 +1,4 @@
-function Plot(padding = 5, paddingBottom = 20, minWidth = 10, steps = 40, lineClass="plot-line", areaClass = "plot-area", axisClass = "plot-axis") {
+function Plot(padding = 5, paddingBottom = 20, minWidth = 20, steps = 40, lineClass="plot-line", areaClass = "plot-area", axisClass = "plot-axis") {
     this.padding = padding
     this.paddingBottom = paddingBottom
     this.minWidth = minWidth
@@ -178,7 +178,7 @@ Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", k
     let width = svg.clientWidth
     let height = svg.clientHeight
 
-    let deltaWidth = (width - this.padding * 2) / infoX.min
+    let deltaWidth = (width - this.padding * 2) * infoX.min / infoX.max
 
     if (deltaWidth < this.minWidth) {
         width *= this.minWidth / deltaWidth
