@@ -228,6 +228,10 @@ button:hover .food-name-group-icon {
     min-width: 70px;
 }
 
+.add-meal-type button {
+    margin-bottom: 5px;
+}
+
 .diary-statistic {
     display: table;
     width: 100%;

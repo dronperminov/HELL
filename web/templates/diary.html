@@ -168,7 +168,7 @@
         <div class="error" id="error-carbohydrates"></div>
 
         <div class="diary-limits-icons">
-            <button {% if have_limits %}class="no-display"{% endif %} id="save-limits-button" onclick="SaveLimits('{{date}}')">
+            <button class="no-display" id="save-limits-button" onclick="SaveLimits('{{date}}')">
                 <span class="fa fa-save"></span>
             </button>
             <button class="no-display" id="cancel-limits-button" onclick="CancelEditLimits()">
@@ -814,8 +814,11 @@
 
             error.innerText = ""
             input.classList.remove("error")
+
+            if (saveButton.classList.contains("no-display"))
+                cancelButton.classList.remove("no-display")
+
             saveButton.classList.remove("no-display")
-            cancelButton.classList.remove("no-display")
         }
 
         function CancelEditLimits() {
@@ -847,10 +850,12 @@
             let limits = document.getElementById("limits")
             let addButton = document.getElementById("add-limits-button")
             let removeButton = document.getElementById("remove-limits-button")
+            let saveButton = document.getElementById("save-limits-button")
 
             limits.classList.remove("no-display")
             removeButton.classList.remove("no-display")
             addButton.classList.add("no-display")
+            saveButton.classList.remove("no-display")
 
             UpdateLimits()
         }
