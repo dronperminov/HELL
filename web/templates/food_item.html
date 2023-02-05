@@ -13,25 +13,39 @@
 
         <div class="food-info">
             <div class="food-info-cell food-energy">
-                <span id="{{food_item_id}}-food-energy">{{food_item.energy}}</span> ккал{% if not is_template %} / {{food_item.portion}}{% endif %}
+                {% if not is_template %}<span id="{{food_item_id}}-food-energy">{{food_item.energy}}</span> ккал / {{food_item.portion}}
+                {% elif not food_item.weight %}<span id="{{food_item_id}}-food-energy">{{food_item.energy}}</span> ккал / порция
+                {% else %}<span id="{{food_item_id}}-food-energy">{{(food_item.energy|float * 1000 / food_item.weight|float)|round / 10}}</span> ккал / 100г
+                {% endif %}
             </div>
             <div class="food-info-cell food-proteins">
-                Б <span id="{{food_item_id}}-food-proteins">{{food_item.proteins}}</span>г
+                Б {% if not is_template or not food_item.weight %}<span id="{{food_item_id}}-food-proteins">{{food_item.proteins}}</span>
+                {% else %}<span id="{{food_item_id}}-food-proteins">{{(food_item.proteins|float * 10000 / food_item.weight|float)|round / 100}}</span>
+                {% endif %}
+                г
             </div>
             <div class="food-info-cell food-fats">
-                Ж <span id="{{food_item_id}}-food-fats">{{food_item.fats}}</span>г
+                Ж {% if not is_template or not food_item.weight %}<span id="{{food_item_id}}-food-fats">{{food_item.fats}}</span>
+                {% else %}<span id="{{food_item_id}}-food-fats">{{(food_item.fats|float * 10000 / food_item.weight|float)|round / 100}}</span>
+                {% endif %}
+                г
             </div>
             <div class="food-info-cell food-carbohydrates">
-                У <span id="{{food_item_id}}-food-carbohydrates">{{food_item.carbohydrates}}</span>г
+                У {% if not is_template or not food_item.weight %}<span id="{{food_item_id}}-food-carbohydrates">{{food_item.carbohydrates}}</span>
+                {% else %}<span id="{{food_item_id}}-food-carbohydrates">{{(food_item.carbohydrates|float * 10000 / food_item.weight|float)|round / 100}}</span>
+                {% endif %}
+                г
             </div>
         </div>
     </div>
 
     {% if date and meal_type %}
-    {% if is_template %}
+    {% if not is_template %}
+    <div class="food-portion-edit no-display" data-default-unit="{{food_item.default_unit}}" data-default-value="{{food_item.default_value}}">
+    {% elif not food_item.weight %}
     <div class="food-portion-edit no-display" data-default-unit="порция" data-default-value="{{food_item.default_value}}">
     {% else %}
-    <div class="food-portion-edit no-display" data-default-unit="{{food_item.default_unit}}" data-default-value="{{food_item.default_value}}">
+    <div class="food-portion-edit no-display" data-default-unit="г" data-default-value="100">
     {% endif %}
         <div class="food-portion-text">Редактирование порции:</div>
         <div class="food-portion-control">
@@ -41,9 +55,13 @@
 
             {% if is_template %}
             <div class="food-portion-unit">
-                <select id="{{food_item_id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item_id}}')">
+                <select id="{{food_item_id}}-portion-unit" onchange="UpdatePortionInfo('{{food_item_id}}')" {% if not food_item.weight %}disabled{% endif %}>
+                    {% if food_item.weight > 0 %}
+                    <option value="г" data-value="0.01" selected>г</option>
+                    <option value="порция" data-value="{{food_item.weight / 100}}">порция</option>
+                    {% else %}
                     <option value="порция" data-value="1" selected>порция</option>
-                    {% if food_item.weight > 0 %}<option value="г" data-value="{{1 / food_item.weight}}">г</option>{% endif %}
+                    {% endif %}
                 </select>
             </div>
             {% else %}

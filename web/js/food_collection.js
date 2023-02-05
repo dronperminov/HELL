@@ -91,7 +91,7 @@ function UpdatePortionInfo(foodId) {
     for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
         let value = document.getElementById(`${foodId}-food-${key}`).innerText
         let span = document.getElementById(`${foodId}-food-portion-${key}`)
-        span.innerText = `${Math.floor(+value * scale * 10) / 10}`
+        span.innerText = `${Round(+value * scale)}`
     }
 
     let portion = document.getElementById(`${foodId}-food-portion-portion`)
@@ -182,7 +182,7 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
 
     if (withPortion) {
         scale = data.size * data.conversions[data.unit]
-        energyText = `<span class="food-energy-span" id="${data.id}-food-energy">${Math.round(data.energy * scale * 100) / 100}</span> ккал (<span class="food-size-span">${data.size}</span> <span class="food-unit-span">${data.unit}</span>)`
+        energyText = `<span class="food-energy-span" id="${data.id}-food-energy">${Round(data.energy * scale)}</span> ккал (<span class="food-size-span">${data.size}</span> <span class="food-unit-span">${data.unit}</span>)`
     }
     else {
         energyText = `<span class="food-energy-span" id="${data.id}-food-energy">${data.energy}</span> ккал / ${data.portion}`
@@ -192,13 +192,13 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
         "innerHTML": energyText, "data-value": data.energy
     })
     MakeDiv("food-info-cell food-proteins", foodInfo, {
-        "innerHTML": `Б <span class="food-proteins-span" id="${data.id}-food-proteins">${Math.round(data.proteins * scale * 100) / 100}</span>г`, "data-value": data.proteins
+        "innerHTML": `Б <span class="food-proteins-span" id="${data.id}-food-proteins">${Round(data.proteins * scale)}</span>г`, "data-value": data.proteins
     })
     MakeDiv("food-info-cell food-fats", foodInfo, {
-        "innerHTML": `Ж <span class="food-fats-span" id="${data.id}-food-fats">${Math.round(data.fats * scale * 100) / 100}</span>г`, "data-value": data.fats
+        "innerHTML": `Ж <span class="food-fats-span" id="${data.id}-food-fats">${Round(data.fats * scale)}</span>г`, "data-value": data.fats
     })
     MakeDiv("food-info-cell food-carbohydrates", foodInfo, {
-        "innerHTML": `У <span class="food-carbohydrates-span" id="${data.id}-food-carbohydrates">${Math.round(data.carbohydrates * scale * 100) / 100}</span>г`, "data-value": data.carbohydrates
+        "innerHTML": `У <span class="food-carbohydrates-span" id="${data.id}-food-carbohydrates">${Round(data.carbohydrates * scale)}</span>г`, "data-value": data.carbohydrates
     })
 
     let portionEdit = MakeDiv(`food-portion-edit${isPortionOpen ? "" : " no-display"}`, foodItem, {
