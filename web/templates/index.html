@@ -442,6 +442,8 @@
         }
 
         function ToggleParameterPlot(name, open = null) {
+            EndEditParameters()
+
             let parameter = document.getElementById(`parameter-${name}`)
             let parameterPlot = parameter.getElementsByClassName("parameter-plot")[0]
 
