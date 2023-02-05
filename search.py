@@ -197,7 +197,7 @@ class Search:
         templates = self.__get_recently_template(meal_ids, user_id)
 
         recent = sorted(food_items + templates, key=lambda v: v["order"])
-        return recent
+        return recent[:constants.RECENTLY_MEAL_CLIP_COUNT]
 
     def __get_recently_foods(self, meal_ids: List[ObjectId]) -> List[dict]:
         documents = self.meal_collection.aggregate([
