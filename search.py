@@ -123,7 +123,7 @@ class Search:
 
         meal_ids = [document["meal_id"] for document in documents]
         documents = self.meal_collection.aggregate([
-            {"$match": {"_id": {"$in": meal_ids}}},
+            {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": False}}},
             {"$group": {"_id": "$food_id", "count": {"$sum": 1}}},
             {"$match": {"count": {"$gte": constants.FREQUENT_MEAL_MIN_COUNT}}},
             {"$sort": {"count": -1}},
@@ -163,7 +163,7 @@ class Search:
 
         meal_ids = [document["meal_id"] for document in documents]
         documents = self.meal_collection.aggregate([
-            {"$match": {"_id": {"$in": meal_ids}}},
+            {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": False}}},
             {"$addFields": {"order": {"$indexOfArray": [meal_ids, "$_id"]}}},
             {"$group": {"_id": "$food_id", "order": {"$min": "$order"}}},
             {"$sort": {"order": 1}}
