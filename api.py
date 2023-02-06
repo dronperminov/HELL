@@ -341,6 +341,9 @@ def autocomplete(food_query: str = Query(""), with_templates: str = Query(""), u
 
 @app.get("/add-food")
 def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_type: str = Query(None), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
     template = templates.get_template('food_form.html')
     html = template.render(
         user_id=user_id,
@@ -355,7 +358,10 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
 
 
 @app.post("/add-food")
-async def add_food_post(request: Request):
+async def add_food_post(request: Request, user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Не удалось добавить продукт, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
     data = await request.json()
     food = FoodItem.from_dict(data)
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
@@ -370,6 +376,9 @@ async def add_food_post(request: Request):
 
 @app.get("/edit-food/{food_id}")
 def edit_food(food_id: str, food_query: str = Query(None), back_url: str = Query(None), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
     food = food_collection.find_one({"_id": ObjectId(food_id)})
 
@@ -395,7 +404,10 @@ def edit_food(food_id: str, food_query: str = Query(None), back_url: str = Query
 
 
 @app.post("/edit-food/{food_id}")
-async def edit_food_post(food_id: str, request: Request, back_url: str = Query(None)):
+async def edit_food_post(food_id: str, request: Request, back_url: str = Query(None), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Не удалось обновить продукт, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
     food_collection = database[constants.MONGO_FOOD_COLLECTION]
 
     data = await request.json()
@@ -411,7 +423,10 @@ async def edit_food_post(food_id: str, request: Request, back_url: str = Query(N
 
 
 @app.post("/remove-food")
-def remove_food(food_id: str = Body(..., embed=True)):
+def remove_food(food_id: str = Body(..., embed=True), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Не удалось удалить продукт, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+
     food_id = ObjectId(food_id)
     meal_collection = database[constants.MONGO_MEAL_COLLECTION]
     meal = meal_collection.find_one({"food_id": food_id})
@@ -603,7 +618,7 @@ async def edit_template_post(template_id: str, request: Request, back_url: str =
 @app.post("/remove-template")
 def remove_template(template_id: str = Body(..., embed=True), user_id: str = Depends(get_current_user)):
     if not user_id:
-        return JSONResponse({"status": "fail", "message": "Не удалось обновить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
+        return JSONResponse({"status": "fail", "message": "Не удалось удалить шаблон, так как Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
     template_collection = database[constants.MONGO_TEMPLATE_COLLECTION]
     template = template_collection.find_one({"_id": ObjectId(template_id)})
