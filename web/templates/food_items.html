@@ -1,3 +1,5 @@
+{% for food_item in rendering_food_items %}
+{% set food_item_id = prefix_id + food_item._id|string %}
 {% set is_template = "meal_items" in food_item %}
 <div class="food-item" id="{{food_item_id}}">
     {% if is_template %}
@@ -109,3 +111,4 @@
     </div>
     {% endif %}
 </div>
+{% endfor %}

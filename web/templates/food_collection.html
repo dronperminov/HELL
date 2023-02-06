@@ -39,7 +39,9 @@
         <p>Если Вы уверены, что продукт должен быть, нажмите кнопку ниже:</p>
         {% endif %}
     {% else %}
-        {% for food_item in food_items %}{% set food_item_id = food_item._id|string %}{% include "food_item.html" %}{% endfor %}
+        {% set prefix_id = "" %}
+        {% set rendering_food_items = food_items %}
+        {% include "food_items.html" %}
     {% endif %}
     </div>
 
@@ -52,13 +54,17 @@
         <div class="food-blocks-flex" id="food-blocks">
         {% if frequent_food_items %}
             <div class="food-block">
-                {% for food_item in frequent_food_items %}{% set food_item_id = "frequent-" + food_item._id|string %}{% include "food_item.html" %}{% endfor %}
+                {% set prefix_id = "frequent-" %}
+                {% set rendering_food_items = frequent_food_items %}
+                {% include "food_items.html" %}
             </div>
         {% endif %}
 
         {% if recently_food_items %}
             <div class="food-block">
-                {% for food_item in recently_food_items %}{% set food_item_id = "recently-" + food_item._id|string %}{% include "food_item.html" %}{% endfor %}
+                {% set prefix_id = "recently-" %}
+                {% set rendering_food_items = recently_food_items %}
+                {% include "food_items.html" %}
             </div>
         {% endif %}
         </div>
