@@ -988,6 +988,9 @@ def remove_meal_type(date: str = Body(..., embed=True), meal_type: str = Body(..
     if not user_id:
         return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь."})
 
+    if meal_type in constants.MEAL_TYPES:
+        return JSONResponse({"status": "fail", "message": "Невозможно удалить этот приём пищи"})
+
     date = parse_date(date)
     diary_collection = database[constants.MONGO_DIARY_COLLECTION + user_id]
 
