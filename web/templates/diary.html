@@ -84,7 +84,7 @@
                     <div class="meal-copy-cells">
                         <div class="meal-copy-cell meal-copy-date"><div class="date-picker-fixed" id="{{meal_type}}-copy-date"></div></div>
                         <div class="meal-copy-cell meal-copy-type">
-                            <input type="text" list="{{meal_type}}-meal-types" id="{{meal_type}}-copy-meal" value="{{names.get(meal_type, meal_type)}}">
+                            <input type="text" list="{{meal_type}}-meal-types" id="{{meal_type}}-copy-meal">
                             <datalist id="{{meal_type}}-meal-types">
                             {% for copy_meal_type in meal_info %}<option value="{{names.get(copy_meal_type, copy_meal_type)}}"></option>{% endfor %}
                             </datalist>

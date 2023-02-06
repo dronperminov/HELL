@@ -767,7 +767,6 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
     curr_date = get_current_date()
     date = parse_date(date) if date else curr_date
     settings = get_user_settings(user_id)
-    copy_date = curr_date + timedelta(days=(1 if date == curr_date else 0))
     meal_info, limits = get_meal_info(date, user_id, settings)
     meal_statistic = {meal_type: get_meals_statistic(meal_ids) for meal_type, meal_ids in meal_info.items()}
 
@@ -782,7 +781,7 @@ def diary(date: Optional[str] = Query(None), user_id: Optional[str] = Depends(ge
         settings=settings,
         date=format_date(date),
         used_dates=get_used_dates(user_id),
-        copy_date=format_date(copy_date),
+        copy_date=format_date(curr_date),
         meal_info=meal_info,
         names=constants.MEAL_TYPE_NAMES,
         limits=limits,
