@@ -15,7 +15,7 @@
     <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
     <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
     {% endif %}
-    <h2>{% if date and meal_type %}{% if meal_type in names %}{{names[meal_type]}}{% else %}{{meal_type}}{% endif %} {{date}}{% else %}Продукты{% endif %}</h2>
+    <h2>{% if date and meal_type %}{% set meal_name = names.get(meal_type, meal_type) %}{{meal_name}} {{date}}{% else %}Продукты{% endif %}</h2>
 
     <form class="food-search" method="get" action="{% if date and meal_type %}/add-meal/{{date}}/{{meal_type}}{% else %}/food-collection{% endif %}">
         <div class="food-search-clear{%if query %} food-search-clear-show{% endif %}" id="food-query-clear" onclick="ClearFoodQuery()">
@@ -48,8 +48,10 @@
     {% if date and meal_type %}
     <div class="food-blocks{% if query %} no-display{% endif %}" id="food-blocks-container">
         <div class="food-blocks-header" id="food-blocks-header">
-            {% if frequent_food_items %}<div class="food-block-name">Часто употребляемые</div>{% endif %}
-            {% if recently_food_items %}<div class="food-block-name">Недавно употреблённые</div>{% endif %}
+            {% if frequent_food_items %}<div class="food-block-name">Часто употребляемые ({{meal_name}})</div>{% endif %}
+            {% if frequent_food_items_all %}<div class="food-block-name">Часто употребляемые</div>{% endif %}
+            {% if recently_food_items %}<div class="food-block-name">Недавно употреблённые ({{meal_name}})</div>{% endif %}
+            {% if recently_food_items_all %}<div class="food-block-name">Недавно употреблённые</div>{% endif %}
         </div>
         <div class="food-blocks-flex" id="food-blocks">
         {% if frequent_food_items %}
@@ -60,10 +62,26 @@
             </div>
         {% endif %}
 
+        {% if frequent_food_items_all %}
+            <div class="food-block">
+                {% set prefix_id = "frequent-all-" %}
+                {% set rendering_food_items = frequent_food_items_all %}
+                {% include "food_items.html" %}
+            </div>
+        {% endif %}
+
         {% if recently_food_items %}
             <div class="food-block">
                 {% set prefix_id = "recently-" %}
                 {% set rendering_food_items = recently_food_items %}
+                {% include "food_items.html" %}
+            </div>
+        {% endif %}
+
+        {% if recently_food_items_all %}
+            <div class="food-block">
+                {% set prefix_id = "recently-all-" %}
+                {% set rendering_food_items = recently_food_items_all %}
                 {% include "food_items.html" %}
             </div>
         {% endif %}
@@ -109,7 +127,7 @@
             UpdatePortionInfo(foodId)
             swipeTabs.UpdateParams()
         {% else %}
-            foodId = foodId.replace(/^(frequent|recently)\-/gi, "")
+            foodId = foodId.replace(/^(frequent|recently)(\-all)?\-/gi, "")
             location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
         {% endif %}
         }

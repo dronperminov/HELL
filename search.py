@@ -107,7 +107,7 @@ class Search:
     def get_frequent(self, meal_type: str, user_id: str) -> List[dict]:
         pipeline = []
 
-        if meal_type in constants.MEAL_TYPES:
+        if meal_type:
             pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
             pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "_id": 0}})
         else:
@@ -177,7 +177,7 @@ class Search:
             {"$limit": constants.RECENTLY_MEAL_DAYS_COUNT}
         ]
 
-        if meal_type in constants.MEAL_TYPES:
+        if meal_type:
             pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
             pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "date": 1, "_id": 0}})
         else:
