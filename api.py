@@ -835,8 +835,8 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
 
     food_query = food_query.strip() if food_query else None
     food_items = search.search(food_query, user_id)
-    frequent_food_items = search.get_frequent(meal_type, user_id)
-    recently_food_items = search.get_recently(meal_type, user_id)
+    frequent_food_items = search.get_frequent(meal_type, user_id)[:constants.FREQUENT_MEAL_CLIP_COUNT]
+    recently_food_items = search.get_recently(meal_type, user_id)[:constants.RECENTLY_MEAL_CLIP_COUNT]
 
     template = templates.get_template('food_collection.html')
     html = template.render(

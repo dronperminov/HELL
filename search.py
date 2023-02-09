@@ -41,19 +41,18 @@ class Search:
             return []
 
     def autocomplete(self, query: str, user_id: str) -> List[str]:
-        results_food = [result["name"] for result in self.food_collection.aggregate([
+        results_food = list(self.food_collection.aggregate([
             {"$match": {"$or": [
                 {"$text": {"$search": f"{query}", "$caseSensitive": False}},
                 {"name": {"$regex": f"{re.escape(query)}", "$options": "i"}}
             ]}},
-            {"$project": {"_id": 0, "name": 1, "score": {"$meta": "textScore"}}},
-            {"$sort": {"score": -1}}
-        ])]
+            {"$project": {"_id": 1, "name": 1}}
+        ]))
 
         if not user_id:
-            return results_food
+            return [result["name"] for result in results_food]
 
-        results_template = [f'<t>:{result["name"]}' for result in self.template_collection.aggregate([
+        results_template = list(self.template_collection.aggregate([
             {"$match": {"$and": [
                 {"$or": [
                     {"$text": {"$search": f"{query}", "$caseSensitive": False}},
@@ -64,12 +63,12 @@ class Search:
                     {"availability": f"{TemplateAvailability.users}"}
                 ]}
             ]}},
-            {"$project": {"_id": 0, "name": 1, "score": {"$meta": "textScore"}}},
-            {"$sort": {"score": -1}}
-        ])]
+            {"$project": {"_id": 1, "name": 1, "template": "true"}}
+        ]))
 
         results = results_food + results_template
-        return results
+        self.__sort_food_items(results, user_id)
+        return [f'<t>:{result["name"]}' if "template" in result else result["name"] for result in results]
 
     def search_food(self, query: str):
         if query in ["<p>", "<!p>"]:
@@ -125,7 +124,7 @@ class Search:
         food_items = self.__get_frequent_foods(meal_ids)
         templates = self.__get_frequent_templates(meal_ids, user_id)
         frequent = sorted(food_items + templates, key=lambda v: v["count"], reverse=True)
-        return frequent[:constants.FREQUENT_MEAL_CLIP_COUNT]
+        return frequent
 
     def __get_frequent_foods(self, meal_ids: List[ObjectId]) -> List[dict]:
         documents = self.meal_collection.aggregate([
@@ -197,7 +196,7 @@ class Search:
         templates = self.__get_recently_template(meal_ids, user_id)
 
         recent = sorted(food_items + templates, key=lambda v: v["order"])
-        return recent[:constants.RECENTLY_MEAL_CLIP_COUNT]
+        return recent
 
     def __get_recently_foods(self, meal_ids: List[ObjectId]) -> List[dict]:
         documents = self.meal_collection.aggregate([
@@ -321,33 +320,38 @@ class Search:
         return normalize_statistic(template)
 
     def __sort_food_items(self, food_items: List[dict], user_id: str):
-        food2count = self.__get_using_count(user_id)
-        food_items.sort(key=lambda food_item: (-self.__get_food_item_count(food_item, food2count), food_item["name"]))
+        using_count = self.__get_using_count(user_id)
+        food_items.sort(key=lambda food_item: (-using_count.get(food_item["name"], using_count.get(food_item["_id"], 0)), food_item["name"]))
 
     def __get_using_count(self, user_id: str) -> Dict[ObjectId, int]:
         if not user_id:
             return dict()
 
         diary_collection = self.database[constants.MONGO_DIARY_COLLECTION + user_id]
-        documents = diary_collection.aggregate([
+        meal_ids = [document["meal_id"] for document in diary_collection.aggregate([
             {"$project": {"meal_info": {"$objectToArray": "$meal_info"}}},
             {"$unwind": "$meal_info"},
             {"$project": {"meal_id": "$meal_info.v", "_id": 0}},
             {"$unwind": "$meal_id"}
-        ])
+        ])]
 
-        meal_ids = [document["meal_id"] for document in documents]
-        documents = self.meal_collection.aggregate([
-            {"$match": {"_id": {"$in": meal_ids}}},
+        food_documents = self.meal_collection.aggregate([
+            {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": False}}},
             {"$group": {"_id": "$food_id", "count": {"$sum": 1}}},
         ])
 
-        food2count = {document["_id"]: document["count"] for document in documents}
-        return food2count
+        template_documents = self.meal_collection.aggregate([
+            {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": True}}},
+            {"$group": {"_id": "$group_name", "group_ids": {"$addToSet": "$group_id"}}},
+            {"$project": {"_id": 1, "count": {"$size": "$group_ids"}}},
+        ])
 
-    def __get_food_item_count(self, food_item: dict, food2count: Dict[ObjectId, int]) -> float:
-        if "creator_id" not in food_item:
-            return food2count.get(food_item["_id"], 0)
+        using_count = dict()
 
-        meal_items = food_item["meal_items"]
-        return sum(food2count.get(meal_item["food_id"], 0) for meal_item in meal_items) / len(meal_items)
+        for document in food_documents:
+            using_count[document["_id"]] = document["count"]
+
+        for document in template_documents:
+            using_count[document["_id"]] = document["count"]
+
+        return using_count
