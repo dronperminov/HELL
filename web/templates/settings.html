@@ -49,6 +49,21 @@
         <div class="setting-row">
             <input type="checkbox" onchange="UncheckOnNoLimits()" id="add-limits"{% if settings.add_limits %} checked{% endif %}><label for="add-limits">Добавлять каждый день</label>
         </div>
+
+        <div class="setting-group-header">Вкладки продуктов</div>
+        <div class="setting-row">
+            <input type="checkbox" id="show-frequent"{% if settings.show_frequent %} checked{% endif %}><label for="show-frequent">Часто употребляемые (приём пищи)</label>
+        </div>
+        <div class="setting-row">
+            <input type="checkbox" id="show-frequent-all"{% if settings.show_frequent_all %} checked{% endif %}><label for="show-frequent-all">Часто употребляемые (все)</label>
+        </div>
+        <div class="setting-row">
+            <input type="checkbox" id="show-recent"{% if settings.show_recent %} checked{% endif %}><label for="show-recent">Недавно употреблённые (приём пищи)</label>
+        </div>
+        <div class="setting-row">
+            <input type="checkbox" id="show-recent-all"{% if settings.show_recent_all %} checked{% endif %}><label for="show-recent-all">Недавно употреблённые (все)</label>
+        </div>
+
         <div class="setting-row center">
             <button onclick="UpdateSettings()"><span class="fa fa-save"></span> Сохранить настройки</button>
         </div>
@@ -96,13 +111,17 @@
                 return
 
             let theme = document.getElementById('theme-select').value
-            let addLimits = document.getElementById('add-limits').checked
 
             let settings = {
                 user_id: "{{user_id}}",
                 theme: theme,
                 limits: limits,
-                add_limits: addLimits
+                add_limits: document.getElementById('add-limits').checked,
+                show_frequent: document.getElementById('show-frequent').checked,
+                show_frequent_all: document.getElementById('show-frequent-all').checked,
+                show_recent: document.getElementById('show-recent').checked,
+                show_recent_all: document.getElementById('show-recent-all').checked
+
             }
 
             SendRequest("/settings", settings).then((response) => {

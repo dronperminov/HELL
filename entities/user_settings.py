@@ -11,21 +11,33 @@ class UserSettings:
     theme: str
     limits: Dict[str, Decimal]
     add_limits: bool
+    show_frequent: bool
+    show_frequent_all: bool
+    show_recent: bool
+    show_recent_all: bool
 
     @classmethod
     def from_dict(cls, data: dict) -> "UserSettings":
         theme = data.get("theme", "light")
         limits = {name: Decimal(str(value)) for name, value in data.get("limits", {}).items()}
         add_limits = data.get("add_limits", False)
+        show_frequent = data.get("show_frequent", True)
+        show_frequent_all = data.get("show_frequent_all", True)
+        show_recent = data.get("show_recent", True)
+        show_recent_all = data.get("show_recent_all", True)
 
-        return cls(data["user_id"], theme, limits, add_limits)
+        return cls(data["user_id"], theme, limits, add_limits, show_frequent, show_frequent_all, show_recent, show_recent_all)
 
     def to_dict(self) -> dict:
         return {
             "user_id": ObjectId(self.user_id),
             "theme": self.theme,
             "limits": self.limits_to_dict(),
-            "add_limits": self.add_limits
+            "add_limits": self.add_limits,
+            "show_frequent": self.show_frequent,
+            "show_frequent_all": self.show_frequent_all,
+            "show_recent": self.show_recent,
+            "show_recent_all": self.show_recent_all
         }
 
     def limits_to_dict(self):

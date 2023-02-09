@@ -48,13 +48,13 @@
     {% if date and meal_type %}
     <div class="food-blocks{% if query %} no-display{% endif %}" id="food-blocks-container">
         <div class="food-blocks-header" id="food-blocks-header">
-            {% if frequent_food_items %}<div class="food-block-name">Часто употребляемые ({{meal_name}})</div>{% endif %}
-            {% if frequent_food_items_all %}<div class="food-block-name">Часто употребляемые</div>{% endif %}
-            {% if recently_food_items %}<div class="food-block-name">Недавно употреблённые ({{meal_name}})</div>{% endif %}
-            {% if recently_food_items_all %}<div class="food-block-name">Недавно употреблённые</div>{% endif %}
+            {% if settings.show_frequent and frequent_food_items %}<div class="food-block-name">Часто употребляемые ({{meal_name}})</div>{% endif %}
+            {% if settings.show_frequent_all and frequent_food_items_all %}<div class="food-block-name">Часто употребляемые</div>{% endif %}
+            {% if settings.show_recent and recently_food_items %}<div class="food-block-name">Недавно употреблённые ({{meal_name}})</div>{% endif %}
+            {% if settings.show_recent_all and recently_food_items_all %}<div class="food-block-name">Недавно употреблённые</div>{% endif %}
         </div>
         <div class="food-blocks-flex" id="food-blocks">
-        {% if frequent_food_items %}
+        {% if settings.show_frequent and frequent_food_items %}
             <div class="food-block">
                 {% set prefix_id = "frequent-" %}
                 {% set rendering_food_items = frequent_food_items %}
@@ -62,7 +62,7 @@
             </div>
         {% endif %}
 
-        {% if frequent_food_items_all %}
+        {% if settings.show_frequent_all and frequent_food_items_all %}
             <div class="food-block">
                 {% set prefix_id = "frequent-all-" %}
                 {% set rendering_food_items = frequent_food_items_all %}
@@ -70,7 +70,7 @@
             </div>
         {% endif %}
 
-        {% if recently_food_items %}
+        {% if settings.show_recent and recently_food_items %}
             <div class="food-block">
                 {% set prefix_id = "recently-" %}
                 {% set rendering_food_items = recently_food_items %}
@@ -78,7 +78,7 @@
             </div>
         {% endif %}
 
-        {% if recently_food_items_all %}
+        {% if settings.show_recent_all and recently_food_items_all %}
             <div class="food-block">
                 {% set prefix_id = "recently-all-" %}
                 {% set rendering_food_items = recently_food_items_all %}

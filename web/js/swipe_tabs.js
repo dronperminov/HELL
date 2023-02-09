@@ -24,6 +24,9 @@ SwipeTabs.prototype.UpdateHeader = function(tab) {
 }
 
 SwipeTabs.prototype.UpdateParams = function() {
+    if (this.tabs == 0)
+        return
+
     this.container.style.height = null
     this.container.style.transform = `translateX(${-this.tab * this.container.clientWidth}px)`
     this.container.style.height = `${this.container.children[this.tab].clientHeight}px`
