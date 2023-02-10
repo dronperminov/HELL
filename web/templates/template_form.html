@@ -9,7 +9,7 @@
 <body>
     {% include "menu.html" %}
     {% set can_remove = template and template.id and user_id == template.creator_id and not back_url %}
-    {% set can_edit = not template or template.id and user_id == template.creator_id %}
+    {% set can_edit = not template or not template.id or user_id == template.creator_id %}
     <div class="template">
         <div class="form-row">
             <label>Название шаблона:
