@@ -174,7 +174,7 @@
             let data = {
                 date: date,
                 meal_type: mealType,
-                food_id: foodId.replace(/^(frequent|recently)\-/gi, ""),
+                food_id: foodId.replace(/^(frequent|recently)(\-all)?\-/gi, ""),
                 portion_size: portionSize.value,
                 portion_unit: portionUnit.value
             }
@@ -204,7 +204,7 @@
             let data = {
                 date: date,
                 meal_type: mealType,
-                template_id: templateId.replace(/^(frequent|recently)\-/gi, ""),
+                template_id: templateId.replace(/^(frequent|recently)(\-all)?\-/gi, ""),
                 portion_size: portionSize.value,
                 portion_unit: portionUnit.value
             }
@@ -221,7 +221,7 @@
 
         for (let foodData of document.getElementsByClassName("food-data")) {
             let isTemplate = foodData.classList.contains("food-data-template")
-            let foodId = foodData.parentNode.getAttribute("id").replace(/^(frequent|recently)\-/gi, "")
+            let foodId = foodData.parentNode.getAttribute("id").replace(/^(frequent|recently)(\-all)?\-/gi, "")
             let swipe = new Swipe(foodData, null, false)
             swipe.onPress = () => location.href = `/${isTemplate ? "edit-template" : "edit-food"}/${foodId}?back_url=${encodeURIComponent(location.href)}`
         }
