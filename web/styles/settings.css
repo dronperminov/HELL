@@ -4,7 +4,7 @@
 
 .settings-header {
     font-weight: bold;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     text-align: center;
     margin-top: 10px;
     margin-bottom: -5px;
@@ -14,7 +14,7 @@
     display: table;
     width: 100%;
     box-sizing: border-box;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .setting-cell {
@@ -37,10 +37,11 @@
 }
 
 .setting-group-header {
-    margin-top: 10px;
+    border-bottom: 1px solid var(--border-color);
+    margin-top: 20px;
     margin-bottom: -5px;
     font-weight: bold;
-    font-size: 1.1em;
+    font-size: 1.2em;
 }
 
 .setting-group-name {
