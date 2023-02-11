@@ -122,6 +122,10 @@ class FatSecretParser:
         if portion_text in ["100g (100 г)"]:
             return BasePortionUnit.g100, conversions, Decimal("1")
 
+        if portion_text in ["100г (100 мл)"]:
+            conversions[PortionUnit.ml] = Decimal("0.01")
+            return BasePortionUnit.g100, conversions, Decimal("1")
+
         match = re.match(rf"^(?P<count>\d+) +(?P<unit>\w+(?: \w+)*) +\((?P<value>\d+(.\d*)?) г\)$", portion_text)
         if match:
             count, unit, value = Decimal(match.group("count")), self.__replace_unit(match.group("unit")), match.group("value")
