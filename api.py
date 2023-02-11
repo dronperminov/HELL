@@ -83,7 +83,7 @@ def get_user_settings(user_id: str) -> UserSettings:
 
 def error_page(error_text: str, user_id: str) -> Response:
     template = templates.get_template('error.html')
-    return HTMLResponse(template.render(error_text=error_text, user_id=user_id))
+    return HTMLResponse(template.render(error_text=error_text, user_id=user_id, settings=get_user_settings(user_id)))
 
 
 @app.get("/login")
@@ -144,7 +144,7 @@ def profile_get(user_id: Optional[str] = Depends(get_current_user)):
 
     friend_users = {}
 
-    for user in user_collection.find({"_id": {"$in": user_doc["friend_users"]}}):
+    for user in user_collection.find({"_id": {"$in": user_doc.get("friend_users", [])}}):
         friend_users[str(user["_id"])] = {
             "user_id": str(user["_id"]),
             "username": user["username"],
@@ -638,6 +638,21 @@ async def add_template_post(request: Request, user_id: str = Depends(get_current
     return JSONResponse({"status": "ok", "href": f"/{href}?food_query={template.name[:25]}", "message": "Шаблон успешно добавлен"})
 
 
+def can_edit_template(availability: TemplateAvailability, template: Template, user_id: str) -> bool:
+    if template.creator_id == user_id:
+        return True
+
+    if availability == TemplateAvailability.me:
+        return template.creator_id == user_id
+
+    if availability == TemplateAvailability.friends:
+        user_collection = database[constants.MONGO_USER_COLLECTION]
+        user_ids = {str(user["_id"]) for user in user_collection.find({"friend_users": {"$in": [ObjectId(user_id)]}}, {"_id": 1})}
+        return template.creator_id in user_ids
+
+    return True
+
+
 @app.get("/edit-template/{template_id}")
 def edit_template(template_id: str, food_query: str = Query(None), back_url: str = Query(None), user_id: str = Depends(get_current_user)):
     if not user_id:
@@ -652,7 +667,7 @@ def edit_template(template_id: str, food_query: str = Query(None), back_url: str
     template = Template.from_dict(template)
     template_data = get_editable_template(template, template_id)
 
-    if template.availability == TemplateAvailability.me and template.creator_id != user_id:
+    if not can_edit_template(template.availability, template, user_id):
         return error_page("Этот шаблон недоступен для редактирования по решению автора", user_id)
 
     template = templates.get_template('template_form.html')
@@ -685,7 +700,7 @@ async def edit_template_post(template_id: str, request: Request, back_url: str =
         data = await request.json()
         edited_template = Template.from_dict(data)
 
-        if original_template.availability == TemplateAvailability.me and edited_template.creator_id != user_id:
+        if not can_edit_template(original_template.availability, edited_template, user_id):
             return JSONResponse({"status": "fail", "message": "Этот шаблон недоступен для редактирования по решению автора"})
 
         if original_template.name != edited_template.name and list(template_collection.find({"name": edited_template.name, "creator_id": edited_template.creator_id})):

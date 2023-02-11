@@ -60,6 +60,7 @@ class Search:
                 ]},
                 {"$or": [
                     {"creator_id": ObjectId(user_id)},
+                    {"availability": f"{TemplateAvailability.friends}", "creator_id": {"$in": self.__get_template_creators(user_id)}},
                     {"availability": f"{TemplateAvailability.users}"}
                 ]}
             ]}},
@@ -159,6 +160,7 @@ class Search:
             "name": {"$in": template_names},
             "$or": [
                 {"creator_id": ObjectId(user_id)},
+                {"availability": f"{TemplateAvailability.friends}", "creator_id": {"$in": self.__get_template_creators(user_id)}},
                 {"availability": f"{TemplateAvailability.users}"}
             ]}
         ))
@@ -231,6 +233,7 @@ class Search:
             "name": {"$in": template_names},
             "$or": [
                 {"creator_id": ObjectId(user_id)},
+                {"availability": f"{TemplateAvailability.friends}", "creator_id": {"$in": self.__get_template_creators(user_id)}},
                 {"availability": f"{TemplateAvailability.users}"}
             ]}
         ))
@@ -269,6 +272,7 @@ class Search:
             "name": {"$regex": query, "$options": "i"},
             "$or": [
                 {"creator_id": ObjectId(user_id)},
+                {"availability": f"{TemplateAvailability.friends}", "creator_id": {"$in": self.__get_template_creators(user_id)}},
                 {"availability": f"{TemplateAvailability.users}"}
             ]
         }))
@@ -283,6 +287,7 @@ class Search:
         templates = list(self.template_collection.find({
             "$or": [
                 {"creator_id": ObjectId(user_id)},
+                {"availability": f"{TemplateAvailability.friends}", "creator_id": {"$in": self.__get_template_creators(user_id)}},
                 {"availability": f"{TemplateAvailability.users}"}
             ]
         }))
@@ -292,6 +297,10 @@ class Search:
     def __process_food_items(self, food_items: List[dict]):
         for food_item in food_items:
             normalize_statistic(food_item)
+
+    def __get_template_creators(self, user_id: str) -> List[ObjectId]:
+        user_ids = [user["_id"] for user in self.user_collection.find({"friend_users": {"$in": [ObjectId(user_id)]}}, {"_id": 1})]
+        return user_ids
 
     def __process_templates(self, templates: List[dict]):
         user_ids = list({template["creator_id"] for template in templates})

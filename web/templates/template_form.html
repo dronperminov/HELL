@@ -28,7 +28,7 @@
             <label>Доступность:
                 <select id="availability" {% if template and user_id != template.creator_id %}disabled{% endif %}>
                     <option value="me"{% if template and template.availability == "me"%}selected{% endif %}>только мне</option>
-                    <!-- <option value="friends"{% if template and template.availability == "friends"%}selected{% endif %}>только друзьям</option> -->
+                    <option value="friends"{% if template and template.availability == "friends"%}selected{% endif %}>близким пользователям</option>
                     <option value="users"{% if template and template.availability == "users"%}selected{% endif %}>всем пользователям</option>
                 </select>
             </label>
