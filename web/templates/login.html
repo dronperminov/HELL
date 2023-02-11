@@ -6,10 +6,10 @@
     {% include "menu.html" %}
     <form id="login-form" action="/login" method="post">
         <div class="form-row">
-            <label>Имя пользователя: <input type="text" name="username" value=""></label>
+            <label>Имя пользователя: <input type="text" id="username" name="username" value=""></label>
         </div>
         <div class="form-row">
-            <label>Пароль: <input type="password" name="password" value=""></label>
+            <label>Пароль: <input type="password" id="password" name="password" value=""></label>
         </div>
         <div class="center">
             <button type="submit">Войти в HELL</button>
@@ -32,9 +32,22 @@
 
         async function SubmitForm(e) {
             e.preventDefault()
-            let username = form.elements.username.value
+            let errorMessage = document.getElementById("error-message");
+            let username = form.elements.username.value.trim()
             let password = form.elements.password.value
             let data = {username, password}
+
+            if (username.length == 0) {
+                document.getElementById("username").focus()
+                errorMessage.innerText = "Введено пустое имя пользователя"
+                return
+            }
+
+            if (password.length == 0) {
+                document.getElementById("password").focus()
+                errorMessage.innerText = "Введён пустой пароль"
+                return
+            }
 
             try {
                 let response = await fetch("/login", {
@@ -57,7 +70,6 @@
                 localStorage.setItem("token", response.token)
                 window.location.href = '/'
             } catch (error) {
-                let errorMessage = document.getElementById("error-message");
                 errorMessage.textContent = error.message;
             }
         }
