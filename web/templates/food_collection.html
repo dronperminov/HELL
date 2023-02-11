@@ -225,7 +225,6 @@
             let swipe = new Swipe(foodData, null, false)
             swipe.onPress = () => location.href = `/${isTemplate ? "edit-template" : "edit-food"}/${foodId}?back_url=${encodeURIComponent(location.href)}`
         }
-        {% endif %}
 
         {% if query[0] == "<" and query[-1] == ">" and ">" not in query[1:-1] %}
         let searchResults = document.getElementById("food-search-results")
@@ -233,6 +232,7 @@
 
         if (foodData.length == 1)
             foodData[0].click()
+        {% endif %}
         {% endif %}
     </script>
     {% include "footer.html" %}
