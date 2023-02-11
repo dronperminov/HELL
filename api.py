@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -19,6 +20,7 @@ from auth_utils import validate_password, get_password_hash, create_access_token
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from entities.template import Template, TemplateAvailability
+from entities.user import User
 from entities.user_settings import UserSettings
 from fatsecret_parser import FatSecretParser
 from search import Search
@@ -130,6 +132,87 @@ async def settings_post(request: Request, user_id: Optional[str] = Depends(get_c
     settings_collection = database[constants.MONGO_SETTINGS_COLLECTION]
     settings_collection.update_one({"user_id": ObjectId(user_id)}, {"$set": settings.to_dict()}, upsert=True)
     return JSONResponse({"status": "ok"})
+
+
+@app.get("/profile")
+def profile_get(user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=302)
+
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    user_doc = user_collection.find_one({"_id": ObjectId(user_id)})
+
+    friend_users = {}
+
+    for user in user_collection.find({"_id": {"$in": user_doc["friend_users"]}}):
+        friend_users[str(user["_id"])] = {
+            "user_id": str(user["_id"]),
+            "username": user["username"],
+            "firstname": user["firstname"],
+            "lastname": user["lastname"],
+            "middlename": user["middlename"]
+        }
+
+    template = templates.get_template('profile.html')
+    content = template.render(
+        user_id=user_id,
+        user=User.from_dict(user_doc),
+        friend_users=friend_users,
+        settings=get_user_settings(user_id)
+    )
+    return HTMLResponse(content=content)
+
+
+@app.post("/profile")
+async def profile_post(request: Request, user_id: Optional[str] = Depends(get_current_user)):
+    data = await request.json()
+
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    current_user = user_collection.find_one({"_id": ObjectId(user_id)})
+
+    for key in ["password_hash", "admin"]:
+        data[key] = current_user[key]
+
+    user = User.from_dict(data)
+    friend_users = user_collection.find({"_id": {"$in": [ObjectId(user_id) for user_id in user.friend_users]}})
+
+    if user.username != current_user["username"]:
+        return JSONResponse({"status": "fail", "message": "Невозможно выполнить операцию за другого пользователя"})
+
+    if len(list(friend_users)) != len(user.friend_users):
+        return JSONResponse({"status": "fail", "message": "Не удалось найти некоторых из пользователей"})
+
+    if current_user["username"] in user.friend_users:
+        return JSONResponse({"status": "fail", "message": "Невозможно добавить себя в близкие пользователи"})
+
+    user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": user.to_dict()})
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/search-users")
+def search_users(query: str = Body(..., embed=True), user_id: Optional[str] = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": "Вы не авторизованы. Пожалуйста, авторизуйтесь"})
+
+    query = re.escape(query)
+    user_collection = database[constants.MONGO_USER_COLLECTION]
+    user_documents = user_collection.find({
+        "admin": False,
+        "_id": {"$ne": ObjectId(user_id)},
+        "$or": [
+            {"username": {"$regex": query, "$options": "i"}},
+            {"firstname": {"$regex": query, "$options": "i"}},
+            {"lastname": {"$regex": query, "$options": "i"}},
+            {"middlename": {"$regex": query, "$options": "i"}}
+        ]
+    })
+
+    users = []
+
+    for user in user_documents:
+        users.append({"user_id": str(user["_id"]), "username": user["username"], "firstname": user["firstname"], "lastname": user["lastname"], "middlename": user["middlename"]})
+
+    return JSONResponse({"status": "ok", "users": users})
 
 
 @app.get("/update-password")

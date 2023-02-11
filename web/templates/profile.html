@@ -1,0 +1,194 @@
+    {% include "head.html" %}
+    <title>Профиль | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/profile.css">
+</head>
+<body>
+    {% include "menu.html" %}
+    <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
+
+    <h2>Профиль</h2>
+
+    <div class="profile-row">
+        <label for="username">Никнейм</label>
+        <input type="text" id="username" value="{{user.username}}" disabled></label>
+    </div>
+
+    <div class="profile-row">
+        <label for="lastname">Фамилия</label>
+        <input type="text" id="lastname" value="{{user.lastname}}"></label>
+    </div>
+    
+    <div class="profile-row">
+        <label for="firstname">Имя</label>
+        <input type="text" id="firstname" value="{{user.firstname}}"></label>
+    </div>
+
+    <div class="profile-row">
+        <label for="middlename">Отчество</label>
+        <input type="text" id="middlename" value="{{user.middlename}}"></label>
+    </div>
+
+    <div class="profile-row">
+        <label>Близкие пользователи</label>
+        <div class="friend-users-message{% if user.friend_users %} no-display{% endif %}" id="friend-users-message">Вы ещё не добавили ни одного пользователя</div>
+        <div class="friend-users" id="friend-users"></div>
+    </div>
+
+    <div class="profile-buttons">
+        <div class="error-center" id="error"></div>
+        <button onclick="SaveProfile()"><span class="fa fa-save"></span> Сохранить</button>
+    </div>
+    
+    <div class="friend-users-search-label">Поиск близких пользователей:</div>
+    <div class="friend-users-search">
+        <div class="friend-users-clear" id="friend-users-query-clear" onclick="ClearQuery()">
+            <span class="fa fa-times"></span>
+        </div>
+        <div class="friend-users-input">
+            <input type="text" id="friend-users-query" placeholder="Имя или никнейм" oninput="UpdateQuery()">
+        </div>
+        <div class="friend-users-icon">
+            <button onclick="SearchUsers()"><span class="fa fa-search"></span></button>
+        </div>
+    </div>
+    <div class="error-center" id="friend-users-error"></div>
+    <div id="friend-users-search-results"></div>
+    <div class="friend-users-message center no-display" id="friend-users-search-message">Подходящих пользователей не нашлось</div>
+
+    <script src="/js/forms.js"></script>
+    <script type="text/javascript">
+        {% for user_id in user.friend_users %}
+        AddFriendUser({{friend_users[user_id]}})
+        {% endfor %}
+
+        function ClearQuery() {
+            let query = document.getElementById("friend-users-query")
+            let clear = document.getElementById("friend-users-query-clear")
+            let results = document.getElementById("friend-users-search-results")
+            let message = document.getElementById("friend-users-search-message")
+            query.value = ""
+            clear.classList.remove("friend-users-clear-show")
+            results.innerHTML = ""
+            message.classList.add("no-display")
+        }
+
+        function UpdateQuery() {
+            let query = document.getElementById("friend-users-query")
+            let clear = document.getElementById("friend-users-query-clear")
+            let error = document.getElementById("friend-users-error")
+
+            if (query.value.trim().length > 0)
+                clear.classList.add("friend-users-clear-show")
+            else
+                clear.classList.remove("friend-users-clear-show")
+
+            error.innerText = ""
+        }
+
+        function AppendUserResult(user) {
+            let name = `${user.lastname} ${user.firstname} ${user.middlename}`.trim()
+
+            let results = document.getElementById("friend-users-search-results")
+            let message = document.getElementById("friend-users-search-message")
+
+            let userDiv = MakeDiv("friend-user-result", results, {"id": user.user_id})
+            let username = MakeDiv("friend-username", userDiv, {"innerHTML": `<span class="fa fa-user"></span> ${user.username}`})
+            let userinfo = MakeDiv("friend-userinfo", userDiv, {"innerHTML": `${name}`})
+
+            userDiv.addEventListener("click", () => {
+                AddFriendUser(user)
+                results.removeChild(userDiv)
+
+                if (results.children.length == 0)
+                    message.classList.remove("no-display")
+                else
+                    message.classList.add("no-display")
+            })
+        }
+
+        function SearchUsers() {
+            let input = document.getElementById("friend-users-query")
+            let error = document.getElementById("friend-users-error")
+            let results = document.getElementById("friend-users-search-results")
+            let message = document.getElementById("friend-users-search-message")
+            let query = input.value.trim()
+            input.value = query
+
+            if (query.length == 0) {
+                input.focus()
+                error.innerText = "Введён пустой запрос"
+                return
+            }
+
+            error.innerText = ""
+            SendRequest("/search-users", {"query": query}).then((response) => {
+                if (response.status != "ok") {
+                    error.innerText = response.message
+                    return
+                }
+
+                results.innerHTML = ""
+
+                for (let user of response.users)
+                    if (document.getElementById(user.user_id) === null)
+                        AppendUserResult(user)
+
+                if (results.children.length == 0)
+                    message.classList.remove("no-display")
+                else
+                    message.classList.add("no-display")
+            })
+        }
+
+        function AddFriendUser(user) {
+            let name = `${user.lastname} ${user.firstname} ${user.middlename}`.trim()
+
+            let message = document.getElementById("friend-users-message")
+            let users = document.getElementById("friend-users")
+
+            let userDiv = MakeDiv("friend-user", users, {"id": user.user_id})
+            let icon = MakeDiv("friend-user-icon", userDiv, {"innerHTML": `<span class="fa fa-times"></span>`})
+            let userInfo = MakeDiv("friend-user-info", userDiv, {"innerText": `${user.username} (${name})`})
+
+            icon.addEventListener("click", () => {
+                users.removeChild(userDiv)
+
+                if (users.children.length == 0)
+                    message.classList.remove("no-display")
+            })
+
+            message.classList.add("no-display")
+        }
+
+        function SaveProfile() {
+            let profile = {
+                username: document.getElementById("username").value,
+                lastname: document.getElementById("lastname").value.trim(),
+                firstname: document.getElementById("firstname").value.trim(),
+                middlename: document.getElementById("middlename").value.trim(),
+                friend_users: []
+            }
+
+            for (let user of document.getElementById("friend-users").children)
+                profile.friend_users.push(user.getAttribute("id"))
+
+            SendRequest("/profile", profile).then((response) => {
+                let error = document.getElementById("error")
+
+                if (response.status != "ok") {
+                    error.innerText = response.message
+                    return
+                }
+
+                error.innerText = ""
+                alert("Данные профиля успешно обновлены")
+                location.reload()
+            })
+        }
+    </script>
+
+    {% include "footer.html" %}
+</body>
+</html>

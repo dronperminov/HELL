@@ -14,7 +14,7 @@
     {% if user %}
     <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
     <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
-    <div class="username">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</div>
+    <div class="username"><a href="/profile">{% if user.firstname %}{{user.firstname}}{% else %}{{user.username}}{% endif %}</a></div>
     <div class="date" id="date-picker"></div>
 
     <div class="parameters">

@@ -1,0 +1,95 @@
+.profile-row {
+    margin-bottom: 8px;
+}
+
+.profile-row label {
+    font-weight: bold;
+}
+
+.friend-users-message {
+    color: var(--border-color);
+    font-size: 0.9rem;
+}
+
+.profile-buttons {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.friend-users-search-label {
+    margin-top: 10px;
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.friend-users-search {
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.friend-users-input {
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+.friend-users-icon {
+    display: table-cell;
+    width: 35px;
+    text-align: right;
+}
+
+.friend-users-clear {
+    display: table-cell;
+    vertical-align: bottom;
+    width: 0px;
+    transition: width 0.5s;
+}
+
+.friend-users-clear span {
+    display: none;
+}
+
+.friend-users-clear:hover {
+    color: var(--success-color);
+}
+
+.friend-users-clear-show {
+    width: 15px;
+    transition: none;
+}
+
+.friend-users-clear-show span {
+    display: inline;
+}
+
+.friend-user-result:first-child {
+    border-top: 1px solid var(--border-color);
+}
+
+.friend-user-result {
+    border-bottom: 1px solid var(--border-color);
+    padding: 5px 0;
+}
+
+.friend-user {
+    padding: 3px 0;
+    font-size: 0.95rem;
+    display: table;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.friend-user-icon {
+    display: table-cell;
+    width: 18px;
+    font-size: 1rem;
+}
+
+.friend-user-icon:hover {
+    color: var(--success-color);
+}
+
+.friend-user-info {
+    display: table-cell;
+}

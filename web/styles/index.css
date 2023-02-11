@@ -3,6 +3,12 @@
     color: var(--success-color);
 }
 
+.username a {
+    color: var(--success-color);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--success-color);
+}
+
 .date .date-picker-controls {
     padding: 5px 0;
     height: 40px;
