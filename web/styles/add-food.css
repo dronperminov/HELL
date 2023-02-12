@@ -91,6 +91,10 @@
     grid-area: error;
 }
 
+.buttons button {
+    margin-bottom: 5px;
+}
+
 .fatsecret-result {
     margin-top: 5px;
     border-top: 1px solid var(--border-color);

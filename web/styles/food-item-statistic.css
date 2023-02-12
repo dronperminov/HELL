@@ -3,6 +3,14 @@
     border-top: 1px solid var(--border-color);
 }
 
+.food-statistic:last-child {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.food-statistic:hover {
+    background: var(--select-background-color);
+}
+
 .food-statistic-date {
     font-size: 0.9rem;
     color: var(--disabled-color);

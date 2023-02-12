@@ -63,12 +63,15 @@
             <button id="aliases-button" onclick="AddAlias()"><span class="fa fa-plus"></span> Добавить алиас</button>
         </div>
 
-        <div class="form-row center">
+        <div class="form-row center buttons">
             <button id="save-button"><span class="fa fa-save"></span> Сохранить</button>
             {% if food and not back_url %}
             <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
             {% endif %}
             <button id="back-button"><span class="fa fa-ban"></span> Отмена</button>
+            {% if food %}
+            <button onclick="location.href='/food-item-statistic/{{food._id}}'"><span class="fa fa-bar-chart"></span> Статистика</button>
+            {% endif %}
         </div>
         <div class="error-center" id="save-error"></div>
     </div>
