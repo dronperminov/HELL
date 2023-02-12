@@ -16,15 +16,15 @@ from jinja2 import Environment, FileSystemLoader
 from pymongo import MongoClient
 
 import constants
-from auth_utils import validate_password, get_password_hash, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from entities.template import Template, TemplateAvailability
 from entities.user import User
 from entities.user_settings import UserSettings
-from fatsecret_parser import FatSecretParser
-from search import Search
-from utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
+from utils.auth_utils import validate_password, get_password_hash, create_access_token, JWT_SECRET_KEY, ALGORITHM, COOKIE_NAME, LOCAL_STORAGE_COOKIE_NAME
+from utils.parsers.fatsecret_parser import FatSecretParser
+from utils.search import Search
+from utils.utils import d2s, normalize_statistic, get_current_date, get_dates_range, format_date, parse_date, parse_period, add_default_unit
 
 app = FastAPI()
 app.mount("/styles", StaticFiles(directory="web/styles"))

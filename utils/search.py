@@ -10,7 +10,7 @@ import constants
 from entities.food_item import FoodItem
 from entities.meal_item import MealItem
 from entities.template import TemplateAvailability
-from utils import normalize_statistic, get_current_date
+from utils.utils import normalize_statistic, get_current_date
 
 
 class Search:
