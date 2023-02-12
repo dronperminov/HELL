@@ -106,7 +106,7 @@ class Search:
         return templates
 
     def get_frequent(self, meal_type: str, user_id: str) -> List[dict]:
-        pipeline = []
+        pipeline = [{"$match": {"user_id": ObjectId(user_id)}}]
 
         if meal_type:
             pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
@@ -118,7 +118,7 @@ class Search:
 
         pipeline.append({"$unwind": "$meal_id"})
 
-        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION + user_id]
+        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION]
         documents = diary_collection.aggregate(pipeline)
 
         meal_ids = [document["meal_id"] for document in documents]
@@ -174,7 +174,7 @@ class Search:
 
     def get_recently(self, meal_type: str, user_id: str) -> list:
         pipeline = [
-            {"$match": {"date": {"$lte": get_current_date()}}},
+            {"$match": {"user_id": ObjectId(user_id), "date": {"$lte": get_current_date()}}},
             {"$sort": {"date": -1}},
             {"$limit": constants.RECENTLY_MEAL_DAYS_COUNT}
         ]
@@ -190,7 +190,7 @@ class Search:
         pipeline.append({"$unwind": "$meal_id"})
         pipeline.append({"$sort": {"date": -1, "meal_id": 1}})
 
-        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION + user_id]
+        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION]
         documents = diary_collection.aggregate(pipeline)
 
         meal_ids = [document["meal_id"] for document in documents]
@@ -336,8 +336,9 @@ class Search:
         if not user_id:
             return dict()
 
-        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION + user_id]
+        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION]
         meal_ids = [document["meal_id"] for document in diary_collection.aggregate([
+            {"$match": {"user_id": ObjectId(user_id)}},
             {"$project": {"meal_info": {"$objectToArray": "$meal_info"}}},
             {"$unwind": "$meal_info"},
             {"$project": {"meal_id": "$meal_info.v", "_id": 0}},
