@@ -20,6 +20,7 @@ class Search:
         self.food_collection = self.database[constants.MONGO_FOOD_COLLECTION]
         self.template_collection = self.database[constants.MONGO_TEMPLATE_COLLECTION]
         self.meal_collection = self.database[constants.MONGO_MEAL_COLLECTION]
+        self.diary_collection = self.database[constants.MONGO_DIARY_COLLECTION]
 
         self.food_collection.create_index([("name", "text"), ("aliases", "text")])
         self.food_collection.create_index([("name", ASCENDING), ("aliases", ASCENDING)])
@@ -118,8 +119,7 @@ class Search:
 
         pipeline.append({"$unwind": "$meal_id"})
 
-        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION]
-        documents = diary_collection.aggregate(pipeline)
+        documents = self.diary_collection.aggregate(pipeline)
 
         meal_ids = [document["meal_id"] for document in documents]
         food_items = self.__get_frequent_foods(meal_ids)
@@ -190,8 +190,7 @@ class Search:
         pipeline.append({"$unwind": "$meal_id"})
         pipeline.append({"$sort": {"date": -1, "meal_id": 1}})
 
-        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION]
-        documents = diary_collection.aggregate(pipeline)
+        documents = self.diary_collection.aggregate(pipeline)
 
         meal_ids = [document["meal_id"] for document in documents]
         food_items = self.__get_recently_foods(meal_ids)
@@ -336,8 +335,7 @@ class Search:
         if not user_id:
             return dict()
 
-        diary_collection = self.database[constants.MONGO_DIARY_COLLECTION]
-        meal_ids = [document["meal_id"] for document in diary_collection.aggregate([
+        meal_ids = [document["meal_id"] for document in self.diary_collection.aggregate([
             {"$match": {"user_id": ObjectId(user_id)}},
             {"$project": {"meal_info": {"$objectToArray": "$meal_info"}}},
             {"$unwind": "$meal_info"},
