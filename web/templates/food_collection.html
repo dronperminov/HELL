@@ -219,13 +219,6 @@
             })
         }
 
-        for (let foodData of document.getElementsByClassName("food-data")) {
-            let isTemplate = foodData.classList.contains("food-data-template")
-            let foodId = foodData.parentNode.getAttribute("id").replace(/^(frequent|recently)(\-all)?\-/gi, "")
-            let swipe = new Swipe(foodData, null, false)
-            swipe.onPress = () => location.href = `/${isTemplate ? "edit-template" : "edit-food"}/${foodId}?back_url=${encodeURIComponent(location.href)}`
-        }
-
         {% if query[0] == "<" and query[-1] == ">" and ">" not in query[1:-1] %}
         let searchResults = document.getElementById("food-search-results")
         let foodData = searchResults.getElementsByClassName("food-data")
@@ -234,6 +227,21 @@
             foodData[0].click()
         {% endif %}
         {% endif %}
+
+        for (let foodData of document.getElementsByClassName("food-data")) {
+            let isTemplate = foodData.classList.contains("food-data-template")
+            let foodId = foodData.parentNode.getAttribute("id").replace(/^(frequent|recently)(\-all)?\-/gi, "")
+            {% if date and meal_type %}
+            let swipe = new Swipe(foodData, null, false)
+            swipe.onPress = () => location.href = `/${isTemplate ? "edit-template" : "edit-food"}/${foodId}?back_url=${encodeURIComponent(location.href)}`
+            {% else %}
+            if (isTemplate)
+                continue
+
+            let swipe = new Swipe(foodData, null, false)
+            swipe.onPress = () => location.href = `/food-item-statistic/${foodId}`
+            {% endif %}
+        }
     </script>
     {% include "footer.html" %}
 </body>

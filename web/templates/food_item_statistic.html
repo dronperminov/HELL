@@ -26,12 +26,16 @@
     </div>
 
     <div class="statistic-showed">
+        {% if statistic %}
         Показана информация за
         {% if not period or period == "all" %}всё время (с {{start_date}} по {{end_date}})
         {% elif period == "month" %}текущий месяц (с {{start_date}} по {{end_date}})
         {% elif period == "week" or not period %}текущую неделю (с {{start_date}} по {{end_date}})
         {% elif period == "last-week" %}прошлую неделю (с {{start_date}} по {{end_date}})
         {% else %}период с {{start_date}} по {{end_date}}{% endif %}
+        {% else %}
+        Нет информации об употреблении данного продукта
+        {% endif %}
     </div>
 
     {% for date, date_statistic in statistic.items() %}

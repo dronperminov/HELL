@@ -1167,8 +1167,11 @@ def food_statistic(food_id: str, period: str = Query(None), user_id: str = Depen
 
     if period == "all":
         statistic = all_statistic
-        start_date = min(used_dates)
-        end_date = max(used_dates)
+
+        if used_dates:
+            start_date, end_date = min(used_dates), max(used_dates)
+        else:
+            start_date, end_date = get_current_date(), get_current_date()
     else:
         start_date, end_date, period = parse_period(period if period else "month")
         statistic = {date: date_statistic for date, date_statistic in all_statistic.items() if start_date <= date <= end_date}
