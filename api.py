@@ -1103,7 +1103,7 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
     if not user_id:
         return unauthorized_access("/statistic")
 
-    start_date, end_date, period = parse_period(period)
+    start_date, end_date, period = parse_period(period if period else "week")
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION]
     documents = list(diary_collection.find({"user_id": ObjectId(user_id), "date": {"$gte": start_date, "$lte": end_date}}))
@@ -1143,6 +1143,47 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
         meal_types=meal_types,
         dates_range=[format_date(date) for date in dates_range],
         page="/statistic"
+    )
+
+    return HTMLResponse(content=content)
+
+
+@app.get("/food-item-statistic/{food_id}")
+def food_statistic(food_id: str, period: str = Query(None), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/")
+
+    food_collection = database[constants.MONGO_FOOD_COLLECTION]
+    food_item = food_collection.find_one({"_id": ObjectId(food_id)})
+
+    meal_collection = database[constants.MONGO_MEAL_COLLECTION]
+    meal_ids = {meal["_id"]: meal for meal in meal_collection.find({"food_id": ObjectId(food_id), "group_id": {"$exists": False}})}
+
+    all_statistic = statistic_utils.get_food_item_statistic(user_id, meal_ids)
+    used_dates = [date for date in all_statistic]
+
+    if not period:
+        period = "all"
+
+    if period == "all":
+        statistic = all_statistic
+        start_date = min(used_dates)
+        end_date = max(used_dates)
+    else:
+        start_date, end_date, period = parse_period(period if period else "month")
+        statistic = {date: date_statistic for date, date_statistic in all_statistic.items() if start_date <= date <= end_date}
+
+    template = templates.get_template("food_item_statistic.html")
+    content = template.render(
+        user_id=user_id,
+        settings=get_user_settings(user_id),
+        start_date=format_date(start_date),
+        end_date=format_date(end_date),
+        period=period,
+        food_item=food_item,
+        statistic={format_date(date): date_statistic for date, date_statistic in statistic.items()},
+        used_dates=[format_date(date) for date in used_dates],
+        page="/food-item-statistic"
     )
 
     return HTMLResponse(content=content)

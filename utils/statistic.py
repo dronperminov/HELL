@@ -121,3 +121,20 @@ class Statistic:
             {"$project": {"date": 1, "_id": 0}}
         ])
         return [format_date(date["date"]) for date in used_dates]
+
+    def get_food_item_statistic(self, user_id: str, meal_ids) -> Dict[datetime, dict]:
+        statistic = {}
+
+        for document in self.diary_collection.find({"user_id": ObjectId(user_id)}):
+            date_statistic = {}
+
+            for meal_type, meals in document.get("meal_info", {}).items():
+                meals_statistic = [meal_ids[meal_id] for meal_id in meals if meal_id in meal_ids]
+
+                if meals_statistic:
+                    date_statistic[constants.MEAL_TYPE_NAMES.get(meal_type, meal_type)] = meals_statistic
+
+            if date_statistic:
+                statistic[document["date"]] = date_statistic
+
+        return statistic

@@ -1,0 +1,82 @@
+    {% include "head.html" %}
+    <title>Статистика продукта "{{food_item.name}}" с {{start_date}} по {{end_date}} | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
+    <link rel="stylesheet" type="text/css" href="/styles/statistic.css">
+    <link rel="stylesheet" type="text/css" href="/styles/food-item-statistic.css">
+</head>
+<body>
+    {% include "menu.html" %}
+    {% if user_id %}
+    <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
+    {% endif %}
+    <h3>Статистика употребления продукта "{{food_item.name}}"</h3>
+
+    <div class="statistic-parameters">
+        <select id="period" onchange="UpdateStatisticParameters()">
+            <option value="all"{% if period == "all" or not period %} selected{% endif %}>всё время</option>
+            <option value="month"{% if period == "month" %} selected{% endif %}>текущий месяц</option>
+            <option value="week"{% if period == "week" %} selected{% endif %}>текущая неделя</option>
+            <option value="last-week"{% if period == "last-week" %} selected{% endif %}>прошлая неделя</option>
+            <option value="period"{% if period == "period" %} selected{% endif %}>период</option>
+        </select>
+
+        <div class="statistic-period-input{% if period != "period" %} no-display{% endif %}" id="dates"></div>
+    </div>
+
+    <div class="statistic-showed">
+        Показана информация за
+        {% if not period or period == "all" %}всё время (с {{start_date}} по {{end_date}})
+        {% elif period == "month" %}текущий месяц (с {{start_date}} по {{end_date}})
+        {% elif period == "week" or not period %}текущую неделю (с {{start_date}} по {{end_date}})
+        {% elif period == "last-week" %}прошлую неделю (с {{start_date}} по {{end_date}})
+        {% else %}период с {{start_date}} по {{end_date}}{% endif %}
+    </div>
+
+    {% for date, date_statistic in statistic.items() %}
+    <div class="food-statistic" onclick="location.href='/diary?date={{date}}'">
+        <div class="food-statistic-date">{{date}}</div>
+        <div class="food-statistic-info">
+            {% for meal_type, meals in date_statistic.items() %}
+            {% for meal in meals %}<div class="food-statistic-node">- {{meal_type}} {{meal.portion_size}} {{meal.portion_unit}}</div>{% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <script src="/js/forms.js"></script>
+    <script src="/js/date_picker.js"></script>
+    <script>
+        let datePicker = new DatePicker("{{start_date}}-{{end_date}}", "dates", (date) => {
+            datePicker.SetDate(date)
+            datePicker.HideCalendar()
+            ChangeStatisticParameters()
+        },  [{% for date in used_dates %}"{{date}}", {% endfor %}], false)
+
+        function UpdateStatisticParameters() {
+            let period = document.getElementById("period").value
+            let dates = document.getElementById("dates")
+
+            if (period == "period") {
+                dates.classList.remove("no-display")
+                datePicker.ShowCalendar()
+            }
+            else {
+                dates.classList.add("no-display")
+                ChangeStatisticParameters()
+            }
+        }
+
+        function ChangeStatisticParameters() {
+            let period = document.getElementById("period").value
+
+            if (period == "period")
+                period = datePicker.GetDate()
+
+            location.href = `/food-item-statistic/{{food_item._id}}?period=${period}`
+        }
+    </script>
+    {% include "footer.html" %}
+</body>
+</html>
