@@ -269,8 +269,9 @@ def have_body_parameter(user_id: str, name: str) -> bool:
 
 
 def get_body_parameters(user_id: str, date: datetime) -> Tuple[List[datetime], Dict[str, int], List[dict]]:
-    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS]
     parameter_docs = parameters_collection.aggregate([
+        {"$match": {"user_id": ObjectId(user_id)}},
         {"$group": {"_id": "$name", "values": {"$addToSet": {"value": "$value", "date": "$date"}}}}
     ])
 
@@ -333,8 +334,8 @@ def add_body_parameter(date: str = Body(..., embed=True), name: str = Body(..., 
     user_collection = database[constants.MONGO_USER_COLLECTION]
     user_collection.update_one({"_id": ObjectId(user_id)}, {"$push": {"body_parameters": {"name": name, "unit": unit}}}, upsert=True)
 
-    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
-    parameters_collection.insert_one({"date": date, "name": name, "value": value})
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS]
+    parameters_collection.insert_one({"user_id": ObjectId(user_id), "date": date, "name": name, "value": value})
 
     return JSONResponse({"status": "ok"})
 
@@ -350,8 +351,8 @@ def remove_body_parameter(name: str = Body(..., embed=True), user_id: Optional[s
     user_collection = database[constants.MONGO_USER_COLLECTION]
     user_collection.update_one({"_id": ObjectId(user_id)}, {"$pull": {"body_parameters": {"name": name}}})
 
-    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
-    parameters_collection.delete_many({"name": name})
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS]
+    parameters_collection.delete_many({"user_id": ObjectId(user_id), "name": name})
 
     return JSONResponse({"status": "ok"})
 
@@ -367,8 +368,8 @@ def update_body_parameter_value(date: str = Body(..., embed=True), name: str = B
     date = parse_date(date)
     value = Decimal128(value)
 
-    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
-    parameters_collection.update_one({"date": date, "name": name}, {"$set": {"value": value}}, upsert=True)
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS]
+    parameters_collection.update_one({"user_id": ObjectId(user_id), "date": date, "name": name}, {"$set": {"value": value}}, upsert=True)
 
     return JSONResponse({"status": "ok"})
 
@@ -383,8 +384,8 @@ def remove_body_parameter_value(date: str = Body(..., embed=True), name: str = B
 
     date = parse_date(date)
 
-    parameters_collection = database[constants.MONGO_USER_PARAMETERS + user_id]
-    parameters_collection.delete_one({"date": date, "name": name})
+    parameters_collection = database[constants.MONGO_USER_PARAMETERS]
+    parameters_collection.delete_one({"user_id": ObjectId(user_id), "date": date, "name": name})
 
     return JSONResponse({"status": "ok"})
 
