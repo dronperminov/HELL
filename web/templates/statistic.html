@@ -38,6 +38,12 @@
 
     <div class="statistic">
         <div class="statistic-name">Все приёмы пищи</div>
+        {% if start_date != end_date %}
+        <div>
+            <input type="checkbox" id="total-donut-plot" onchange="PlotStatistic(CALORIES_DATA, 'total')">
+            <label for="total-donut-plot">Показывать круговую диаграмму</label>
+        </div>
+        {% endif %}
         <div class="h-scrollable">
             <svg id="statistic-total-chart"></svg>
         </div>
@@ -57,6 +63,12 @@
             {% for meal_type, meal_name in meal_types.items() %}
             <div class="statistic">
                 <div class="statistic-block-name">{{meal_name}}</div>
+                {% if start_date != end_date %}
+                <div>
+                    <input type="checkbox" id="{{meal_type}}-donut-plot" onchange="PlotStatistic(CALORIES_MEAL_TYPE_DATA['{{meal_type}}'], '{{meal_type}}')">
+                    <label for="{{meal_type}}-donut-plot">Показывать круговую диаграмму</label>
+                </div>
+                {% endif %}
                 <div class="h-scrollable">
                     <svg id="statistic-{{meal_type}}-chart"></svg>
                 </div>
@@ -173,19 +185,30 @@
         }
 
         function PlotDonutStatistic(svg, caloriesData, keys) {
-            if (caloriesData[0]["energy"] == 0) {
+            let total = {}
+
+            for (let key of keys) {
+                total[key] = 0
+
+                for (let i = 0; i < caloriesData.length; i++)
+                    total[key] += caloriesData[i][key]
+            }
+
+            if (total["energy"] == 0) {
                 svg.style.display = "none"
                 return
             }
 
             let chart = new Chart()
-            chart.Plot(svg, keys.map((key) => caloriesData[0][key]))
+            chart.Plot(svg, keys.map((key) => total[key]))
         }
 
         function PlotStatistic(caloriesData, name) {
             let keys = ["proteins", "fats", "carbohydrates"]
             let scales = {"proteins": 4, "fats": 9, "carbohydrates": 4}
             let svg = document.getElementById(`statistic-${name}-chart`)
+            let donutPlot = document.getElementById(`${name}-donut-plot`)
+            let isDonut = donutPlot !== null && donutPlot.checked
 
             let plotData = []
 
@@ -198,7 +221,8 @@
                 plotData.push(values)
             }
 
-            if (caloriesData.length == 1) {
+            svg.style.width = null
+            if (caloriesData.length == 1 || isDonut) {
                 PlotDonutStatistic(svg, plotData, keys)
             }
             else {
