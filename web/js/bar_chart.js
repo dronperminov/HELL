@@ -104,6 +104,10 @@ BarChart.prototype.Plot = function(svg, data, keys, axisKey, labelKey, labelUnit
         this.AppendBar(svg, x, y, rectWidth, rectHeight, data[i], keys)
 
         this.AppendLabel(svg, x + rectWidth / 2, height - this.bottomPadding, data[i][axisKey], "before-edge")
+
+        if (data[i][labelKey] == 0)
+            continue
+
         this.AppendLabel(svg, x + rectWidth / 2, y - 8, `${data[i][labelKey]}`, "top")
         this.AppendLabel(svg, x + rectWidth / 2, y - 2, labelUnit, "top")
     }
