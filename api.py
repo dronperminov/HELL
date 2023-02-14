@@ -276,7 +276,7 @@ def get_body_parameters(user_id: str, date: datetime) -> Tuple[List[datetime], D
         {"$group": {"_id": "$name", "values": {"$addToSet": {"value": "$value", "date": "$date"}}}}
     ])
 
-    used_dates = [used_date["_id"] for used_date in parameters_collection.aggregate([{"$group": {"_id": "$date"}}])]
+    used_dates = [used_date["_id"] for used_date in parameters_collection.aggregate([{"$match": {"user_id": ObjectId(user_id)}}, {"$group": {"_id": "$date"}}])]
     parameters = {}
     body_date_indices = {}
 
