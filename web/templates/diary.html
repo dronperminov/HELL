@@ -51,6 +51,7 @@
                     </div>
                 {% endif %}
                     <div class="meal-buttons">
+                        <button onclick="location.href='/add-meal-barcode/{{date}}/{{meal_type}}'" id="{{meal_type}}-add-meal-barcode-icon"><span class="fa fa-camera"></span></button>
                         <button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'" id="{{meal_type}}-add-meal-icon"><span class="fa fa-plus"></span></button>
                         {% if meal_type not in names %}
                         <button onclick="RenameMealType('{{meal_type}}')" class="no-display" id="{{meal_type}}-edit-icon"><span class="fa fa-check"></span></button>
@@ -523,12 +524,14 @@
             let originalName = document.getElementById(`${mealType}-name`)
             let editName = document.getElementById(`${mealType}-edit-name`)
             let addIcon = document.getElementById(`${mealType}-add-meal-icon`)
+            let addBarcodeIcon = document.getElementById(`${mealType}-add-meal-barcode-icon`)
             let editIcon = document.getElementById(`${mealType}-edit-icon`)
 
             originalName.parentNode.classList.add("no-display")
             editName.classList.remove("no-display")
             editName.value = originalName.innerText
             addIcon.classList.add("no-display")
+            addBarcodeIcon.classList.add("no-display")
             editIcon.classList.remove("no-display")
         }
 
@@ -564,11 +567,13 @@
 
             let originalName = document.getElementById(`${mealType}-name`)
             let addIcon = document.getElementById(`${mealType}-add-meal-icon`)
+            let addBarcodeIcon = document.getElementById(`${mealType}-add-meal-barcode-icon`)
             let editIcon = document.getElementById(`${mealType}-edit-icon`)
 
             originalName.parentNode.classList.remove("no-display")
             editName.classList.add("no-display")
             addIcon.classList.remove("no-display")
+            addBarcodeIcon.classList.remove("no-display")
             editIcon.classList.add("no-display")
         }
 

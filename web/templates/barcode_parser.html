@@ -1,0 +1,104 @@
+    {% include "head.html" %}
+    <title>Добавление по штрихкоду | HELL</title>
+    <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
+    <link rel="stylesheet" type="text/css" href="/styles/barcode.css?v=2">
+</head>
+<body>
+    {% include "menu.html" %}
+    <button class="sign-icon" onclick="Logout()"><span class="fa fa-sign-out"></span></button>
+    <button class="settings-icon" onclick="location.href = '/settings'"><span class="fa fa-cog"></span></button>
+
+    <h2>Добавление по штрихкоду</h2>
+
+    <div class="barcode" id="reader"></div>
+    <div class="barcode-buttons">
+        <button id="start-btn"><span class="fa fa-camera"></span></button>
+        <button id="start-box-btn"><span class="fa fa-barcode"></span></button>
+    </div>
+    <div class="error-center" id="error"></div>
+
+    <script src="/js/forms.js"></script>
+    <script src="/js/libs/html5-qrcode.min.v2.3.0.js"></script>
+
+    <script>
+        let codeScaner = new Html5Qrcode("reader", {experimentalFeatures: {useBarCodeDetectorIfSupported: true}})
+        let codes = {}
+
+        let startBtn = document.getElementById("start-btn")
+        let startBoxBtn = document.getElementById("start-box-btn")
+        let error = document.getElementById("error")
+
+        startBtn.addEventListener("click", () => {Stop(); Start(false)})
+        startBoxBtn.addEventListener("click", () => {Stop(); Start(true)})
+
+        function Stop() {
+            startBtn.classList.remove("selected")
+            startBoxBtn.classList.remove("selected")
+
+            try {
+                codeScaner.stop().then((ignore) => {
+
+                }).catch((err) => {
+                    
+                })
+            }
+            catch (error) {
+
+            }
+        }
+
+        function Start(withBox = false) {
+            let config = {
+                fps: 10,
+                aspectRatio: 1
+            }
+
+            if (withBox) {
+                startBoxBtn.classList.add("selected")
+                startBtn.classList.remove("selected")
+
+                let width = document.getElementById("reader").clientWidth * 0.8
+                config.qrbox = {width: width, height: width / 2}
+            }
+            else {
+                startBtn.classList.add("selected")
+                startBoxBtn.classList.remove("selected")
+            }
+
+            codeScaner.start({ facingMode: "environment" }, config, OnScan)
+        }
+
+        function OnScan(decodedText, decodedResult) {
+            if (decodedText in codes)
+                codes[decodedText]++
+            else
+                codes[decodedText] = 1
+
+            for (let code of Object.keys(codes)) {
+                if (codes[code] > 2) {
+                    codes = {}
+                    ParseBarcode(code)
+                    return
+                }
+            }
+        }
+
+        function ParseBarcode(code) {
+            Stop()
+
+            SendRequest("/parse-barcode", {"barcode": code}).then((response) => {
+                if (response.status != "ok") {
+                    error.innerText = response.message
+                    return
+                }
+
+                error.innerText = ""
+                location.href = `{{add_page}}?food_query=${response.name}`
+            })
+        }
+
+        Start()
+    </script>
+    {% include "footer.html" %}
+</body>
+</html>

@@ -1,0 +1,20 @@
+.barcode-buttons {
+    padding: 5px;
+    text-align: center;
+}
+
+.barcode-buttons button {
+    font-size: 30px;
+}
+
+.barcode-buttons .selected {
+    background: var(--active-button-background);
+    border-color: var(--active-button-background);
+    color: var(--active-button-color);
+}
+
+.barcode {
+    width: min(100%, 400px, 80vh);
+    margin: 0 auto;
+    aspect-ratio: 1/1;
+}

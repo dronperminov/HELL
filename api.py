@@ -850,6 +850,20 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
     return HTMLResponse(content=html)
 
 
+@app.get("/add-meal-barcode/{date}/{meal_type}")
+def add_meal_barcode_get(date: str, meal_type: str, user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return unauthorized_access("/diary")
+
+    template = templates.get_template('barcode_parser.html')
+    html = template.render(
+        user_id=user_id,
+        settings=get_user_settings(user_id),
+        add_page=f"/add-meal/{date}/{meal_type}",
+        page="/add-meal-barcode")
+    return HTMLResponse(content=html)
+
+
 @app.post("/add-meal")
 def add_meal(
         date: str = Body(..., embed=True),
@@ -1190,6 +1204,14 @@ def food_statistic(food_id: str, period: str = Query(None), user_id: str = Depen
     )
 
     return HTMLResponse(content=content)
+
+
+@app.post("/parse-barcode")
+def parse_barcode(barcode: str = Body(..., embed=True), user_id: str = Depends(get_current_user)):
+    if not user_id:
+        return JSONResponse({"status": "fail", "message": f"Вы не авторизованы. Пожалуйста, авторизуйтесь"})
+
+    return JSONResponse({"status": "ok", "name": barcode})
 
 
 if __name__ == "__main__":
