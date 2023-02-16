@@ -1,7 +1,7 @@
     {% include "head.html" %}
     <title>Добавление по штрихкоду | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/barcode.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/styles/barcode.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -12,8 +12,8 @@
 
     <div class="barcode" id="reader"></div>
     <div class="barcode-buttons">
-        <button id="start-btn"><span class="fa fa-camera"></span></button>
-        <button id="start-box-btn"><span class="fa fa-barcode"></span></button>
+        <button id="start-btn"><span class="fa fa-camera"> Камера</span></button>
+        <button id="start-box-btn"><span class="fa fa-barcode"></span> Штрихкод</button>
     </div>
     <div class="error-center" id="error"></div>
 

@@ -58,7 +58,7 @@
         </div>
 
         <div class="form-row">
-            <label>Алиасы и штрихокоды</label>
+            <label>Алиасы и штрихкоды</label>
             <div id="aliases-box"></div>
             <div class="error-center" id="aliases-error"></div>
             <button id="aliases-button" onclick="AddAlias()"><span class="fa fa-plus"></span> Добавить алиас</button>
@@ -68,8 +68,8 @@
             <div id="barcode" class="no-display">
                 <div class="barcode" id="reader"></div>
                 <div class="barcode-buttons">
-                    <button id="start-btn"><span class="fa fa-camera"></span></button>
-                    <button id="start-box-btn"><span class="fa fa-barcode"></span></button>
+                    <button id="start-btn"><span class="fa fa-camera"> Камера</span></button>
+                    <button id="start-box-btn"><span class="fa fa-barcode"></span> Штрихкод</button>
                 </div>
             </div>
         </div>
@@ -283,7 +283,7 @@
             let barcode = document.getElementById("barcode")
             barcode.classList.remove("no-display")
 
-            window.scrollTo({top: barcode.offsetTop + barcode.clientHeight })
+            window.scrollTo({top: barcode.offsetTop })
             codeScaner.Start()
         }
 
