@@ -19,72 +19,14 @@
 
     <script src="/js/forms.js"></script>
     <script src="/js/libs/html5-qrcode.min.v2.3.0.js"></script>
+    <script src="/js/barcode_scaner.js"></script>
 
     <script>
-        let codeScaner = new Html5Qrcode("reader", {experimentalFeatures: {useBarCodeDetectorIfSupported: true}})
-        let codes = {}
-
-        let startBtn = document.getElementById("start-btn")
-        let startBoxBtn = document.getElementById("start-box-btn")
+        let codeScaner = new BarcodeScaner("reader", (code) => ParseBarcode(code))
         let error = document.getElementById("error")
 
-        startBtn.addEventListener("click", () => {Stop(); Start(false)})
-        startBoxBtn.addEventListener("click", () => {Stop(); Start(true)})
-
-        function Stop() {
-            startBtn.classList.remove("selected")
-            startBoxBtn.classList.remove("selected")
-
-            try {
-                codeScaner.stop().then((ignore) => {
-
-                }).catch((err) => {
-                    
-                })
-            }
-            catch (error) {
-
-            }
-        }
-
-        function Start(withBox = false) {
-            let config = {
-                fps: 10,
-                aspectRatio: 1
-            }
-
-            if (withBox) {
-                startBoxBtn.classList.add("selected")
-                startBtn.classList.remove("selected")
-
-                let width = document.getElementById("reader").clientWidth * 0.8
-                config.qrbox = {width: width, height: width / 2}
-            }
-            else {
-                startBtn.classList.add("selected")
-                startBoxBtn.classList.remove("selected")
-            }
-
-            codeScaner.start({ facingMode: "environment" }, config, OnScan)
-        }
-
-        function OnScan(decodedText, decodedResult) {
-            if (decodedText in codes)
-                codes[decodedText]++
-            else
-                codes[decodedText] = 1
-
-            for (let code of Object.keys(codes)) {
-                if (codes[code] > 2) {
-                    codes = {}
-                    ParseBarcode(code)
-                    return
-                }
-            }
-        }
-
         function ParseBarcode(code) {
-            Stop()
+            codeScaner.Stop()
 
             SendRequest("/parse-barcode", {"barcode": code}).then((response) => {
                 if (response.status != "ok") {
@@ -97,7 +39,7 @@
             })
         }
 
-        Start()
+        codeScaner.Start()
     </script>
     {% include "footer.html" %}
 </body>

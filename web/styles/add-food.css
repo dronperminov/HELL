@@ -91,6 +91,10 @@
     grid-area: error;
 }
 
+.buttons {
+    margin-top: 20px;
+}
+
 .buttons button {
     margin-bottom: 5px;
 }

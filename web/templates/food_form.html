@@ -1,7 +1,8 @@
     {% include "head.html" %}
     <title>{{title}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/add-food.css">
+    <link rel="stylesheet" type="text/css" href="/styles/add-food.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/styles/barcode.css">
 </head>
 <body>
     {% include "menu.html" %}
@@ -57,10 +58,20 @@
         </div>
 
         <div class="form-row">
-            <label>Алиасы</label>
+            <label>Алиасы и штрихокоды</label>
             <div id="aliases-box"></div>
             <div class="error-center" id="aliases-error"></div>
             <button id="aliases-button" onclick="AddAlias()"><span class="fa fa-plus"></span> Добавить алиас</button>
+            <button id="barcode-start-button" onclick="StartBarcode()"><span class="fa fa-barcode"></span> Добавить штрихкод</button>
+            <button id="barcode-stop-button" class="no-display" onclick="StopBarcode()"><span class="fa fa-barcode"></span> Остановить</button>
+
+            <div id="barcode" class="no-display">
+                <div class="barcode" id="reader"></div>
+                <div class="barcode-buttons">
+                    <button id="start-btn"><span class="fa fa-camera"></span></button>
+                    <button id="start-box-btn"><span class="fa fa-barcode"></span></button>
+                </div>
+            </div>
         </div>
 
         <div class="form-row center buttons">
@@ -104,9 +115,13 @@
 
     <script src="/js/constants.js"></script>
     <script src="/js/forms.js"></script>
+    <script src="/js/libs/html5-qrcode.min.v2.3.0.js"></script>
+    <script src="/js/barcode_scaner.js"></script>
+
     <script>
         var fatsecretPage = 0
         var fatsecretQuery = null
+        let codeScaner = new BarcodeScaner("reader", (code) => {StopBarcode(); AddAlias(code) })
 
         function InitConversions() {
             let portion = document.getElementById("portion").value
@@ -256,6 +271,32 @@
 
             if (name !== null)
                 aliasInput.value = name
+        }
+
+        function StartBarcode() {
+            let startBtn = document.getElementById("barcode-start-button")
+            let stopBtn = document.getElementById("barcode-stop-button")
+
+            startBtn.classList.add("no-display")
+            stopBtn.classList.remove("no-display")
+
+            let barcode = document.getElementById("barcode")
+            barcode.classList.remove("no-display")
+
+            window.scrollTo({top: barcode.offsetTop + barcode.clientHeight })
+            codeScaner.Start()
+        }
+
+        function StopBarcode() {
+            let startBtn = document.getElementById("barcode-start-button")
+            let stopBtn = document.getElementById("barcode-stop-button")
+
+            startBtn.classList.remove("no-display")
+            stopBtn.classList.add("no-display")
+
+            let barcode = document.getElementById("barcode")
+            barcode.classList.add("no-display")
+            codeScaner.Stop()
         }
 
         function GetAliases() {
