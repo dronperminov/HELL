@@ -42,10 +42,15 @@ class Search:
             return []
 
     def autocomplete(self, query: str, user_id: str) -> List[str]:
+        escaped_query = self.__escape_query(query)
+
+        if not escaped_query:
+            return []
+
         results_food = list(self.food_collection.aggregate([
             {"$match": {"$or": [
                 {"$text": {"$search": f"{query}", "$caseSensitive": False}},
-                {"name": {"$regex": f"{re.escape(query)}", "$options": "i"}}
+                {"name": {"$regex": f"{escaped_query}", "$options": "i"}}
             ]}},
             {"$project": {"_id": 1, "name": 1}}
         ]))
@@ -57,7 +62,7 @@ class Search:
             {"$match": {"$and": [
                 {"$or": [
                     {"$text": {"$search": f"{query}", "$caseSensitive": False}},
-                    {"name": {"$regex": f"{re.escape(query)}", "$options": "i"}}
+                    {"name": {"$regex": f"{escaped_query}", "$options": "i"}}
                 ]},
                 {"$or": [
                     {"creator_id": ObjectId(user_id)},
@@ -82,9 +87,10 @@ class Search:
         elif re.fullmatch(r"<[^>]+>", query):
             food_items = list(self.food_collection.find({"name": query[1:-1]}))
         else:
+            escaped_query = self.__escape_query(query)
             food_items = list(self.food_collection.find({"$or": [
-                {"name": {"$regex": re.escape(query), "$options": "i"}},
-                {"aliases": {"$elemMatch": {"$regex": re.escape(query), "$options": "i"}}}
+                {"name": {"$regex": escaped_query, "$options": "i"}},
+                {"aliases": {"$elemMatch": {"$regex": escaped_query, "$options": "i"}}}
             ]}))
 
         self.__process_food_items(food_items)
@@ -99,9 +105,9 @@ class Search:
         elif query == "<T>":
             templates = self.__search_available_templates(user_id)
         elif re.fullmatch(r"<[^>]+>", query):
-            templates = self.__search_query_templates(f"^{re.escape(query[1:-1])}$", user_id)
+            templates = self.__search_query_templates(f"^{self.__escape_query(query[1:-1])}$", user_id)
         else:
-            templates = self.__search_query_templates(re.escape(query), user_id)
+            templates = self.__search_query_templates(self.__escape_query(query), user_id)
 
         self.__process_templates(templates)
         return templates
@@ -292,6 +298,10 @@ class Search:
         }))
 
         return templates
+
+    def __escape_query(self, query: str) -> str:
+        alternatives = [re.escape(alternative) for alternative in query.split('|') if alternative]
+        return "|".join(alternatives)
 
     def __process_food_items(self, food_items: List[dict]):
         for food_item in food_items:
