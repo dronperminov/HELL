@@ -87,6 +87,15 @@
     grid-area: name;
 }
 
+.alias-name span {
+    width: 16px;
+    padding-right: 4px;
+}
+
+.alias-name span + input {
+    width: calc(100% - 20px);
+}
+
 .alias-error {
     grid-area: error;
 }

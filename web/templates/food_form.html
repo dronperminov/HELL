@@ -255,12 +255,17 @@
         function AddAlias(name = null) {
             let aliases = document.getElementById("aliases-box")
             let alias = MakeDiv("alias", aliases)
+            let isBarcode = name !== null && name.match(/^\d+$/) !== null
 
             let aliasRemove = MakeDiv("alias-close", alias)
             let aliasRemoveIcon = MakeDiv("fa fa-times", aliasRemove)
             aliasRemoveIcon.addEventListener("click", () => aliases.removeChild(alias))
 
             let aliasName = MakeDiv("alias-name", alias)
+
+            if (isBarcode)
+                MakeDiv("fa fa-barcode", aliasName, {}, "span")
+
             let aliasInput = MakeInput("text", aliasName)
             let aliasError = MakeDiv("alias-error error-center", alias)
 
@@ -269,8 +274,13 @@
                 aliasError.innerText = ""
             })
 
-            if (name !== null)
-                aliasInput.value = name
+            if (name === null)
+                return
+
+            aliasInput.value = name
+
+            if (isBarcode)
+                aliasInput.setAttribute("readonly", "true")
         }
 
         function StartBarcode() {
