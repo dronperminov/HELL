@@ -314,7 +314,7 @@
             let isCorrect = true
 
             for (let aliasItem of document.getElementsByClassName('alias')) {
-                let aliasInput = aliasItem.getElementsByClassName('alias-name')[0].children[0]
+                let aliasInput = aliasItem.getElementsByClassName('alias-name')[0].getElementsByTagName("input")[0]
                 let alias = aliasInput.value.trim()
                 let error = aliasItem.getElementsByClassName('alias-error')[0]
 
