@@ -35,7 +35,7 @@ class Search:
             food_items = self.search_food(query)
             food_items.extend(self.search_templates(query, user_id))
 
-            if not re.fullmatch(r"<[^>]+>", query):
+            if not re.fullmatch(r"<[^>]+>", query) or query in ["<b>", "<!b>"]:
                 self.__sort_food_items(food_items, user_id)
             return food_items
         except OperationFailure:
@@ -84,6 +84,10 @@ class Search:
             food_items = self.__search_food_by_type("fats", query.startswith("<!"))
         elif query in ["<c>", "<!c>"]:
             food_items = self.__search_food_by_type("carbohydrates", query.startswith("<!"))
+        elif query == "<b>":
+            food_items = list(self.food_collection.find({"aliases": {"$regex": r"^\d+$"}}))
+        elif query == "<!b>":
+            food_items = list(self.food_collection.find({"aliases": {"$not": {"$regex": r"^\d+$"}}}))
         elif re.fullmatch(r"<[^>]+>", query):
             food_items = list(self.food_collection.find({"name": query[1:-1]}))
         else:
