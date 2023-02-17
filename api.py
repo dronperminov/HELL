@@ -1,3 +1,4 @@
+import json
 import re
 from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
@@ -38,6 +39,9 @@ database = mongo[constants.MONGO_DATABASE]
 search = Search(mongo)
 statistic_utils = Statistic(mongo)
 database[constants.MONGO_SETTINGS_COLLECTION].create_index([("user_id", 1)])
+
+with open("data/barcodes.json", encoding="utf-8") as f:
+    barcodes = json.load(f)
 
 
 async def token_to_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT"))) -> Optional[str]:
@@ -436,7 +440,7 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
         title="Добавление нового продукта",
         add_url="/add-food",
         page="/add-food",
-        query=food_query,
+        query=re.sub(r"^\d+\|", "", food_query),
         date=date,
         meal_type=meal_type)
     return HTMLResponse(content=html)
@@ -1211,7 +1215,11 @@ def parse_barcode(barcode: str = Body(..., embed=True), user_id: str = Depends(g
     if not user_id:
         return JSONResponse({"status": "fail", "message": f"Вы не авторизованы. Пожалуйста, авторизуйтесь"})
 
-    return JSONResponse({"status": "ok", "name": barcode})
+    name = barcode
+    if barcode in barcodes:
+        name += "|" + barcodes[barcode]
+
+    return JSONResponse({"status": "ok", "name": name})
 
 
 if __name__ == "__main__":
