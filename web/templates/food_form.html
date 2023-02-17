@@ -74,7 +74,7 @@
             </div>
         </div>
 
-        <div class="form-row center buttons">
+        <div id="buttons" class="form-row center buttons">
             <button id="save-button"><span class="fa fa-save"></span> Сохранить</button>
             {% if food and not back_url %}
             <button id="remove-button"><span class="fa fa-trash"></span> Удалить</button>
@@ -121,7 +121,7 @@
     <script>
         var fatsecretPage = 0
         var fatsecretQuery = null
-        let codeScaner = new BarcodeScaner("reader", (code) => {StopBarcode(); AddAlias(code) })
+        let codeScaner = new BarcodeScaner("reader", (code) => EndBarcode(code))
 
         function InitConversions() {
             let portion = document.getElementById("portion").value
@@ -293,7 +293,7 @@
             let barcode = document.getElementById("barcode")
             barcode.classList.remove("no-display")
 
-            window.scrollTo({top: barcode.offsetTop })
+            barcode.scrollIntoView({behavior: "smooth"})
             codeScaner.Start()
         }
 
@@ -307,6 +307,14 @@
             let barcode = document.getElementById("barcode")
             barcode.classList.add("no-display")
             codeScaner.Stop()
+        }
+
+        function EndBarcode(code) {
+            StopBarcode()
+            AddAlias(code)
+
+            let buttons = document.getElementById("buttons")
+            buttons.scrollIntoView({behavior: "smooth", block: "end"})
         }
 
         function GetAliases() {

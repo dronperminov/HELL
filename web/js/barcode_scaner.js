@@ -30,7 +30,8 @@ BarcodeScaner.prototype.Stop = function() {
 BarcodeScaner.prototype.Start = function(withBox = false) {
     let config = {
         fps: 10,
-        aspectRatio: 1
+        aspectRatio: 1,
+        focusMode: "continuous"
     }
 
     if (withBox) {
