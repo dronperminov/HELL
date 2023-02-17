@@ -92,9 +92,11 @@ class Search:
             food_items = list(self.food_collection.find({"name": query[1:-1]}))
         else:
             escaped_query = self.__escape_query(query)
+            is_barcode = re.fullmatch(r"\d+", query)
+
             food_items = list(self.food_collection.find({"$or": [
                 {"name": {"$regex": escaped_query, "$options": "i"}},
-                {"aliases": {"$elemMatch": {"$regex": escaped_query, "$options": "i"}}}
+                {"aliases": {"$elemMatch": {"$regex": f"^{escaped_query}$" if is_barcode else escaped_query, "$options": "i"}}}
             ]}))
 
         self.__process_food_items(food_items)
