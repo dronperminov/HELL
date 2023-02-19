@@ -40,6 +40,9 @@ search = Search(mongo)
 statistic_utils = Statistic(mongo)
 database[constants.MONGO_SETTINGS_COLLECTION].create_index([("user_id", 1)])
 
+with open("data/barcodes_list.json", encoding="utf-8") as f:
+    barcodes_list = json.load(f)
+
 with open("data/barcodes.json", encoding="utf-8") as f:
     barcodes = json.load(f)
 
@@ -1125,7 +1128,7 @@ def get_statistic(period: str = Query(None), user_id: Optional[str] = Depends(ge
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION]
     documents = list(diary_collection.find({"user_id": ObjectId(user_id), "date": {"$gte": start_date, "$lte": end_date}}))
-    total_meal2count = statistic_utils.get_meal_type_count(diary_collection.find({}, {"meal_info": 1}))
+    total_meal2count = statistic_utils.get_meal_type_count(diary_collection.find({"user_id": ObjectId(user_id)}, {"meal_info": 1}))
     meal2count = statistic_utils.get_meal_type_count(documents)
     meal_types = OrderedDict()
     for meal_type in constants.MEAL_TYPES:
@@ -1216,7 +1219,9 @@ def parse_barcode(barcode: str = Body(..., embed=True), user_id: str = Depends(g
         return JSONResponse({"status": "fail", "message": f"Вы не авторизованы. Пожалуйста, авторизуйтесь"})
 
     name = barcode
-    if barcode in barcodes:
+    if barcode in barcodes_list:
+        name += "|" + barcodes_list[barcode]
+    elif barcode in barcodes:
         name += "|" + barcodes[barcode]
 
     return JSONResponse({"status": "ok", "name": name})

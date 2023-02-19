@@ -99,6 +99,9 @@ class Search:
                 {"aliases": {"$elemMatch": {"$regex": f"^{escaped_query}$" if is_barcode else escaped_query, "$options": "i"}}}
             ]}))
 
+            if not food_items:
+                food_items = list(self.food_collection.find({"$text": {"$search": query, "$caseSensitive": False}}))
+
         self.__process_food_items(food_items)
         return food_items
 
