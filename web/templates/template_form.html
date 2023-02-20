@@ -141,7 +141,7 @@
             data.id += '-added'
             EndEditPortions()
 
-            let foodItem = MakeFoodItem(data, meals, (id) => TogglePortionEdit(id), (data, portion) => UpdateFood(data, portion))
+            let foodItem = MakeFoodItem(data, meals, (id) => TogglePortionEdit(id), (data, portion) => UpdateFood(data, portion), false, true)
             let foodData = foodItem.getElementsByClassName("food-data")[0]
             let foodRemove = foodItem.getElementsByClassName("food-item-remove")[0]
 
@@ -155,15 +155,25 @@
         function GetFoodItems() {
             let meals = document.getElementById("template-meals")
             let foodItems = []
+            let haveNonZero = false
 
             for (let item of meals.getElementsByClassName("food-item")) {
                 let id = item.getAttribute("id")
+                let portionSize = document.getElementById(`${id}-portion-size`).value
+                let portionUnit = document.getElementById(`${id}-portion-unit`).value
+
                 foodItems.push({
                     food_id: id.replace("-added", ""),
-                    portion_size: document.getElementById(`${id}-portion-size`).value,
-                    portion_unit: document.getElementById(`${id}-portion-unit`).value
+                    portion_size: portionSize,
+                    portion_unit: portionUnit
                 })
+
+                if (+portionSize > 0)
+                    haveNonZero = true
             }
+
+            if (!haveNonZero)
+                return null
 
             return foodItems
         }
@@ -205,9 +215,15 @@
                 return
             }
 
-            let foodItems = GetFoodItems()
             let mealsError = document.getElementById("meals-error")
             mealsError.innerText = ""
+
+            let foodItems = GetFoodItems()
+
+            if (foodItems === null) {
+                mealsError.innerText = "В шаблоне должен быть хотя бы один продукт ненулевой порции"
+                return
+            }
 
             if (foodItems.length == 0) {
                 mealsError.innerText = "Вы ещё не добавили ни одного продукта. Пожалуйста, добавьте хотя бы один продукт"

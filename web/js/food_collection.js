@@ -123,11 +123,11 @@ function TogglePortionEdit(id) {
     portionSize.select()
 }
 
-function ValidatePortion(id) {
+function ValidatePortion(id, zeroAvailable = false) {
     let portionSize = document.getElementById(`${id}-portion-size`)
     let portionError = document.getElementById(`${id}-portion-error`)
 
-    if (!IsPositiveReal(portionSize.value)) {
+    if (!IsPositiveReal(portionSize.value) && (!zeroAvailable || !IsZero(portionSize.value))) {
         portionSize.focus()
         portionSize.select()
         portionError.innerText = "Размер порции введён некорректно"
@@ -162,7 +162,7 @@ function MakeFoodItemSelect(parent, conversions, attributes = null) {
     return select
 }
 
-function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen = false) {
+function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen = false, zeroAvailable = false) {
     let foodItem = MakeDiv("food-item", resultsDiv, {"id": data.id})
     let withPortion = "unit" in data && "size" in data
 
@@ -228,7 +228,7 @@ function MakeFoodItem(data, resultsDiv, portionClick, portionAdd, isPortionOpen 
 
     let portionChange = MakeDiv("food-portion-change", portionControl)
     let icon = MakeIcon(portionChange, withPortion ? "fa fa-check" : "fa fa-plus", () => {
-        let size = ValidatePortion(data.id)
+        let size = ValidatePortion(data.id, zeroAvailable)
         let unit = portionUnitInput.value
 
         if (size == null)

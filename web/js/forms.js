@@ -27,6 +27,10 @@ function IsNotEmptyValue(value) {
     return !value.match(/^\s*$/g)
 }
 
+function IsZero(value) {
+    return value == "0"
+}
+
 function IsNumber(value) {
     return value.match(/^-?\d+(\.\d+)?$/g) !== null
 }

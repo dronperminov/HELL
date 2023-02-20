@@ -443,7 +443,7 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
         title="Добавление нового продукта",
         add_url="/add-food",
         page="/add-food",
-        query=re.sub(r"^\d+\|", "", food_query),
+        query=re.sub(r"^\d+\|", "", food_query) if food_query else "",
         date=date,
         meal_type=meal_type)
     return HTMLResponse(content=html)
@@ -923,6 +923,10 @@ def add_meal_template(
 
     for meal_item in meal_items:
         meal_portion_size = Decimal(str(meal_item["portion_size"])) * Decimal(portion_size) / scale
+
+        if meal_portion_size == 0:
+            continue
+
         meal = meal_collection.insert_one({
             "food_id": meal_item["food_id"],
             "portion_size": Decimal128(str(meal_portion_size)),
