@@ -436,6 +436,12 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
     if not user_id:
         return unauthorized_access("/")
 
+    if food_query:
+        if re.fullmatch(r"<[^>]+>", food_query):
+            food_query = food_query[1:-1]
+
+        food_query = re.sub(r"^\d+\|", "", food_query)
+
     template = templates.get_template('food_form.html')
     html = template.render(
         user_id=user_id,
@@ -443,7 +449,7 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
         title="Добавление нового продукта",
         add_url="/add-food",
         page="/add-food",
-        query=re.sub(r"^\d+\|", "", food_query) if food_query else "",
+        query=food_query,
         date=date,
         meal_type=meal_type)
     return HTMLResponse(content=html)
