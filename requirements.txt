@@ -6,3 +6,5 @@ pymongo
 pyjwt
 python-multipart
 requests
+fuzzywuzzy
+uvicorn[standard]

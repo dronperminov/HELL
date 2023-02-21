@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import List, Dict
 
 from bson import ObjectId
+from fuzzywuzzy import fuzz
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import OperationFailure
 
@@ -36,7 +37,7 @@ class Search:
             food_items.extend(self.search_templates(query, user_id))
 
             if not re.fullmatch(r"<[^>]+>", query) or query in ["<b>", "<!b>"]:
-                self.__sort_food_items(food_items, user_id)
+                self.__sort_food_items(food_items, user_id, query)
             return food_items
         except OperationFailure:
             return []
@@ -74,7 +75,7 @@ class Search:
         ]))
 
         results = results_food + results_template
-        self.__sort_food_items(results, user_id)
+        self.__sort_food_items(results, user_id, query)
         return [f'<t>:{result["name"]}' if "template" in result else result["name"] for result in results]
 
     def search_food(self, query: str):
@@ -346,9 +347,10 @@ class Search:
 
         return normalize_statistic(template)
 
-    def __sort_food_items(self, food_items: List[dict], user_id: str):
+    def __sort_food_items(self, food_items: List[dict], user_id: str, query: str):
+        queries = [alternative for alternative in query.lower().split("|") if alternative]
         using_count = self.__get_using_count(user_id)
-        food_items.sort(key=lambda food_item: (-using_count.get(food_item["name"], using_count.get(food_item["_id"], 0)), food_item["name"]))
+        food_items.sort(key=lambda food_item: (self.__compare_names(queries, food_item["name"].lower()), -using_count.get(food_item["name"], using_count.get(food_item["_id"], 0))))
 
     def __get_using_count(self, user_id: str) -> Dict[ObjectId, int]:
         if not user_id:
@@ -382,3 +384,9 @@ class Search:
             using_count[document["_id"]] = document["count"]
 
         return using_count
+
+    def __compare_names(self, queries: List[str], name: str):
+        if not queries:
+            return 0
+
+        return -max(fuzz.token_set_ratio(name, query) for query in queries)
