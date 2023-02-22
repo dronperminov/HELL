@@ -5,6 +5,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/food-search.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-item.css">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
+    <link rel="stylesheet" type="text/css" href="/styles/barcode.css">
     <link rel="stylesheet" type="text/css" href="/styles/food-collection.css">
 </head>
 <body>
@@ -26,11 +27,21 @@
             <input type="text" name="food_query" id="food-query" oninput="Autocomplete(SetQuery)" autocomplete="off" class="search-input" placeholder="Введите название продукта или шаблона" {% if query %}value="{{query|replace('"', '&quot;')}}"{% endif %}>
         </div>
 
-        <div class="food-search-button">
+        <div class="food-search-buttons">
             <button type="submit" id="submit"><span class="fa fa-search"></span></button>
+            <button type="button" id="barcode-start-button" onclick="StartBarcode()"><span class="fa fa-camera"></span></button>
+            <button type="button" id="barcode-stop-button" class="no-display" onclick="StopBarcode()"><span class="fa fa-ban"></span></button>
         </div>
     </form>
     <div class="food-search-autocomplete-results" id="autocomplete-results"></div>
+
+    <div id="barcode" class="no-display">
+        <div class="barcode" id="reader"></div>
+        <div class="barcode-buttons">
+            <button id="start-btn"><span class="fa fa-camera"> Камера</span></button>
+            <button id="start-box-btn"><span class="fa fa-barcode"></span> Штрихкод</button>
+        </div>
+    </div>
 
     <div class="food-search-results" id="food-search-results">
     {% if food_items == [] %}
@@ -114,6 +125,8 @@
     <script src="/js/swipe.js"></script>
     <script src="/js/swipe_tabs.js"></script>
     <script src="/js/food_collection.js"></script>
+    <script src="/js/libs/html5-qrcode.min.v2.3.0.js"></script>
+    <script src="/js/barcode_scaner.js"></script>
     <script>
         const QUERY = `food_query={{query.replace('`', '"')}}`
 
@@ -123,6 +136,46 @@
         let foodBlocks = document.getElementById("food-blocks")
         let swipeTabs = new SwipeTabs(foodBlocks, foodBlocksHeader)
         {% endif %}
+
+        let codeScaner = new BarcodeScaner("reader", (code) => EndBarcode(code))
+
+        function StartBarcode() {
+            let startBtn = document.getElementById("barcode-start-button")
+            let stopBtn = document.getElementById("barcode-stop-button")
+
+            startBtn.classList.add("no-display")
+            stopBtn.classList.remove("no-display")
+
+            let barcode = document.getElementById("barcode")
+            barcode.classList.remove("no-display")
+
+            barcode.scrollIntoView({behavior: "smooth"})
+            codeScaner.Start()
+        }
+
+        function StopBarcode() {
+            let startBtn = document.getElementById("barcode-start-button")
+            let stopBtn = document.getElementById("barcode-stop-button")
+
+            startBtn.classList.remove("no-display")
+            stopBtn.classList.add("no-display")
+
+            let barcode = document.getElementById("barcode")
+            barcode.classList.add("no-display")
+            codeScaner.Stop()
+        }
+
+        function EndBarcode(code) {
+            StopBarcode()
+
+            SendRequest("/parse-barcode", {barcode: code}).then((response) => {
+                if (response.status == "ok")
+                    SetQuery(response.name, false)
+            })
+
+            let buttons = document.getElementById("buttons")
+            buttons.scrollIntoView({behavior: "smooth", block: "end"})
+        }
 
         function AddFood() {
             location.href=`/add-food?{% if query %}${QUERY}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}`
@@ -153,10 +206,10 @@
         {% endif %}
         }
 
-        function SetQuery(query) {
+        function SetQuery(query, withBrackets = true) {
             let queryInput = document.getElementById("food-query")
             let submit = document.getElementById("submit")
-            queryInput.value = `<${query}>`
+            queryInput.value = withBrackets ? `<${query}>` : query
             submit.click()
         }
 

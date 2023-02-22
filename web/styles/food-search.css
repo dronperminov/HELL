@@ -35,6 +35,16 @@
     text-align: right;
 }
 
+.food-search-buttons {
+    display: table-cell;
+    width: 70px;
+    text-align: right;
+}
+
+.food-search-buttons button {
+    width: 32px;
+}
+
 .food-search-input {
     display: table-cell;
     vertical-align: bottom;

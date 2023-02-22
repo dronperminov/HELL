@@ -839,7 +839,7 @@ def add_meal_get(date: str, meal_type: str, food_query: str = Query(None), user_
     if not user_id:
         return unauthorized_access("/diary")
 
-    food_query = food_query.strip() if food_query else None
+    food_query = food_query.strip() if food_query else ""
     food_items = search.search(food_query, user_id)
 
     frequent_food_items = search.get_frequent(meal_type, user_id)[:constants.FREQUENT_MEAL_CLIP_COUNT]
