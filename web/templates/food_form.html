@@ -65,13 +65,7 @@
             <button id="barcode-start-button" onclick="StartBarcode()"><span class="fa fa-barcode"></span> Добавить штрихкод</button>
             <button id="barcode-stop-button" class="no-display" onclick="StopBarcode()"><span class="fa fa-barcode"></span> Остановить</button>
 
-            <div id="barcode" class="no-display">
-                <div class="barcode" id="reader"></div>
-                <div class="barcode-buttons">
-                    <button id="start-btn"><span class="fa fa-camera"> Камера</span></button>
-                    <button id="start-box-btn"><span class="fa fa-barcode"></span> Штрихкод</button>
-                </div>
-            </div>
+            {% include "barcode_scanner.html" %}
         </div>
 
         <div id="buttons" class="form-row center buttons">

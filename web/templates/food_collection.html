@@ -24,7 +24,7 @@
         </div>
 
         <div class="food-search-input">
-            <input type="text" name="food_query" id="food-query" oninput="Autocomplete(SetQuery)" autocomplete="off" class="search-input" placeholder="Введите название продукта или шаблона" {% if query %}value="{{query|replace('"', '&quot;')}}"{% endif %}>
+            <input type="text" name="food_query" id="food-query" oninput="StopBarcode(); Autocomplete(SetQuery)" autocomplete="off" class="search-input" placeholder="Введите название продукта или шаблона" {% if query %}value="{{query|replace('"', '&quot;')}}"{% endif %}>
         </div>
 
         <div class="food-search-buttons">
@@ -35,13 +35,7 @@
     </form>
     <div class="food-search-autocomplete-results" id="autocomplete-results"></div>
 
-    <div id="barcode" class="no-display">
-        <div class="barcode" id="reader"></div>
-        <div class="barcode-buttons">
-            <button id="start-btn"><span class="fa fa-camera"> Камера</span></button>
-            <button id="start-box-btn"><span class="fa fa-barcode"></span> Штрихкод</button>
-        </div>
-    </div>
+    {% include "barcode_scanner.html" %}
 
     <div class="food-search-results" id="food-search-results">
     {% if food_items == [] %}
@@ -151,6 +145,7 @@
 
             barcode.scrollIntoView({behavior: "smooth"})
             codeScaner.Start()
+            ClearFoodQuery()
         }
 
         function StopBarcode() {
