@@ -23,7 +23,7 @@
         </div>
 
         <div class="food-search-input">
-            <input type="text" name="food_query" id="food-query" oninput="Autocomplete(SetQuery)" autocomplete="off" class="search-input" placeholder="Введите название продукта или шаблона" {% if query %}value="{{query}}"{% endif %}>
+            <input type="text" name="food_query" id="food-query" oninput="Autocomplete(SetQuery)" autocomplete="off" class="search-input" placeholder="Введите название продукта или шаблона" {% if query %}value="{{query|replace('"', '&quot;')}}"{% endif %}>
         </div>
 
         <div class="food-search-button">
@@ -90,9 +90,9 @@
     {% endif %}
 
     <div class="add-food-buttons">
-        <button onclick="location.href='/add-food?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить продукт</button>
+        <button onclick="AddFood()"><span class="fa fa-plus"></span> Добавить продукт</button>
 
-        <button onclick="location.href='/add-template?{% if query %}food_query={{query.replace("'", "\\'")}}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}';"><span class="fa fa-plus"></span> Добавить шаблон</button>
+        <button onclick="AddTemplate()"><span class="fa fa-plus"></span> Добавить шаблон</button>
     </div>
 
     <div class="food-search-info">
@@ -115,12 +115,22 @@
     <script src="/js/swipe_tabs.js"></script>
     <script src="/js/food_collection.js"></script>
     <script>
+        const QUERY = `food_query={{query.replace('`', '"')}}`
+
         {% if date and meal_type %}
         let foodBlocksContainer = document.getElementById("food-blocks-container")
         let foodBlocksHeader = document.getElementById("food-blocks-header")
         let foodBlocks = document.getElementById("food-blocks")
         let swipeTabs = new SwipeTabs(foodBlocks, foodBlocksHeader)
         {% endif %}
+
+        function AddFood() {
+            location.href=`/add-food?{% if query %}${QUERY}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}`
+        }
+
+        function AddTemplate() {
+            location.href=`/add-template?{% if query %}${QUERY}&{% endif %}{% if date and meal_type %}date={{date}}&meal_type={{meal_type}}{% endif %}`
+        }
 
         function ClickFoodItem(foodId) {
         {% if date and meal_type %}
@@ -129,7 +139,7 @@
             swipeTabs.UpdateParams()
         {% else %}
             foodId = foodId.replace(/^(frequent|recently)(\-all)?\-/gi, "")
-            location.href = `/edit-food/${foodId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
+            location.href = `/edit-food/${foodId}{% if query %}?${QUERY}{% endif %}`
         {% endif %}
         }
 
@@ -139,7 +149,7 @@
             UpdatePortionInfo(templateId)
             swipeTabs.UpdateParams()
         {% else %}
-            location.href = `/edit-template/${templateId}{% if query %}?food_query={{query.replace("'", "\\'")}}{% endif %}`
+            location.href = `/edit-template/${templateId}{% if query %}?${QUERY}{% endif %}`
         {% endif %}
         }
 

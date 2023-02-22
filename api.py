@@ -403,7 +403,7 @@ def food_collection_get(food_query: str = Query(None), user_id: str = Depends(ge
     if food_query is not None and not food_query:
         return RedirectResponse(url="/food-collection", status_code=302)
 
-    food_query = food_query.strip() if food_query else None
+    food_query = food_query.strip() if food_query else ""
     food_items = search.search(food_query, user_id)
     template = templates.get_template('food_collection.html')
     content = template.render(
@@ -436,11 +436,13 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
     if not user_id:
         return unauthorized_access("/")
 
+    barcode = ""
+
     if food_query:
         if re.fullmatch(r"<[^>]+>", food_query):
             food_query = food_query[1:-1]
-
-        food_query = re.sub(r"^\d+\|", "", food_query)
+        elif re.match(r"^\d+\|", food_query):
+            barcode, food_query = food_query.split("|", maxsplit=1)
 
     template = templates.get_template('food_form.html')
     html = template.render(
@@ -450,6 +452,7 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
         add_url="/add-food",
         page="/add-food",
         query=food_query,
+        barcode=barcode,
         date=date,
         meal_type=meal_type)
     return HTMLResponse(content=html)

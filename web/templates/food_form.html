@@ -9,7 +9,7 @@
     <div>
         <div class="form-row">
             <label>Название продукта:
-                <input type="text" id="name" autocomplete="off" {% if food %}value="{{food.name}}"{% endif %}>
+                <input type="text" id="name" autocomplete="off" value="{% if food %}{{food.name}}{% elif query %}{{query.replace('"', '&quot;')}}{% endif %}">
             </label>
             <div class="error-center" id="name-error"></div>
         </div>
@@ -97,7 +97,7 @@
             </div>
 
             <div class="add-from-url-search-input">
-                <input type="text" id="url-box" autocomplete="off" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query}}{% endif %}">
+                <input type="text" id="url-box" autocomplete="off" placeholder="запрос или ссылка на FatSecret" value="{% if query %}{{query.replace('"', '&quot;')}}{% endif %}">
             </div>
 
             <div class="add-from-url-button">
@@ -555,6 +555,7 @@
         {% endfor %}
         {% else %}
         InitConversions()
+        {% if barcode %}AddAlias("{{barcode}}"){% endif %}
         {% endif %}
 
         {% if food and not back_url %}
