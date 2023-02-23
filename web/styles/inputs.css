@@ -10,7 +10,7 @@ select,
     color: var(--text-color);
     border-bottom: 1px solid var(--border-color);
     padding: 0;
-    background: var(--background-color);
+    background: transparent;
     font-size: 0.9rem;
     font-family: Roboto;
 }
@@ -40,7 +40,7 @@ select:disabled {
 }
 
 button {
-    background: var(--background-color);
+    background: transparent;
     border: 1px solid var(--border-color);
     color: 1px solid var(--disabled-color);
     border-radius: 5px;
@@ -67,7 +67,7 @@ textarea {
 
     border-color: var(--border-color);
     padding: 2px;
-    background: var(--background-color);
+    background: transparent;
     font-size: 0.9rem;
     resize: vertical;
     font-family: Roboto;
