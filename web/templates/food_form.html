@@ -115,6 +115,8 @@
     <script>
         var fatsecretPage = 0
         var fatsecretQuery = null
+
+        let haveUnsave = true
         let codeScaner = new BarcodeScaner("reader", (code) => EndBarcode(code))
 
         function InitConversions() {
@@ -397,6 +399,7 @@
                 }
                 else {
                     alert(response.message)
+                    haveUnsave = false
                     location.href = response.href
                 }
             })
@@ -418,6 +421,7 @@
                     return
                 }
 
+                haveUnsave = false
                 location.href = `/food-collection{% if query %}?food_query={{query}}{% endif %}`
             })
         }
@@ -534,7 +538,7 @@
         portionBox.addEventListener('change', () => InitConversions())
         conversionButton.addEventListener('click', () => AddConversion())
         saveButton.addEventListener('click', () => SaveFood())
-        backButton.addEventListener('click', () => history.back())
+        backButton.addEventListener('click', () => { haveUnsave = false; history.back() })
 
         {% if food %}
         {% for unit, value in food.conversions.items() %}
@@ -590,6 +594,11 @@
         {%if query and not food %}
         ParseFatsecretQuery("{{query.replace('"', '\\"')}}")
         {% endif %}
+
+        window.addEventListener('beforeunload', (event) => {
+            if (haveUnsave)
+                event.returnValue = `Вы уверены, что хотите покинуть эту страницу?`;
+        })
     </script>
     {% include "footer.html" %}
 </body>

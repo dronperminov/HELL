@@ -87,6 +87,7 @@
     <script src="/js/libs/html5-qrcode.min.v2.3.0.js"></script>
     <script src="/js/barcode_scaner.js"></script>
     <script>
+        let haveUnsave = true
         let codeScaner = new BarcodeScaner("reader", (code) => EndBarcode(code))
 
         function StartBarcode() {
@@ -242,6 +243,7 @@
                     return
                 }
 
+                haveUnsave = false
                 location.href = `/food-collection{% if query %}?food_query={{query}}{% endif %}`
             })
         }
@@ -315,6 +317,7 @@
                 }
 
                 alert(response.message)
+                haveUnsave = false
                 location.href = response.href
             })
         }
@@ -368,11 +371,16 @@
         removeButton.addEventListener('click', () => RemoveTemplate())
         {% endif %}
         let backButton = document.getElementById("back-button")
-        backButton.addEventListener('click', () => history.back())
+        backButton.addEventListener('click', () => { haveUnsave = false; history.back() })
         {% if template %}
         {% for food_item in template.meal_items %}AddFoodToTemplate({{food_item}}, {size: {{food_item.portion_size}},  unit: "{{food_item.portion_unit}}" })
         {% endfor %}
         {% endif %}
+
+        window.addEventListener('beforeunload', (event) => {
+            if (haveUnsave)
+                event.returnValue = `Вы уверены, что хотите покинуть эту страницу?`;
+        })
     </script>
     {% include "footer.html" %}
 </body>
