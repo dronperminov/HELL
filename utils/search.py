@@ -204,7 +204,7 @@ class Search:
             pipeline.append({"$project": {"meal_id": "$meal_info.v", "date": 1, "_id": 0}})
 
         pipeline.append({"$unwind": "$meal_id"})
-        pipeline.append({"$sort": {"date": -1, "meal_id": 1}})
+        pipeline.append({"$sort": {"date": -1, "meal_id": -1}})
 
         documents = self.diary_collection.aggregate(pipeline)
 
