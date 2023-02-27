@@ -134,3 +134,28 @@
     padding: 5px 0;
     text-align: center;
 }
+
+.food-table {
+    display: table;
+    width: 100%;
+}
+
+.food-cell {
+    display: table-cell;
+    vertical-align: bottom;
+    padding-right: 3px;
+}
+
+.food-cell:first-child {
+    width: 50%;
+}
+
+.food-cell:nth-child(3),
+.food-cell:nth-child(4) {
+    text-align: center;
+}
+
+.food-cell:last-child {
+    width: 50px;
+    padding-right: 0;
+}

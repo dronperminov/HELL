@@ -1,7 +1,7 @@
     {% include "head.html" %}
     <title>{{title}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/add-food.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/styles/add-food.css">
     <link rel="stylesheet" type="text/css" href="/styles/barcode.css">
 </head>
 <body>
@@ -16,12 +16,26 @@
 
         <div class="form-row">
             <label for="energy">Энергетическая ценность</label>
-            <input class="half right" type="number" step="0.01" min="0" value="{% if food %}{{food.energy}}{% else %}0{% endif %}" id="energy"> ккал /
-            <select class="auto" id="portion">
-                <option value="100 г" {% if food %}{%if food.portion == "100 г" %}selected{% endif %}{% else %}selected{% endif %}>100 г</option>
-                <option value="100 мл" {% if food and food.portion == "100 мл" %}selected{% endif %}>100 мл</option>
-            </select>
+            <div class="food-table">
+                <div class="food-cell">
+                    <input class="right" type="number" step="0.01" min="0" value="{% if food %}{{food.energy}}{% else %}0{% endif %}" id="energy">
+                </div>
+                <div class="food-cell">ккал</div>
+                <div class="food-cell">/</div>
+                <div class="food-cell">
+                    <input class="right" type="number" step="0.01" min="0" value="100" id="portion-size" oninput="UpdateRecalculate()">
+                </div>
+                <div class="food-cell">
+                    <select id="portion">
+                        <option value="100 г" {% if not food or food.portion == "100 г" %}selected{% endif %}>г</option>
+                        <option value="100 мл" {% if food and food.portion == "100 мл" %}selected{% endif %}>мл</option>
+                    </select>
+                </div>
+            </div>
             <div class="error-center" id="energy-error"></div>
+            <div class="right">
+                <button class="no-display" id="recalculate-btn" onclick="Recalculate()"><span class="fa fa-refresh"></span> Пересчитать на 100</button>
+            </div>
         </div>
 
         <div class="form-row">
@@ -118,6 +132,58 @@
 
         let haveUnsave = true
         let codeScaner = new BarcodeScaner("reader", (code) => EndBarcode(code))
+
+        function UpdateRecalculate() {
+            let portionSize = document.getElementById("portion-size")
+            let value = portionSize.value
+            let button = document.getElementById("recalculate-btn")
+            let error = document.getElementById("energy-error")
+
+            if (IsPositiveReal(value) && +value == 100)
+                button.classList.add("no-display")
+            else
+                button.classList.remove("no-display")
+
+            portionSize.classList.remove("error")
+            error.innerText = ""
+        }
+
+        function Recalculate() {
+            let portionSize = document.getElementById("portion-size")
+            let value = portionSize.value
+            let button = document.getElementById("recalculate-btn")
+            let error = document.getElementById("energy-error")
+            error.innerText = ""
+
+            if (!IsPositiveReal(value)) {
+                portionSize.classList.add("error")
+                error.innerText = "Вес продукта введён некорректно"
+                return false
+            }
+
+            let fields = [
+                {name: "energy", func: (value) => IsRealValue(value) && +value > 0, message: "Энергетическая ценность введена некорректно"},
+                {name: "fats", func: IsRealValue, message: "Жиры введены некорректно"},
+                {name: "proteins", func: IsRealValue, message: "Белки введены некорректно"},
+                {name: "carbohydrates", func: IsRealValue, message: "Углеводы введены некорректно"}
+            ]
+
+            if (ValidateFields(fields) === null)
+                return false
+
+            button.classList.add("no-display")
+            portionSize.value = 100
+
+            if (+value == 100)
+                return true
+
+            for (let name of ["energy", "proteins", "fats", "carbohydrates"]) {
+                let fieldBox = document.getElementById(name)
+                fieldBox.value = Round(fieldBox.value * 100 / value)
+            }
+
+            return true
+        }
 
         function InitConversions() {
             let portion = document.getElementById("portion").value
@@ -381,6 +447,10 @@
             if (food === null || conversions === null || aliases === null)
                 return
 
+            if (!Recalculate())
+                return
+
+            food = ValidateFields(fields)
             food.description = document.getElementById("description").innerText
             food.conversions = conversions
             food.aliases = aliases
@@ -515,7 +585,7 @@
             }
         }
 
-        for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
+        for (let key of ["energy", "proteins", "fats", "carbohydrates", "portion-size"]) {
             let input = document.getElementById(key)
             input.addEventListener("focus", () => input.select())
         }
