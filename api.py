@@ -443,6 +443,8 @@ def add_food_get(food_query: str = Query(None), date: str = Query(None), meal_ty
             food_query = food_query[1:-1]
         elif re.match(r"^\d+\|", food_query):
             barcode, food_query = food_query.split("|", maxsplit=1)
+        elif re.fullmatch(r"\d+", food_query):
+            barcode, food_query = food_query, ""
 
     template = templates.get_template('food_form.html')
     html = template.render(

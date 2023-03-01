@@ -1,7 +1,7 @@
     {% include "head.html" %}
     <title>{{title}} | HELL</title>
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
-    <link rel="stylesheet" type="text/css" href="/styles/add-food.css">
+    <link rel="stylesheet" type="text/css" href="/styles/add-food.css?v=3">
     <link rel="stylesheet" type="text/css" href="/styles/barcode.css">
 </head>
 <body>
@@ -9,7 +9,7 @@
     <div>
         <div class="form-row">
             <label>Название продукта:
-                <input type="text" id="name" autocomplete="off" value="{% if food %}{{food.name}}{% elif query %}{{query.replace('"', '&quot;')}}{% endif %}">
+                <input type="text" id="name" autocomplete="off" value="{% if food %}{{food.name}}{% endif %}">
             </label>
             <div class="error-center" id="name-error"></div>
         </div>
