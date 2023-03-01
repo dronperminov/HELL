@@ -3,7 +3,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
     <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=4">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
 </head>
 <body>
@@ -18,8 +18,7 @@
     <div class="diary" id="diary">
         <div class="diary-date" id="date-picker"></div>
 
-        {% if settings.show_calories %}
-        <div class="day-statistic">
+        <div class="day-statistic{% if not settings.show_calories %} no-display{% endif %}">
             <div class="day-statistic-cell">
                 <div class="day-statistic-cell-value"><span id="day-statistic-value-energy"></span> ккал</div>
                 <div class="day-statistic-cell-text">Потреблено</div>
@@ -29,7 +28,6 @@
                 <div class="day-statistic-cell-text"><span id="day-statistic-lost-text-energy"></span></div>
             </div>
         </div>
-        {% endif %}
 
         {% for meal_type, meals in meal_info.items() %}
             <div class="meal-item" data-meal-type="{{meal_type}}">
@@ -805,12 +803,19 @@
         function UpdateLimits() {
             let statistic = GetTotalStatistic()
 
+            let valueSpan = document.getElementById("day-statistic-value-energy")
+            valueSpan.innerText = Round(statistic["energy"])
+            let dayLimitEnergy = document.getElementById("day-limits-energy")
+
             for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
                 let limit = document.getElementById(`limit-${key}`).innerText.trim()
                 let lostSpan = document.getElementById(`limit-lost-${key}`)
 
                 if (limit.length == 0) {
                     lostSpan.parentNode.classList.add("no-display")
+
+                    if (key == "energy")
+                        dayLimitEnergy.classList.add("no-display")
                     continue
                 }
 
@@ -822,17 +827,14 @@
                 else
                     lostSpan.innerText = `сверх ${-lost}`
 
-                {% if settings.show_calories %}
                 if (key != "energy")
                     continue
 
-                let valueSpan = document.getElementById(`day-statistic-value-${key}`)
+                dayLimitEnergy.classList.remove("no-display")
                 lostSpan = document.getElementById(`day-statistic-lost-${key}`)
                 let lostTextSpan = document.getElementById(`day-statistic-lost-text-${key}`)
-                valueSpan.innerText = Round(statistic[key])
                 lostSpan.innerText = Math.abs(lost)
                 lostTextSpan.innerText = lost > 0 ? `Осталось` : `Превышение`
-                {% endif %}
             }
         }
 
@@ -877,20 +879,17 @@
         }
 
         function AddLimits() {
+            let dayLimitEnergy = document.getElementById("day-limits-energy")
             let limits = document.getElementById("limits")
             let addButton = document.getElementById("add-limits-button")
             let removeButton = document.getElementById("remove-limits-button")
             let saveButton = document.getElementById("save-limits-button")
 
+            dayLimitEnergy.classList.remove("no-display")
             limits.classList.remove("no-display")
             removeButton.classList.remove("no-display")
             addButton.classList.add("no-display")
             saveButton.classList.remove("no-display")
-
-            {% if settings.show_calories %}
-            let dayLimitEnergy = document.getElementById("day-limits-energy")
-            dayLimitEnergy.classList.remove("no-display")
-            {% endif %}
 
             UpdateLimits()
         }
@@ -899,6 +898,7 @@
             if (!confirm("Вы уверены, что хотите удалить лимиты?"))
                 return
 
+            let dayLimitEnergy = document.getElementById("day-limits-energy")
             let limits = document.getElementById("limits")
             let addButton = document.getElementById("add-limits-button")
             let removeButton = document.getElementById("remove-limits-button")
@@ -912,14 +912,10 @@
                 }
 
                 error.innerText = ""
+                dayLimitEnergy.classList.add("no-display")
                 limits.classList.add("no-display")
                 removeButton.classList.add("no-display")
                 addButton.classList.remove("no-display")
-
-                {% if settings.show_calories %}
-                let dayLimitEnergy = document.getElementById("day-limits-energy")
-                dayLimitEnergy.classList.add("no-display")
-                {% endif %}
             })
         }
 
