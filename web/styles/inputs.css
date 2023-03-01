@@ -51,7 +51,7 @@ button {
 
 button:focus, button:hover {
     background: var(--active-button-background);
-    border-color: var(--active-button-background);
+    border-color: var(--active-button-border);
     color: var(--active-button-color);
 }
 

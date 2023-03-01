@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html {% if settings and settings.theme == "dark" %}data-theme="dark"{% endif %}>
+<html {% if settings %}data-theme="{{settings.theme}}"{% endif %}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -18,7 +18,16 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png">
-    <meta name="theme-color" content="{% if settings and settings.theme == "dark" %}#1c1b19{% else %}#fdfdfb{% endif %}">
+{% if settings %}
+    {% if settings.theme == "dark" %}
+    <meta name="theme-color" content="#1c1b19">
+    {% elif settings and settings.theme == "black-white" %}
+    <meta name="theme-color" content="#ffffff">
+    {% else %}
+    <meta name="theme-color" content="#fdfdfb">
+    {% endif %}
+{% endif %}
 
+    <link rel="stylesheet" type="text/css" href="/styles/themes.css">
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <link rel="stylesheet" href="/styles/font-awesome.min.css">

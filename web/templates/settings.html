@@ -17,6 +17,7 @@
                 <select id="theme-select" onchange="UpdateTheme()">
                     <option value="light" {% if settings.theme == "light" %}selected{% endif %}>светлая</option>
                     <option value="dark" {% if settings.theme == "dark" %}selected{% endif %}>тёмная</option>
+                    <option value="black-white" {% if settings.theme == "black-white" %}selected{% endif %}>чёрно-белая</option>
                 </select>
             </div>
         </div>
@@ -86,6 +87,15 @@
             let theme = document.getElementById('theme-select').value
             let html = document.getElementsByTagName("html")[0]
             html.setAttribute("data-theme", theme)
+
+            let themeColors = {
+                "dark": "#1c1b19",
+                "light": "#fdfdfb",
+                "black-white": "#ffffff"
+            }
+
+            let themeColor = document.querySelector('meta[name="theme-color"]')
+            themeColor.setAttribute('content', themeColors[theme])
         }
 
         function UncheckOnNoLimits() {
