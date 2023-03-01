@@ -24,6 +24,8 @@
 
     --selection-background: #3390ff;
     --selection-color: #e5f5ff;
+    --placeholder-color: #8e8e8e;
+
     --date-picker-selection-background: #cccccc80;
     --date-picker-selection-color: #e7f5f8;
     --date-picker-selection-range: #478ce5;
@@ -102,4 +104,46 @@
     --plot-background-color: #e7e7e780;
     --plot-color: #949494;
     --plot-axis-color: #bbb;
+}
+
+[data-theme="pink"] {
+    --text-color: #96464b;
+    --label-color: #3f3f3f;
+    --border-color: #96464b;
+    --background-color: #fff;
+    --disabled-color: #944848;
+    --success-color: #d21737;
+    --warning-color: #dd5b5b;
+    --select-background-color: #ffeaea8f;
+
+    --active-button-color: #fff;
+    --active-button-background: #ffabab;
+    --active-button-border: #ff7f7f;
+
+    --block-background-color: #ffdddd80;
+    --tabs-background-color: #eaeaea8f;
+    --template-image: url("/images/bread_pink.svg");
+    --background-image: url("/images/food_texture_pink.jpg");
+    --checkbox-image: url("/images/check_pink.svg");
+
+    --selection-background: #fd7d7d;
+    --selection-color: #fff;
+    --placeholder-color: #b78e8e;
+
+    --date-picker-selection-background: #fab3b380;
+    --date-picker-selection-color: #fff;
+    --date-picker-selection-range: #ffa9a9;
+
+    --menu-background: #ffdddd;
+    --menu-text-color: #ff7f7f;
+    --menu-hover-text-color: #d47575;
+    --menu-border-color: #ff7f7f;
+
+    --plot-background-color: #ffabab80;
+    --plot-color: #f89797;
+    --plot-axis-color: #f96b6b;
+
+    --plot-color1: #d45a6f;
+    --plot-color2: #ff7f7f;
+    --plot-color3: #fea97f;
 }

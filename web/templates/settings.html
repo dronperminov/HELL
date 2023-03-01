@@ -18,6 +18,7 @@
                     <option value="light" {% if settings.theme == "light" %}selected{% endif %}>светлая</option>
                     <option value="dark" {% if settings.theme == "dark" %}selected{% endif %}>тёмная</option>
                     <option value="black-white" {% if settings.theme == "black-white" %}selected{% endif %}>чёрно-белая</option>
+                    <option value="pink" {% if settings.theme == "pink" %}selected{% endif %}>розовая</option>
                 </select>
             </div>
         </div>
@@ -91,7 +92,8 @@
             let themeColors = {
                 "dark": "#1c1b19",
                 "light": "#fdfdfb",
-                "black-white": "#ffffff"
+                "black-white": "#ffffff",
+                "pink": "#fdd9d9"
             }
 
             let themeColor = document.querySelector('meta[name="theme-color"]')

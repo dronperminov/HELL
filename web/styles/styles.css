@@ -8,6 +8,11 @@
     color: var(--selection-color);
 }
 
+::placeholder {
+  color: var(--placeholder-color);
+  opacity: 1;
+}
+
 @font-face {
   font-family: PTSerif;
   src: url(/fonts/PTSerif-Regular.ttf);
