@@ -508,12 +508,18 @@
                     return
                 }
 
-                document.getElementById("name").value = food.name
                 document.getElementById("portion").value = food.portion
-                document.getElementById("energy").value = food.energy
-                document.getElementById("fats").value = food.fats
-                document.getElementById("proteins").value = food.proteins
-                document.getElementById("carbohydrates").value = food.carbohydrates
+                document.getElementById("portion-size").value = 100
+                UpdateRecalculate()
+
+                for (let key of ["name", "energy","fats", "proteins", "carbohydrates"]) {
+                    let input = document.getElementById(key)
+                    input.value = food[key]
+                    input.classList.remove("error")
+
+                    document.getElementById(`${key}-error`).innerText = ""
+                }
+
                 window.scrollTo({top: 0, behavior: 'smooth'})
 
                 let block = document.getElementById('conversions-box')
