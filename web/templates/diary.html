@@ -31,7 +31,8 @@
 
         {% for meal_type, meals in meal_info.items() %}
             <div class="meal-item" data-meal-type="{{meal_type}}">
-                {% if meal_type not in names %}
+                {% set is_standard = meal_type in names or meal_type in settings.meal_types %}
+                {% if not is_standard %}
                 <div class="food-item-remove" style="opacity: 0">
                     <div class="food-item-remove-cell">
                         <span class="fa fa-trash"></span>
@@ -48,7 +49,7 @@
 
                         <span id="{{meal_type}}-name">{{names.get(meal_type, meal_type)}}</span>
                     </div>
-                    {% if meal_type not in names %}
+                    {% if not is_standard %}
                     <input type="text" class="meal-type meal-type-input no-display" id="{{meal_type}}-edit-name" placeholder="Введите название" list="names">
                     <div class="error-center"></div>
                     {% endif %}
@@ -64,7 +65,7 @@
                     <div class="meal-buttons">
                         <button onclick="location.href='/add-meal-barcode/{{date}}/{{meal_type}}'" id="{{meal_type}}-add-meal-barcode-icon"><span class="fa fa-camera"></span></button>
                         <button onclick="location.href='/add-meal/{{date}}/{{meal_type}}'" id="{{meal_type}}-add-meal-icon"><span class="fa fa-plus"></span></button>
-                        {% if meal_type not in names %}
+                        {% if not is_standard %}
                         <button onclick="RenameMealType('{{meal_type}}')" class="no-display" id="{{meal_type}}-edit-icon"><span class="fa fa-check"></span></button>
                         {% endif %}
                     </div>
@@ -83,7 +84,7 @@
                         <span class="meal-action-name">Создать шаблон из приёма пищи</span>
                     </div>
                     {% endif %}
-                    {% if meal_type not in names %}
+                    {% if not is_standard %}
                     <div class="meal-action" onclick="StartRenameMealType('{{meal_type}}')">
                         <button><span class="fa fa-pencil" id="{{meal_type}}-rename-icon"></span></button>
                         <span class="meal-action-name">Переименовать приём пищи</span>

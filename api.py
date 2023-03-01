@@ -758,7 +758,7 @@ def remove_template(template_id: str = Body(..., embed=True), user_id: str = Dep
 def get_meal_info(date: datetime, user_id: str, settings: UserSettings) -> Tuple[Dict[str, List[ObjectId]], Optional[Dict[str, Decimal128]]]:
     meal_info = OrderedDict()
 
-    for meal_type in constants.MEAL_TYPES:
+    for meal_type in constants.MEAL_TYPES + settings.meal_types:
         meal_info[meal_type] = []
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION]

@@ -23,6 +23,12 @@
             </div>
         </div>
 
+        <div class="setting-group-header">Дополнительные приёмы пищи</div>
+        <div class="setting-row">
+            <div id="meal-types"></div>
+            <button id="add-meal-type-btn" onclick="AddMealType()"><span class="fa fa-plus"></span> Добавить</button>
+        </div>
+
         <div class="setting-group-header">Лимиты</div>
         <div class="setting-row">
             <label for="limit-energy">Калории: </label>
@@ -100,6 +106,73 @@
             themeColor.setAttribute('content', themeColors[theme])
         }
 
+        function AddMealType(name = "") {
+            let mealTypes = document.getElementById("meal-types")
+            let block = MakeDiv("meal-type-block", mealTypes)
+
+            let div = MakeDiv("meal-type", block)
+            let error = MakeDiv("error-center", block)
+
+            let iconDiv = MakeDiv("meal-type-icon", div)
+            let icon = MakeDiv("fa fa-times", iconDiv, {}, "span")
+            icon.addEventListener("click", () => mealTypes.removeChild(block))
+
+            let inputDiv = MakeDiv("meal-type-name", div)
+            let input = MakeInput("text", inputDiv)
+            input.addEventListener("input", () => { input.classList.remove("error"); error.innerText = "" })
+
+            if (name)
+                input.value = name
+        }
+
+        function GetMealTypes() {
+            let mealTypes = []
+            let mealTypesSet = new Set()
+            let isCorrect = true
+
+            for (let div of document.getElementById("meal-types").children) {
+                let error = div.getElementsByClassName("error-center")[0]
+                let input = div.getElementsByTagName("input")[0]
+
+                let mealType = input.value.trim()
+                input.value = mealType
+
+                if (mealType.length == "") {
+                    error.innerText = "Название приёма пиши не может быть пустым"
+                    input.classList.add("error")
+                    isCorrect = false
+                    continue
+                }
+
+                let chars = GetInvalidMealTypeNameChars(mealType)
+                if (chars.length > 0) {
+                    error.innerText = `В названии приёма пищи присутствуют недопустимые символы (${chars.join('')})`
+                    input.classList.add("error")
+                    isCorrect = false
+                    continue
+                }
+
+                if (["завтрак", "обед", "ужин"].indexOf(mealType.toLowerCase()) > -1) {
+                    error.innerText = "Нельзя добавить стандартный приём пищи"
+                    input.classList.add("error")
+                    isCorrect = false
+                    continue
+                }
+
+                if (mealTypesSet.has(mealType.toLowerCase())) {
+                    error.innerText = "Введённый приём пиши уже присутствует"
+                    input.classList.add("error")
+                    isCorrect = false
+                    continue
+                }
+
+                mealTypes.push(mealType)
+                mealTypesSet.add(mealType.toLowerCase())
+            }
+
+            return isCorrect ? mealTypes : null
+        }
+
         function UncheckOnNoLimits() {
             for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
                 let value = document.getElementById(`limit-${key}`).innerText.trim()
@@ -122,6 +195,11 @@
         }
 
         function UpdateSettings() {
+            let mealTypes = GetMealTypes()
+
+            if (mealTypes === null)
+                return
+
             let limits = GetLimits()
 
             if (limits === null)
@@ -132,6 +210,7 @@
             let settings = {
                 user_id: "{{user_id}}",
                 theme: theme,
+                meal_types: mealTypes,
                 limits: limits,
                 add_limits: document.getElementById('add-limits').checked,
                 show_frequent: document.getElementById('show-frequent').checked,
@@ -149,6 +228,10 @@
                 alert("Настройки успешно сохранены")
             })
         }
+
+        {% for meal_type in settings.meal_types %}
+        AddMealType("{{meal_type}}")
+        {% endfor %}
     </script>
 
     {% include "footer.html" %}
