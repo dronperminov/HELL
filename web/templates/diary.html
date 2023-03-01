@@ -18,6 +18,19 @@
     <div class="diary" id="diary">
         <div class="diary-date" id="date-picker"></div>
 
+        {% if settings.show_calories %}
+        <div class="day-statistic">
+            <div class="day-statistic-cell">
+                <div class="day-statistic-cell-value"><span id="day-statistic-value-energy"></span> ккал</div>
+                <div class="day-statistic-cell-text">Потреблено</div>
+            </div>
+            <div class="day-statistic-cell{% if not have_limits %} no-display{% endif %}" id="day-limits-energy">
+                <div class="day-statistic-cell-value"><span id="day-statistic-lost-energy"></span> ккал</div>
+                <div class="day-statistic-cell-text"><span id="day-statistic-lost-text-energy"></span></div>
+            </div>
+        </div>
+        {% endif %}
+
         {% for meal_type, meals in meal_info.items() %}
             <div class="meal-item" data-meal-type="{{meal_type}}">
                 {% if meal_type not in names %}
@@ -808,6 +821,18 @@
                     lostSpan.innerText = `ещё ${lost}`
                 else
                     lostSpan.innerText = `сверх ${-lost}`
+
+                {% if settings.show_calories %}
+                if (key != "energy")
+                    continue
+
+                let valueSpan = document.getElementById(`day-statistic-value-${key}`)
+                lostSpan = document.getElementById(`day-statistic-lost-${key}`)
+                let lostTextSpan = document.getElementById(`day-statistic-lost-text-${key}`)
+                valueSpan.innerText = Round(statistic[key])
+                lostSpan.innerText = Math.abs(lost)
+                lostTextSpan.innerText = lost > 0 ? `Осталось` : `Превышение`
+                {% endif %}
             }
         }
 
@@ -862,6 +887,11 @@
             addButton.classList.add("no-display")
             saveButton.classList.remove("no-display")
 
+            {% if settings.show_calories %}
+            let dayLimitEnergy = document.getElementById("day-limits-energy")
+            dayLimitEnergy.classList.remove("no-display")
+            {% endif %}
+
             UpdateLimits()
         }
 
@@ -885,6 +915,11 @@
                 limits.classList.add("no-display")
                 removeButton.classList.add("no-display")
                 addButton.classList.remove("no-display")
+
+                {% if settings.show_calories %}
+                let dayLimitEnergy = document.getElementById("day-limits-energy")
+                dayLimitEnergy.classList.add("no-display")
+                {% endif %}
             })
         }
 

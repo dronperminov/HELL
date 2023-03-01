@@ -64,6 +64,11 @@
             <input type="checkbox" id="show-recent-all"{% if settings.show_recent_all %} checked{% endif %}><label for="show-recent-all">Недавно употреблённые (все)</label>
         </div>
 
+        <div class="setting-group-header">Прочее</div>
+        <div class="setting-row">
+            <input type="checkbox" id="show-calories"{% if settings.show_calories %} checked{% endif %}><label for="show-calories">Показывать потребление калорий</label>
+        </div>
+
         <div class="setting-row center">
             <button onclick="UpdateSettings()"><span class="fa fa-save"></span> Сохранить настройки</button>
         </div>
@@ -120,7 +125,8 @@
                 show_frequent: document.getElementById('show-frequent').checked,
                 show_frequent_all: document.getElementById('show-frequent-all').checked,
                 show_recent: document.getElementById('show-recent').checked,
-                show_recent_all: document.getElementById('show-recent-all').checked
+                show_recent_all: document.getElementById('show-recent-all').checked,
+                show_calories: document.getElementById('show-calories').checked,
 
             }
 
