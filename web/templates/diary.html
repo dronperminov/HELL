@@ -806,6 +806,8 @@
 
             let valueSpan = document.getElementById("day-statistic-value-energy")
             valueSpan.innerText = Round(statistic["energy"])
+
+            let limits = document.getElementById("limits")
             let dayLimitEnergy = document.getElementById("day-limits-energy")
 
             for (let key of ["energy", "proteins", "fats", "carbohydrates"]) {
@@ -831,7 +833,9 @@
                 if (key != "energy")
                     continue
 
-                dayLimitEnergy.classList.remove("no-display")
+                if (!limits.classList.contains("no-display"))
+                    dayLimitEnergy.classList.remove("no-display")
+
                 lostSpan = document.getElementById(`day-statistic-lost-${key}`)
                 let lostTextSpan = document.getElementById(`day-statistic-lost-text-${key}`)
                 lostSpan.innerText = Math.abs(lost)
