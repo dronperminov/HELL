@@ -55,26 +55,44 @@
         <div class="error" id="error-carbohydrates"></div>
 
         <div class="setting-row">
-            <input type="checkbox" onchange="UncheckOnNoLimits()" id="add-limits"{% if settings.add_limits %} checked{% endif %}><label for="add-limits">Добавлять каждый день</label>
+            <label class="switch-checkbox">
+                <input type="checkbox" onchange="UncheckOnNoLimits()" id="add-limits"{% if settings.add_limits %} checked{% endif %}>
+                <span class="switch-checkbox-text">Добавлять каждый день</span>
+            </label>
         </div>
 
         <div class="setting-group-header">Вкладки продуктов</div>
         <div class="setting-row">
-            <input type="checkbox" id="show-frequent"{% if settings.show_frequent %} checked{% endif %}><label for="show-frequent">Часто употребляемые (приём пищи)</label>
+            <label class="switch-checkbox">
+                <input type="checkbox" id="show-frequent"{% if settings.show_frequent %} checked{% endif %}>
+                <span class="switch-checkbox-text">Часто употребляемые (приём пищи)</span>
+            </label>
         </div>
         <div class="setting-row">
-            <input type="checkbox" id="show-frequent-all"{% if settings.show_frequent_all %} checked{% endif %}><label for="show-frequent-all">Часто употребляемые (все)</label>
+            <label class="switch-checkbox">
+                <input type="checkbox" id="show-frequent-all"{% if settings.show_frequent_all %} checked{% endif %}>
+                <span class="switch-checkbox-text">Часто употребляемые (все)</span>
+            </label>
         </div>
         <div class="setting-row">
-            <input type="checkbox" id="show-recent"{% if settings.show_recent %} checked{% endif %}><label for="show-recent">Недавно употреблённые (приём пищи)</label>
+            <label class="switch-checkbox">
+                <input type="checkbox" id="show-recent"{% if settings.show_recent %} checked{% endif %}>
+                <span class="switch-checkbox-text">Недавно употреблённые (приём пищи)</span>
+            </label>
         </div>
         <div class="setting-row">
-            <input type="checkbox" id="show-recent-all"{% if settings.show_recent_all %} checked{% endif %}><label for="show-recent-all">Недавно употреблённые (все)</label>
+            <label class="switch-checkbox">
+                <input type="checkbox" id="show-recent-all"{% if settings.show_recent_all %} checked{% endif %}>
+                <span class="switch-checkbox-text">Недавно употреблённые (все)</span>
+            </label>
         </div>
 
         <div class="setting-group-header">Прочее</div>
         <div class="setting-row">
-            <input type="checkbox" id="show-calories"{% if settings.show_calories %} checked{% endif %}><label for="show-calories">Показывать потребление калорий</label>
+            <label class="switch-checkbox">
+                <input type="checkbox" id="show-calories"{% if settings.show_calories %} checked{% endif %}>
+                <span class="switch-checkbox-text">Показывать потребление калорий</span>
+            </label>
         </div>
 
         <div class="setting-row center">

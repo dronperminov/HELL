@@ -40,8 +40,10 @@
         <div class="statistic-name">Все приёмы пищи</div>
         {% if start_date != end_date %}
         <div>
-            <input type="checkbox" id="total-donut-plot" onchange="PlotStatistic(CALORIES_DATA, 'total')">
-            <label for="total-donut-plot">Показывать круговую диаграмму</label>
+            <label class="switch-checkbox">
+                <input type="checkbox" id="total-donut-plot" onchange="PlotStatistic(CALORIES_DATA, 'total')">
+                <span class="switch-checkbox-text">Показывать круговую диаграмму</span>
+            </label>
         </div>
         {% endif %}
         <div class="h-scrollable">
@@ -65,8 +67,10 @@
                 <div class="statistic-block-name">{{meal_name}}</div>
                 {% if start_date != end_date %}
                 <div>
-                    <input type="checkbox" id="{{meal_type}}-donut-plot" onchange="PlotStatistic(CALORIES_MEAL_TYPE_DATA['{{meal_type}}'], '{{meal_type}}')">
-                    <label for="{{meal_type}}-donut-plot">Показывать круговую диаграмму</label>
+                    <label class="switch-checkbox">
+                        <input type="checkbox" id="{{meal_type}}-donut-plot" onchange="PlotStatistic(CALORIES_MEAL_TYPE_DATA['{{meal_type}}'], '{{meal_type}}')">
+                        <span class="switch-checkbox-text">Показывать круговую диаграмму</span>
+                    </label>
                 </div>
                 {% endif %}
                 <div class="h-scrollable">

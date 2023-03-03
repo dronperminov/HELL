@@ -45,8 +45,10 @@
         <div class="parameter-plot-info" id="parameter-{{parameter.name}}-plot-info"></div>
         <div class="parameter-plot-view">
             <div class="parameter-plot-options">
-                <input type="checkbox" id="parameter-{{parameter.name}}-show-trend" onchange="BuildPlot('{{parameter.name}}')">
-                <label for="parameter-{{parameter.name}}-show-trend">Показывать линию тренда</label>
+                <label class="switch-checkbox">
+                    <input type="checkbox" id="parameter-{{parameter.name}}-show-trend" onchange="BuildPlot('{{parameter.name}}')">
+                    <span class="switch-checkbox-text">Показывать линию тренда</span>
+                </label>
             </div>
             <div class="parameter-plot-svg">
                 <svg id="parameter-{{parameter.name}}-svg"></svg>
