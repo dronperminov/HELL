@@ -23,12 +23,6 @@
             </div>
         </div>
 
-        <div class="setting-group-header">Дополнительные приёмы пищи</div>
-        <div class="setting-row">
-            <div id="meal-types"></div>
-            <button id="add-meal-type-btn" onclick="AddMealType()"><span class="fa fa-plus"></span> Добавить</button>
-        </div>
-
         <div class="setting-group-header">Лимиты</div>
         <div class="setting-row">
             <label for="limit-energy">Калории: </label>
@@ -87,6 +81,12 @@
             </label>
         </div>
 
+        <div class="setting-group-header">Дополнительные приёмы пищи</div>
+        <div class="setting-row">
+            <div id="meal-types"></div>
+            <button id="add-meal-type-btn" onclick="AddMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
+        </div>
+
         <div class="setting-group-header">Прочее</div>
         <div class="setting-row">
             <label class="switch-checkbox">
@@ -124,7 +124,22 @@
             themeColor.setAttribute('content', themeColors[theme])
         }
 
-        function AddMealType(name = "") {
+        function UpdateMealTypeDays(value, weekDaysInputs) {
+            let names = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
+
+            for (let name of names)
+                weekDaysInputs[name].checked = false
+
+            if (value == "weekdays")
+                names = names.slice(0, 5)
+            else if (value == "weekends")
+                names = names.slice(5)
+
+            for (let name of names)
+                weekDaysInputs[name].checked = true
+        }
+
+        function AddMealType(name = "", days = "") {
             let mealTypes = document.getElementById("meal-types")
             let block = MakeDiv("meal-type-block", mealTypes)
 
@@ -139,18 +154,96 @@
             let input = MakeInput("text", inputDiv)
             input.addEventListener("input", () => { input.classList.remove("error"); error.innerText = "" })
 
+            let daysDiv = MakeDiv("meal-type-days", inputDiv)
+            let daysLabel = MakeLabel(daysDiv, "", "Добавлять")
+            let daysSelect = MakeSelect(daysLabel, "auto", [
+                {"value": "everyday", "text": "каждый день"},
+                {"value": "weekdays", "text": "по будням"},
+                {"value": "weekends", "text": "по выходным"},
+                {"value": "custom", "text": "по дням недели"},
+            ])
+
+            let weekDaysDiv = MakeDiv("meal-type-weekdays no-display", daysDiv)
+            let weekDaysInputs = {}
+
+            for (let name of ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]) {
+                let weekDay = MakeDiv("meal-type-weekday", weekDaysDiv)
+                MakeDiv("meal-type-weekday-name", weekDay, {innerText: name})
+                let label = MakeLabel(weekDay, "switch-checkbox")
+                let checkbox = MakeInput("checkbox", label, {"data-name": name})
+                let span = MakeDiv("switch-checkbox-text", label, {}, "span")
+
+                checkbox.addEventListener("change", () => { input.classList.remove("error"); error.innerText = "" })
+                weekDaysInputs[name] = checkbox
+            }
+
+            daysSelect.addEventListener("change", () => {
+                if (daysSelect.value == "custom") {
+                    weekDaysDiv.classList.remove("no-display")
+                }
+                else {
+                    weekDaysDiv.classList.add("no-display")
+                    UpdateMealTypeDays(daysSelect.value, weekDaysInputs)
+                }
+
+                input.classList.remove("error")
+                error.innerText = ""
+            })
+
             if (name)
                 input.value = name
+
+            if (!days)
+                return
+
+            if (["everyday", "weekdays", "weekends"].indexOf(days) > -1) {
+                daysSelect.value = days
+                UpdateMealTypeDays(days, weekDaysInputs)
+            }
+            else {
+                daysSelect.value = "custom"
+                weekDaysDiv.classList.remove("no-display")
+
+                for (let day of days.split("-"))
+                    weekDaysInputs[day].checked = true
+            }
+        }
+
+        function GetMealTypeDays(div, days) {
+            if (days != "custom")
+                return days
+
+            let weekdays = div.getElementsByClassName("meal-type-weekdays")[0]
+            days = []
+
+            for (let dayInput of weekdays.getElementsByTagName("input"))
+                if (dayInput.checked)
+                    days.push(dayInput.getAttribute("data-name"))
+
+            if (days.length == 7)
+                return "everyday"
+
+            days = days.join("-")
+
+            if (days == "сб-вс")
+                return "weekends"
+
+            if (days == "пн-вт-ср-чт-пт")
+                return "weekdays"
+
+            return days
         }
 
         function GetMealTypes() {
-            let mealTypes = []
+            let names = []
+            let days = {}
             let mealTypesSet = new Set()
             let isCorrect = true
 
             for (let div of document.getElementById("meal-types").children) {
                 let error = div.getElementsByClassName("error-center")[0]
                 let input = div.getElementsByTagName("input")[0]
+                let select = div.getElementsByTagName("select")[0]
 
                 let mealType = input.value.trim()
                 input.value = mealType
@@ -184,11 +277,21 @@
                     continue
                 }
 
-                mealTypes.push(mealType)
+                let mealDays = select.value
+
+                names.push(mealType)
+                days[mealType] = GetMealTypeDays(div, mealDays)
+
+                if (days[mealType] == "") {
+                    error.innerText = "Необходимо выбрать хотя бы один день"
+                    input.classList.remove("error")
+                    isCorrect = false
+                }
+
                 mealTypesSet.add(mealType.toLowerCase())
             }
 
-            return isCorrect ? mealTypes : null
+            return isCorrect ? {names, days} : null
         }
 
         function UncheckOnNoLimits() {
@@ -228,7 +331,8 @@
             let settings = {
                 user_id: "{{user_id}}",
                 theme: theme,
-                meal_types: mealTypes,
+                meal_types: mealTypes.names,
+                meal_type_days: mealTypes.days,
                 limits: limits,
                 add_limits: document.getElementById('add-limits').checked,
                 show_frequent: document.getElementById('show-frequent').checked,
@@ -236,7 +340,6 @@
                 show_recent: document.getElementById('show-recent').checked,
                 show_recent_all: document.getElementById('show-recent-all').checked,
                 show_calories: document.getElementById('show-calories').checked,
-
             }
 
             SendRequest("/settings", settings).then((response) => {
@@ -248,7 +351,7 @@
         }
 
         {% for meal_type in settings.meal_types %}
-        AddMealType("{{meal_type}}")
+        AddMealType("{{meal_type}}", "{{settings.meal_type_days.get(meal_type, 'days')}}")
         {% endfor %}
     </script>
 

@@ -10,6 +10,7 @@ class UserSettings:
     user_id: str
     theme: str
     meal_types: List[str]
+    meal_type_days: Dict[str, str]
     limits: Dict[str, Decimal]
     add_limits: bool
     show_frequent: bool
@@ -22,6 +23,7 @@ class UserSettings:
     def from_dict(cls, data: dict) -> "UserSettings":
         theme = data.get("theme", "light")
         meal_types = data.get("meal_types", [])
+        meal_type_days = data.get("meal_type_days", {})
         limits = {name: Decimal(str(value)) for name, value in data.get("limits", {}).items()}
         add_limits = data.get("add_limits", False)
         show_frequent = data.get("show_frequent", True)
@@ -30,13 +32,14 @@ class UserSettings:
         show_recent_all = data.get("show_recent_all", True)
         show_calories = data.get("show_calories", True)
 
-        return cls(data["user_id"], theme, meal_types, limits, add_limits, show_frequent, show_frequent_all, show_recent, show_recent_all, show_calories)
+        return cls(data["user_id"], theme, meal_types, meal_type_days, limits, add_limits, show_frequent, show_frequent_all, show_recent, show_recent_all, show_calories)
 
     def to_dict(self) -> dict:
         return {
             "user_id": ObjectId(self.user_id),
             "theme": self.theme,
             "meal_types": self.meal_types,
+            "meal_type_days": self.meal_type_days,
             "limits": self.limits_to_dict(),
             "add_limits": self.add_limits,
             "show_frequent": self.show_frequent,

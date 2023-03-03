@@ -755,11 +755,29 @@ def remove_template(template_id: str = Body(..., embed=True), user_id: str = Dep
     return JSONResponse({"status": "ok"})
 
 
+def need_add_meal_type(days: str, weekday: int) -> bool:
+    if days == constants.EVERYDAY:
+        return True
+
+    if days == constants.WEEKDAYS:
+        return weekday < 5
+
+    if days == constants.WEEKENDS:
+        return weekday >= 5
+
+    return ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][weekday] in days.split("-")
+
+
 def get_meal_info(date: datetime, user_id: str, settings: UserSettings) -> Tuple[Dict[str, List[ObjectId]], Optional[Dict[str, Decimal128]]]:
     meal_info = OrderedDict()
+    weekday = date.weekday()
 
-    for meal_type in constants.MEAL_TYPES + settings.meal_types:
+    for meal_type in constants.MEAL_TYPES:
         meal_info[meal_type] = []
+
+    for meal_type in settings.meal_types:
+        if need_add_meal_type(settings.meal_type_days[meal_type], weekday):
+            meal_info[meal_type] = []
 
     diary_collection = database[constants.MONGO_DIARY_COLLECTION]
     meal_doc = diary_collection.find_one({"user_id": ObjectId(user_id), "date": date})

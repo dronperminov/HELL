@@ -34,3 +34,7 @@ STATISTIC_KEYS = ["proteins", "fats", "carbohydrates", "energy"]
 
 SLICE_NAMES = ["ломтик"]
 PORTION_NAMES = ["порция", "мерных скупа", "чашка"]
+
+EVERYDAY = "everyday"
+WEEKDAYS = "weekdays"
+WEEKENDS = "weekends"

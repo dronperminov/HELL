@@ -68,3 +68,18 @@
     display: table-cell;
     width: calc(100% - 15px);
 }
+
+.meal-type-days {
+    padding-top: 5px;
+}
+
+.meal-type-weekdays {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.meal-type-weekday {
+    display: table-cell;
+    text-align: left;
+}

@@ -84,6 +84,33 @@ function MakeInput(type, parent, attributes = null) {
     return input
 }
 
+function MakeSelect(parent, className, options) {
+    let select = document.createElement("select")
+    select.className = className
+
+    for (let i = 0; i < options.length; i++) {
+        let option = document.createElement("option")
+        option.value = options[i].value
+        option.text = options[i].text
+
+        if (options[i].selected)
+            option.selected = true
+
+        select.appendChild(option)
+    }
+
+    parent.appendChild(select)
+    return select
+}
+
+function MakeLabel(parent, className = "", text = "") {
+    let label = document.createElement("label")
+    label.innerText = text
+    label.className = className
+    parent.appendChild(label)
+    return label
+}
+
 function MakeIcon(parent, className, onclick = null) {
     let icon = document.createElement("button")
     let iconSpan = document.createElement("span")
