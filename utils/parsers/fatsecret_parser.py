@@ -29,7 +29,7 @@ class FatSecretParser:
         texts = self.__get_div_texts(div)
         try:
             title = soup.find("title")
-            name = title.text.replace(" Калории и Пищевая Ценность", "")
+            name = re.sub(r"\s+Калории и Пищевая Ценность", "", title.text)
             portion, conversions, scale = self.__get_portion_info(texts[-11].replace(",", "."))
             energy = self.__round(Decimal(texts[-7].split(' ')[0]) * scale)
             fats = self.__round(Decimal(texts[-5][:-1].replace(',', '.')) * scale)

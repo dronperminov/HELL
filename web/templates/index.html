@@ -151,11 +151,12 @@
 
         function ValidateParameters(nameInput, valueInput, unitInput, errorDiv) {
             let name = nameInput.value.trim()
-            let value = valueInput.value
+            let value = valueInput.value.replace(",", ".").replace(/^\./g, "0.")
             let unit = unitInput.value.trim()
             let errors = []
 
             nameInput.value = name
+            valueInput.value = value
             unitInput.value = unit
 
             if (!IsNotEmptyValue(name)) {
@@ -316,7 +317,7 @@
         function SaveParameterValue(date, name) {
             let valueInput = document.getElementById(`parameter-${name}-value`)
             let errorDiv = document.getElementById(`parameter-${name}-error`)
-            let value = valueInput.innerText.replace(/\s+/g, "")
+            let value = valueInput.innerText.replace(/\s+/g, "").replace(",", ".").replace(/^\./g, "0.")
             let valueOriginal = valueInput.getAttribute("data-value")
 
             valueInput.innerText = value

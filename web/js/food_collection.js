@@ -69,7 +69,7 @@ function UpdatePortionInfo(foodId) {
     let unitInput = document.getElementById(`${foodId}-portion-unit`)
     let portionError = document.getElementById(`${foodId}-portion-error`)
 
-    let size = sizeInput.value
+    let size = sizeInput.value.replace(/^\./g, "0.")
     let unit = unitInput.value
     let conversions = {}
 
@@ -126,8 +126,9 @@ function TogglePortionEdit(id) {
 function ValidatePortion(id, zeroAvailable = false) {
     let portionSize = document.getElementById(`${id}-portion-size`)
     let portionError = document.getElementById(`${id}-portion-error`)
+    let value = portionSize.value.replace(/^\./g, "0.")
 
-    if (!IsPositiveReal(portionSize.value) && (!zeroAvailable || !IsZero(portionSize.value))) {
+    if (!IsPositiveReal(value) && (!zeroAvailable || !IsZero(value))) {
         portionSize.focus()
         portionSize.select()
         portionError.innerText = "Размер порции введён некорректно"
@@ -135,7 +136,8 @@ function ValidatePortion(id, zeroAvailable = false) {
     }
 
     portionError.innerText = ""
-    return portionSize.value
+    portionSize.value = value
+    return value
 }
 
 function MakeFoodItemSelect(parent, conversions, attributes = null) {

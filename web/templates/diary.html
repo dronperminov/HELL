@@ -3,7 +3,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
     <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=4">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=5">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
 </head>
 <body>
@@ -407,6 +407,7 @@
             let portionSize = document.getElementById(`${mealId}-portion-size`)
             let portionUnit = document.getElementById(`${mealId}-portion-unit`)
             let portionError = document.getElementById(`${mealId}-portion-error`)
+            portionSize.value = portionSize.value.replace(/^\./g, "0.")
             portionError.innerText = ""
 
             if (!IsPositiveReal(portionSize.value)) {

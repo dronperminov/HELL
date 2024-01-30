@@ -222,6 +222,7 @@
             let portionSize = document.getElementById(`${foodId}-portion-size`)
             let portionUnit = document.getElementById(`${foodId}-portion-unit`)
             let portionError = document.getElementById(`${foodId}-portion-error`)
+            portionSize.value = portionSize.value.replace(/^\./g, "0.")
 
             if (!IsPositiveReal(portionSize.value)) {
                 portionSize.focus()
@@ -252,6 +253,7 @@
             let portionSize = document.getElementById(`${templateId}-portion-size`)
             let portionUnit = document.getElementById(`${templateId}-portion-unit`)
             let portionError = document.getElementById(`${templateId}-portion-error`)
+            portionSize.value = portionSize.value.replace(/^\./g, "0.")
 
             if (!IsPositiveReal(portionSize.value)) {
                 portionSize.focus()
