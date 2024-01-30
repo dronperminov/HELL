@@ -3,7 +3,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/inputs.css">
     <link rel="stylesheet" type="text/css" href="/styles/plot.css">
     <link rel="stylesheet" type="text/css" href="/styles/date-picker.css">
-    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=5">
+    <link rel="stylesheet" type="text/css" href="/styles/diary.css?v=6">
     <link rel="stylesheet" type="text/css" href="/styles/portion-edit.css">
 </head>
 <body>
@@ -148,6 +148,7 @@
         <button id="add-meal-type-button" onclick="CreateMealType()"><span class="fa fa-plus"></span> Добавить приём пищи</button>
         <button class="no-display" id="cancel-add-meal-type-button" onclick="CancelCreateMealType()"><span class="fa fa-ban"></span> Отменить</button>
         <button id="add-limits-button" {% if have_limits %}class="no-display"{% endif %} onclick="AddLimits()"><span class="fa fa-plus"></span> Добавить лимиты</button>
+        <button id="export-day-button" onclick="ExportDiaryDay()"><span class="fa fa-save"></span> Экспортировать день</button>
     </div>
 
     <div class="diary-limits{% if not have_limits %} no-display{% endif %}" id="limits">
@@ -217,6 +218,7 @@
     <script src="/js/chart.js"></script>
     <script src="/js/swipe.js"></script>
     <script src="/js/date_picker.js"></script>
+    <script src="/js/libs/html2canvas.min.js"></script>
 
     <script>
         let datePicker = new DatePicker("{{date}}", "date-picker", (date) => location.href = `/diary?date=${date}`, [{% for date in used_dates %}"{{date}}", {% endfor %}])
@@ -801,6 +803,21 @@
             location.href = `/create-template?date={{date}}&meal_type=${mealType}`
         }
 
+        /****************************************** EXPORT ******************************************/
+        function ExportDiaryDay() {
+            document.body.classList.add("export-body")
+
+            html2canvas(document.body).then(function(canvas) {
+                document.body.classList.remove("export-body")
+
+                let a = document.createElement('a')
+                a.href = canvas.toDataURL("image/png")
+                a.download = "diary_{{date}}.png"
+                a.click()
+            })
+        }
+
+        /**************************************** END EXPORT ****************************************/
         /****************************************** LIMITS ******************************************/
         function UpdateLimits() {
             let statistic = GetTotalStatistic()

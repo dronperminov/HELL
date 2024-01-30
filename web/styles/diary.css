@@ -1,3 +1,15 @@
+.export-body {
+    margin: 0;
+    display: inline-block;
+    min-height: unset;
+}
+
+.export-body .menu,
+.export-body .sign-icon,
+.export-body .settings-icon {
+    display: none !important;
+}
+
 .diary {
     
 }
