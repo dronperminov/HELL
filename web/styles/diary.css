@@ -1,7 +1,6 @@
 .export-body {
-    margin: 0;
+    margin-bottom: 0;
     padding-top: 0;
-    display: inline-block;
     min-height: unset;
 }
 
