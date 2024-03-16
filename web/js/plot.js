@@ -34,10 +34,11 @@ Plot.prototype.PreprocessX = function(x) {
     let max = this.GetDelta(x[x.length - 1], x[0])
     let min = Infinity
 
-    for (let i = 1; i < x.length; i++) {
+    for (let i = 1; i < x.length; i++)
         min = Math.min(min, this.GetDelta(x[i], x[i - 1]))
+
+    for (let i = 1; i < x.length; i++)
         x[i] = this.GetDelta(x[i], x[0]) / max
-    }
 
     if (x.length == 2) {
         min = 1
@@ -187,6 +188,8 @@ Plot.prototype.PlotAxes = function(svg, width, height, ymin, ymax) {
 }
 
 Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", keyX = "date", keyY = "value") {
+    let scrollLeft = svg.parentNode.scrollLeft
+
     svg.innerHTML = ''
     svg.style.width = null
 
@@ -255,4 +258,5 @@ Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", k
     }
 
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`)
+    svg.parentNode.scrollLeft = scrollLeft
 }
