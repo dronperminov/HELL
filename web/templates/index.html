@@ -426,7 +426,7 @@
             }
             else if (period == "last-100days") {
                 let start = new Date(year, month, day - 100)
-                startDate = FormatDate(start.getDate(), start.getMonth() + 1, start.getFullYear())
+                startDate = FormatDate(start.getDate(), start.getMonth(), start.getFullYear())
                 endDate = FormatDate(day, month, year)
             }
 
