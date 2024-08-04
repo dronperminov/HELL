@@ -1,4 +1,6 @@
 import re
+from collections import defaultdict
+from datetime import datetime
 from decimal import Decimal
 from typing import List, Dict
 
@@ -127,33 +129,31 @@ class Search:
 
         if meal_type:
             pipeline.append({"$match": {f"meal_info.{meal_type}": {"$exists": True}}})
-            pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "_id": 0}})
+            pipeline.append({"$project": {f"meal_id": f"$meal_info.{meal_type}", "date": 1, "_id": 0}})
         else:
-            pipeline.append({"$project": {"meal_info": {"$objectToArray": "$meal_info"}}})
+            pipeline.append({"$project": {"meal_info": {"$objectToArray": "$meal_info"}, "date": 1}})
             pipeline.append({"$unwind": "$meal_info"})
-            pipeline.append({"$project": {"meal_id": "$meal_info.v", "_id": 0}})
+            pipeline.append({"$project": {"meal_id": "$meal_info.v", "date": 1, "_id": 0}})
 
         pipeline.append({"$unwind": "$meal_id"})
 
-        documents = self.diary_collection.aggregate(pipeline)
-
-        meal_ids = [document["meal_id"] for document in documents]
-        food_items = self.__get_frequent_foods(meal_ids)
-        templates = self.__get_frequent_templates(meal_ids, user_id)
+        today = datetime.now()
+        documents = list(self.diary_collection.aggregate(pipeline))
+        meal_id2date = {document["meal_id"]: document["date"] for document in documents}
+        food_items = self.__get_frequent_foods(meal_id2date, today)
+        templates = self.__get_frequent_templates(meal_id2date, user_id, today)
         frequent = sorted(food_items + templates, key=lambda v: v["count"], reverse=True)
+
         return frequent
 
-    def __get_frequent_foods(self, meal_ids: List[ObjectId]) -> List[dict]:
-        documents = self.meal_collection.aggregate([
-            {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": False}}},
-            {"$group": {"_id": "$food_id", "count": {"$sum": 1}}},
-            {"$match": {"count": {"$gte": constants.FREQUENT_MEAL_MIN_COUNT}}},
-        ])
+    def __get_frequent_foods(self, meal_id2date: Dict[ObjectId, datetime], today: datetime) -> List[dict]:
+        food2count = defaultdict(int)
 
-        food2count = {document["_id"]: document["count"] for document in documents}
-        food_ids = [food_id for food_id in food2count]
+        for document in self.meal_collection.find({"_id": {"$in": list(meal_id2date.keys())}, "group_id": {"$exists": False}}):
+            food2count[document["food_id"]] += constants.FREQUENT_MEAL_ALPHA ** (today - meal_id2date[document["_id"]]).days
+        food2count = {food_id: count for food_id, count in food2count.items()}
 
-        food_items = list(self.food_collection.find({"_id": {"$in": food_ids}}))
+        food_items = list(self.food_collection.find({"_id": {"$in": [food_id for food_id in food2count]}}))
         self.__process_food_items(food_items)
 
         for food_item in food_items:
@@ -161,15 +161,15 @@ class Search:
 
         return food_items
 
-    def __get_frequent_templates(self, meal_ids: List[ObjectId], user_id: str) -> List[dict]:
-        documents = self.meal_collection.aggregate([
-            {"$match": {"_id": {"$in": meal_ids}, "group_id": {"$exists": True}}},
-            {"$group": {"_id": "$group_name", "group_ids": {"$addToSet": "$group_id"}}},
-            {"$match": {"$expr": {"$gte": [{"$size": "$group_ids"}, constants.FREQUENT_MEAL_MIN_COUNT]}}},
-            {"$project": {"_id": 1, "count": {"$size": "$group_ids"}}},
-        ])
+    def __get_frequent_templates(self, meal_id2date: Dict[ObjectId, datetime], user_id: str, today: datetime) -> List[dict]:
+        templates2count = defaultdict(set)
+        group_id2score = {}
 
-        templates2count = {document["_id"]: document["count"] for document in documents}
+        for document in self.meal_collection.find({"_id": {"$in": list(meal_id2date.keys())}, "group_id": {"$exists": True}}):
+            group_id2score[document["group_id"]] = constants.FREQUENT_MEAL_ALPHA ** (today - meal_id2date[document["_id"]]).days
+            templates2count[document["group_name"]].add(document["group_id"])
+
+        templates2count = {name: sum(group_id2score[group_id] for group_id in group_ids) for name, group_ids in templates2count.items()}
         template_names = [template_name for template_name in templates2count]
 
         templates = list(self.template_collection.find({
