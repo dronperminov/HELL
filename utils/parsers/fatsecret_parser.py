@@ -30,10 +30,11 @@ class FatSecretParser:
         try:
             title = soup.find("title")
             name = re.sub(r"\s+Калории и Пищевая Ценность", "", title.text)
-            portion, conversions, scale = self.__get_portion_info(texts[-11].replace(",", "."))
-            energy = self.__round(Decimal(texts[-7].split(' ')[0]) * scale)
-            fats = self.__round(Decimal(texts[-5][:-1].replace(',', '.')) * scale)
-            carbohydrates = self.__round(Decimal(texts[-3][:-1].replace(',', '.')) * scale)
+            portion, conversions, scale = self.__get_portion_info(texts[-13].replace(",", "."))
+            energy = self.__round(Decimal(texts[-9].split(' ')[0]) * scale)
+            fats = self.__round(Decimal(texts[-7][:-1].replace(',', '.')) * scale)
+            carbohydrates = self.__round(Decimal(texts[-5][:-1].replace(',', '.')) * scale)
+            cellulose = self.__round(Decimal(texts[-3][:-1].replace(',', '.')) * scale)
             proteins = self.__round(Decimal(texts[-1][:-1].replace(',', '.')) * scale)
 
             food = FoodItem("", name, "", energy, fats, proteins, carbohydrates, portion, conversions)
@@ -85,7 +86,7 @@ class FatSecretParser:
     def __get_div_texts(self, div: Tag) -> List[str]:
         texts = [d.text.strip() for d in div if d.text.strip()]
         texts_filtered = []
-        labels = ["Белки", "Жиры", "Углеводы"]
+        labels = ["Белки", "Жиры", "Углеводы", "Клетчатка"]
 
         for i, text in enumerate(texts):
             if i < 7:
@@ -93,11 +94,13 @@ class FatSecretParser:
             elif text in labels or texts_filtered[-1] in labels:
                 texts_filtered.append(text)
 
-        assert re.fullmatch(r"Размер Порции", texts_filtered[-12])
-        assert re.fullmatch(r"\d+ ккал", texts_filtered[-7])
-        assert re.fullmatch(r"Жиры", texts_filtered[-6])
+        assert re.fullmatch(r"Размер Порции", texts_filtered[-14])
+        assert re.fullmatch(r"\d+ ккал", texts_filtered[-9])
+        assert re.fullmatch(r"Жиры", texts_filtered[-8])
+        assert re.fullmatch(r"\d+(,\d*)?г", texts_filtered[-7])
+        assert re.fullmatch(r"Углеводы", texts_filtered[-6])
         assert re.fullmatch(r"\d+(,\d*)?г", texts_filtered[-5])
-        assert re.fullmatch(r"Углеводы", texts_filtered[-4])
+        assert re.fullmatch(r"Клетчатка", texts_filtered[-4])
         assert re.fullmatch(r"\d+(,\d*)?г", texts_filtered[-3])
         assert re.fullmatch(r"Белки", texts_filtered[-2])
         assert re.fullmatch(r"\d+(,\d*)?г", texts_filtered[-1])
