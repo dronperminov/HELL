@@ -193,6 +193,8 @@ Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", k
     svg.innerHTML = ''
     svg.style.width = null
 
+    let steps = data.length < 100 ? this.steps : 2
+
     let dataX = data.map((dataItem) => this.ExtractKey(dataItem[keyX]))
     let dataY = data.map((dataItem) => this.ExtractKey(dataItem[keyY]))
 
@@ -220,11 +222,11 @@ Plot.prototype.Plot = function(svg, data, showTrend, className = "plot-color", k
         this.AddPoint(infoX.x[0], infoY.max - dataY[0], viewWidth, viewHeight, linePoints, areaPoints, points, true)
 
     for (let i = 1; i < data.length; i++) {
-        for (let j = 0; j < this.steps; j++) {
-            let t = j / (this.steps - 1)
+        for (let j = 0; j < steps; j++) {
+            let t = j / (steps - 1)
             let xi = infoX.x[i - 1] * (1 - t) + infoX.x[i] * t
             let yi = infoY.max - this.Interpolate(xi, infoX.x, dataY)
-            this.AddPoint(xi, yi, viewWidth, viewHeight, linePoints, areaPoints, points, i == 1 && j == 0 || j == this.steps - 1)
+            this.AddPoint(xi, yi, viewWidth, viewHeight, linePoints, areaPoints, points, i == 1 && j == 0 || j == steps - 1)
         }
     }
 
